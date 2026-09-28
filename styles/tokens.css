@@ -1,0 +1,57 @@
+/* styles/tokens.css */
+:root,
+[data-theme="sheet"] {
+  --paper:        #f3f0e8; /* page ground: drafting paper */
+  --paper-raised: #fbfaf6; /* cards, title blocks, panels */
+  --paper-sunken: #e9e5da; /* image wells, placeholders, table headers */
+  --ink:          #18212c; /* body + headings (≥11:1) */
+  --ink-muted:    #4f5966; /* metadata, captions (≥6.2:1) */
+  --rule:         #8f887a; /* meaningful borders (≥3:1) */
+  --hairline:     #d8d2c4; /* decorative dividers only */
+  --grid:         #e4dfd3; /* drafting grid lines */
+  --blueprint:    #1d4f7c; /* brand: primary buttons, links, dimension lines */
+  --on-blueprint: #ffffff;
+  --hivis:        #e8610f; /* safety orange: CTA fill, focus ring, ongoing */
+  --on-hivis:     #0f141a; /* text on hivis — never white */
+  --hivis-ink:    #a8400a; /* orange as text: stamps, required marks */
+  --cured:        #2b6242; /* completed status */
+  --concrete:     #9aa0a4; /* placeholder line drawings */
+  --focus-ring:   var(--hivis);
+  --shadow-lift:  4px 4px 0 #18212c;
+}
+
+[data-theme="blueprint"] {
+  --paper:        #0e2740;
+  --paper-raised: #14344f;
+  --paper-sunken: #0a1f34;
+  --ink:          #e9eff6;
+  --ink-muted:    #a8bbd1;
+  --rule:         #5d7ea3;
+  --hairline:     #224667;
+  --grid:         #16395a;
+  --blueprint:    #8cc3ff;
+  --on-blueprint: #0b1e33;
+  --hivis:        #ff8c42;
+  --on-hivis:     #1a0e05;
+  --hivis-ink:    #ffa368;
+  --cured:        #7fd1a3;
+  --concrete:     #6d8299;
+  --focus-ring:   var(--hivis);
+  --shadow-lift:  4px 4px 0 #8cc3ff;
+}
+
+:root {
+  /* spacing — 4px base */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-6: 24px;  --space-8: 32px;  --space-12: 48px; --space-16: 64px;
+
+  /* radius */
+  --radius-0: 0px;      /* default: cards, buttons, images */
+  --radius-sm: 2px;     /* inputs, tags */
+  --radius-round: 50%;  /* stamps, markers */
+
+  /* fonts (set by next/font variables, with fallbacks) */
+  --font-display: var(--font-archivo, "Archivo"), "Arial Narrow", sans-serif;
+  --font-sans:    var(--font-plex-sans, "IBM Plex Sans"), system-ui, sans-serif;
+  --font-mono:    var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, monospace;
+}
