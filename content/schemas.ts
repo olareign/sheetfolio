@@ -1,5 +1,21 @@
 import { z } from "zod";
 
+// Plain-language messages for the CMS. This module is imported by both client forms and
+// server validation, so both show the same wording. Unhandled cases fall back to Zod's defaults.
+z.config({
+  customError: (iss) => {
+    if (iss.code === "invalid_type" && (iss.input === undefined || iss.input === null)) return "Required";
+    if (iss.code === "invalid_type" && iss.expected === "number") return "Enter a number";
+    if (iss.code === "too_big" && iss.origin === "string") return `At most ${iss.maximum} characters`;
+    if (iss.code === "too_small" && iss.origin === "number") return `Must be ${iss.minimum} or more`;
+    if (iss.code === "too_big" && iss.origin === "number") return `Must be ${iss.maximum} or less`;
+    if (iss.code === "invalid_format" && iss.format === "url") return "Enter a full URL starting with https://";
+    if (iss.code === "invalid_format" && iss.format === "email") return "Enter a valid email address";
+    if (iss.code === "invalid_value") return "Choose one of the options";
+    return undefined;
+  },
+});
+
 /*
  * Single source of truth for every content type (PRD §4.2, §5).
  * These schemas drive server validation now, the generated CMS forms (Day 2)
@@ -95,7 +111,7 @@ export const Experience = z
     company: RequiredText(120).describe("Company"),
     role: RequiredText(120).describe("Role"),
     startYear: Year.describe("Start year"),
-    endYear: Year.optional().describe("End year (leave empty if current)"),
+    endYear: Year.optional().describe("End year"),
     notes: Text(1000).optional().describe("Notes"),
   })
   .superRefine(endNotBeforeStart);
@@ -239,7 +255,7 @@ export const SiteSettings = z.object({
 
 export const Site = z.object({
   profile: Profile,
-  competencies: z.array(RequiredText(80)).max(12).default([]),
+  competencies: z.array(RequiredText(80)).max(6, "At most 6 competencies").default([]),
   experiences: z.array(Experience).default([]),
   projects: z.array(Project).max(100).default([]),
   certifications: z.array(Certification).default([]),
@@ -341,3 +357,46 @@ export function createEmptySite(input: {
     updatedAt: input.now.toISOString(),
   });
 }
+
+// ── CMS editor inputs ───────────────────────────────────────────────────────
+
+/** True for an object whose every value is empty: an untouched optional section of a form. */
+function isBlankObject(v: unknown): boolean {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    Object.values(v).every((x) => x === undefined || x === null || (typeof x === "string" && x.trim() === ""))
+  );
+}
+
+/** Profile screen: identity, private details + visibility, competencies and research. */
+export const ProfileEditorInput = z.object({
+  profile: Profile.pick({
+    name: true,
+    firstName: true,
+    headline: true,
+    summary: true,
+    location: true,
+    availability: true,
+    yearsExperience: true,
+    avatar: true,
+    phone: true,
+    private: true,
+    visibility: true,
+  }),
+  competencies: z
+    .array(Text(80))
+    .max(6)
+    .transform((list) => list.filter((c) => c.length > 0)),
+  research: z.preprocess((v) => (isBlankObject(v) ? undefined : v), Research.optional()),
+});
+export type ProfileEditorInput = z.input<typeof ProfileEditorInput>;
+
+/** Settings screen: contact channels and theme. Slug changes are not supported yet. */
+export const SettingsInput = z.object({
+  theme: SiteSettings.shape.theme.describe("Default theme"),
+  whatsapp: Profile.shape.whatsapp,
+  whatsappMessage: Profile.shape.whatsappMessage,
+  publicEmail: Profile.shape.publicEmail,
+});
+export type SettingsInput = z.input<typeof SettingsInput>;
