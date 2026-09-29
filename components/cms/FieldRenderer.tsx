@@ -42,7 +42,9 @@ export function FieldRenderer({
     "aria-invalid": error ? true : undefined,
     "aria-describedby": fieldDescribedBy(id, { hint, error }),
   };
-  const optionalText = spec.required ? {} : { setValueAs: blankToUndefined };
+  // Blank optional text → undefined so it clears; but a field with a schema default (e.g. scope: "")
+  // keeps "" so a stored empty value doesn't read as an unsaved change.
+  const optionalText = spec.required || spec.hasDefault ? {} : { setValueAs: blankToUndefined };
 
   let control: React.ReactNode;
   switch (spec.kind) {
