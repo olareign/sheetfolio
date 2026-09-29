@@ -1,17 +1,17 @@
 import { ImageResponse } from "next/og";
-import { CV_TOKENS as T } from "@/lib/cv-tokens";
+import { BRAND_TOKENS as T } from "@/lib/brand-tokens";
 import { getPublished } from "@/lib/site";
 
 // Open Graph card from name + headline (PRD §8). Satori can't read CSS variables, so it uses the
 // same token mirror as the CV (kept in sync with tokens.css by a test).
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Siteproof engineer profile";
+export const alt = "Sheetfolio engineer profile";
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const site = await getPublished(slug);
-  const name = site?.profile.name ?? "Siteproof";
+  const name = site?.profile.name ?? "Sheetfolio";
   const line = site
     ? [site.profile.headline, site.profile.location].filter(Boolean).join(" · ")
     : "Engineer portfolios";
@@ -34,7 +34,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       <div
         style={{ display: "flex", justifyContent: "space-between", fontSize: 22, letterSpacing: 4, color: T.inkMuted }}
       >
-        <span>SITEPROOF</span>
+        <span>SHEETFOLIO</span>
         <span>SHEET SP-000</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>

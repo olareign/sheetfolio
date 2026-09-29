@@ -1,8 +1,8 @@
 /**
- * The PDF renderer can't read CSS variables, so the Drawing-sheet tokens it uses are mirrored here.
- * `cv-tokens.test.ts` fails if these drift from styles/tokens.css.
+ * Sheet-theme colours for places that can't read CSS variables: the CV PDF, the OG image and emails.
+ * `brand-tokens.test.ts` fails if these drift from styles/tokens.css.
  */
-export const CV_TOKENS = {
+export const BRAND_TOKENS = {
   paper: "#fbfaf6", // --paper-raised: a CV prints on white-ish paper
   ink: "#18212c",
   inkMuted: "#4f5966",
@@ -11,10 +11,13 @@ export const CV_TOKENS = {
   blueprint: "#1d4f7c",
   hivisInk: "#a8400a",
   cured: "#2b6242",
+  page: "#f3f0e8", // --paper: the ground behind panels (email body)
+  paperSunken: "#e9e5da",
+  onBlueprint: "#ffffff",
 } as const;
 
 /** Token each mirror entry must equal, in the sheet theme. */
-export const CV_TOKEN_SOURCE: Record<keyof typeof CV_TOKENS, string> = {
+export const BRAND_TOKEN_SOURCE: Record<keyof typeof BRAND_TOKENS, string> = {
   paper: "--paper-raised",
   ink: "--ink",
   inkMuted: "--ink-muted",
@@ -23,4 +26,7 @@ export const CV_TOKEN_SOURCE: Record<keyof typeof CV_TOKENS, string> = {
   blueprint: "--blueprint",
   hivisInk: "--hivis-ink",
   cured: "--cured",
+  page: "--paper",
+  paperSunken: "--paper-sunken",
+  onBlueprint: "--on-blueprint",
 };

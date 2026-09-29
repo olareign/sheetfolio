@@ -2,7 +2,7 @@ import "server-only";
 import { Children } from "react";
 import { Document, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { CvModel } from "@/content/cv";
-import { CV_TOKENS as T } from "./cv-tokens";
+import { BRAND_TOKENS as T } from "./brand-tokens";
 
 // TODO(product): embed Archivo / IBM Plex. Built-in Helvetica + Courier keep the PDF self-contained for now.
 const s = StyleSheet.create({
@@ -68,7 +68,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export function CvDocument({ cv }: { cv: CvModel }) {
   return (
-    <Document title={`${cv.name} · CV`} author={cv.name} subject={cv.headline} creator="Siteproof">
+    <Document title={`${cv.name} · CV`} author={cv.name} subject={cv.headline} creator="Sheetfolio">
       <Page size="A4" style={s.page}>
         <View style={s.head}>
           <Text style={s.label}>Curriculum vitae · Sheet SP-000</Text>
@@ -200,7 +200,7 @@ export function CvDocument({ cv }: { cv: CvModel }) {
 
         {/* TODO(product): page numbers. react-pdf's `render` prop drew nothing here (Next 16 + React 19). */}
         <Text style={[s.label, s.footerLeft]} fixed>
-          {cv.footer} · Drawn on Siteproof
+          {cv.footer} · Drawn on Sheetfolio
         </Text>
       </Page>
     </Document>

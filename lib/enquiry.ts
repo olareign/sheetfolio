@@ -1,6 +1,8 @@
 import "server-only";
 import { LeadInput, type Lead, type Site } from "@/content/schemas";
-import { escapeHtml, sendEmail } from "./email";
+import { sendEmail } from "./email";
+import { enquiryEmail } from "./email-templates";
+import { publicSiteUrl } from "./env";
 import { addLead, SiteError } from "./site";
 
 export type EnquiryResult =
@@ -18,25 +20,8 @@ type Deps = {
 };
 
 function emailFor(site: Site, slug: string, lead: Lead) {
-  const lines = [
-    `New enquiry from your Siteproof page (/${slug}).`,
-    "",
-    `Name: ${lead.name}`,
-    `Email: ${lead.email}`,
-    ...(lead.company ? [`Company / project: ${lead.company}`] : []),
-    "",
-    lead.message,
-    "",
-    "Reply to this email to answer. It is also in your Leads inbox.",
-  ];
-  const html = lines.map((l) => (l ? `<p>${escapeHtml(l)}</p>` : "")).join("");
-  return {
-    to: site.profile.publicEmail,
-    subject: `New enquiry from ${lead.name}`,
-    text: lines.join("\n"),
-    html,
-    replyTo: lead.email,
-  };
+  const content = enquiryEmail({ lead, firstName: site.profile.firstName, slug, origin: publicSiteUrl().origin });
+  return { to: site.profile.publicEmail, replyTo: lead.email, ...content };
 }
 
 /**
