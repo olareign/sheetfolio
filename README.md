@@ -37,6 +37,13 @@ docker run -d --name sp-srh -p 8079:80 -e SRH_MODE=env -e SRH_TOKEN=local-dev-to
 
 Then set `UPSTASH_REDIS_REST_URL=http://localhost:8079` and `UPSTASH_REDIS_REST_TOKEN=local-dev-token`.
 
+Note: `@upstash/ratelimit` sends Lua scripts with an Upstash-only flag (`allow-key-locking`) that open-source
+Redis rejects. Against a plain Redis the contact form logs `rate limiter unavailable` and fails open (the
+enquiry still goes through). On Upstash the limit (5 per IP per hour) is enforced.
+
+Without `AUTH_RESEND_KEY` in development, sign-in links and enquiry notifications are printed to the dev
+server log instead of emailed.
+
 ## Scripts
 
 | Script                                    | Does                                                                                          |

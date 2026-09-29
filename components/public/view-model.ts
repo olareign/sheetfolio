@@ -9,9 +9,13 @@ export type PageContext = {
   slug: string;
   /** Where profile links point: "/{slug}" live, "/preview" for the draft preview. */
   basePath: string;
+  /** Draft preview: no enquiries, no view counting. */
+  preview?: boolean;
 };
 
-export const cvHref = (slug: string) => `/api/cv/${slug}`;
+/** Versioned by publish time so each published CV can be cached forever (see /api/cv). */
+export const cvHref = (slug: string, publishedAt?: string) =>
+  `/api/cv/${slug}${publishedAt ? `?v=${encodeURIComponent(publishedAt)}` : ""}`;
 
 export function whatsappHref(site: Site, context?: string): string {
   return whatsappLink(site.profile.whatsapp, site.profile.whatsappMessage, context);

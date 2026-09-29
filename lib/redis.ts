@@ -23,5 +23,7 @@ export const keys = {
   viewsProject: (slug: string, projectId: string) => `views:${slug}:p:${projectId}`,
   leads: (slug: string) => `leads:${slug}`,
   leadsUnread: (slug: string) => `leads:${slug}:unread`,
+  /** Ids of leads the engineer has read (kept apart so marking read never rewrites the list). */
+  leadsRead: (slug: string) => `leads:${slug}:read`,
   sites: () => "sites",
 } as const;

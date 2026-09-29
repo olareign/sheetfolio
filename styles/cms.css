@@ -575,3 +575,126 @@
     display: none;
   }
 }
+
+/* 7-day views chart (sidebar). Single series: blueprint bars on a rule baseline, square ends. */
+.cms-chart {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--hairline);
+}
+.cms-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cms-chart-total {
+  font: 600 18px/1 var(--font-mono);
+  color: var(--ink);
+}
+.cms-chart-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 40px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  align-items: end;
+  border-bottom: 1px solid var(--rule);
+}
+.cms-chart-bars li {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.cms-chart-bar {
+  display: block;
+  width: 100%;
+  background: var(--blueprint);
+}
+.cms-chart-bars li:hover .cms-chart-bar {
+  background: var(--ink);
+}
+.cms-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  font: 400 10px/1 var(--font-mono);
+  color: var(--ink-muted);
+}
+.cms-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--hivis);
+  color: var(--on-hivis);
+  font: 600 11px/1 var(--font-mono);
+}
+@media (max-width: 900px) {
+  .cms-chart {
+    display: none;
+  }
+}
+
+/* Leads inbox */
+.cms-lead-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.cms-leads {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.cms-lead {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule);
+}
+.cms-lead.is-unread {
+  border-left-color: var(--hivis);
+}
+.cms-lead-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.cms-lead-head > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+.cms-lead-head b {
+  font: 600 16px/1.3 var(--font-sans);
+}
+.cms-lead-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cms-lead-body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.cms-lead-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.cms-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}

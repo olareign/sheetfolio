@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Sidebar, type NavItem } from "@/components/cms/Sidebar";
 import { TopBar } from "@/components/cms/TopBar";
+import { ViewsChart } from "@/components/cms/ViewsChart";
 import { publishState } from "@/content/cms";
 import { collections, type CollectionName } from "@/content/schemas";
 import { getCmsContext } from "@/lib/cms-data";
@@ -19,8 +20,7 @@ const NAV_COLLECTIONS: CollectionName[] = [
 ];
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { account, draft, published } = await getCmsContext();
-  // TODO(day 4): Leads inbox with unread badge and the 7-day views chart.
+  const { account, draft, published, unread, weekViews } = await getCmsContext();
   const items: NavItem[] = [
     { href: "/dashboard", label: "Overview" },
     { href: "/dashboard/profile", label: "Profile" },
@@ -29,17 +29,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       label: collections[name].label,
       count: draft[name].length,
     })),
+    { href: "/dashboard/leads", label: "Leads", badge: unread },
     { href: "/dashboard/settings", label: "Settings" },
   ];
   const labels = Object.fromEntries([
     ...NAV_COLLECTIONS.map((n) => [n, collections[n].label]),
     ["profile", "Profile"],
     ["settings", "Settings"],
+    ["leads", "Leads"],
   ]);
 
   return (
     <div className="cms">
-      <Sidebar slug={account.slug} items={items} live={Boolean(published)} />
+      <Sidebar slug={account.slug} items={items} live={Boolean(published)} chart={<ViewsChart days={weekViews} />} />
       <div className="cms-main">
         <TopBar state={publishState(draft, published)} updatedAt={draft.updatedAt} labels={labels} />
         {children}

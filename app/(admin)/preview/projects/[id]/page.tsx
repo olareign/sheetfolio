@@ -15,7 +15,7 @@ export default async function PreviewProjectPage({ params }: { params: Promise<{
   return (
     <>
       <PreviewBanner live={Boolean(published)} />
-      <ProjectPage site={draft} project={project} slug={account.slug} basePath="/preview" />
+      <ProjectPage site={draft} project={project} slug={account.slug} basePath="/preview" preview />
     </>
   );
 }

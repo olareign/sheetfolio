@@ -47,7 +47,11 @@ export function Hero({ site, slug }: PageContext) {
             <Button href="#contact" variant="primary" icon={<Mail size={18} strokeWidth={1.5} aria-hidden="true" />}>
               Send an email
             </Button>
-            <Button href={cvHref(slug)} icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />} native>
+            <Button
+              href={cvHref(slug, site.publishedAt)}
+              icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}
+              native
+            >
               Download CV
             </Button>
           </div>

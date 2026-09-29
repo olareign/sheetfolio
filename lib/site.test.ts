@@ -18,8 +18,13 @@ const {
   addLead,
   claimSlug,
   getDraft,
+  getProjectViews,
   getPublished,
+  getUnreadCount,
+  getWeekViews,
   listLeads,
+  markAllLeadsRead,
+  markLeadRead,
   publish,
   recordView,
   saveDraft,
@@ -225,5 +230,81 @@ describe("leads", () => {
     await expect(addLead(SLUG, { ...lead(1), email: "nope" })).rejects.toMatchObject({ code: "INVALID" });
     await expect(addLead(SLUG, { ...lead(1), message: "  " })).rejects.toMatchObject({ code: "INVALID" });
     expect(fake.lists.size).toBe(0);
+  });
+});
+
+describe("lead read state", () => {
+  const lead = (n: number) => ({ name: `Client ${n}`, email: `c${n}@example.com`, message: "Hello" });
+
+  it("marks one lead read, once, and keeps the counter in step", async () => {
+    const a = await addLead(SLUG, lead(1), t0);
+    await addLead(SLUG, lead(2), t0);
+    expect(await markLeadRead(SLUG, a.id)).toBe(true);
+    expect(await markLeadRead(SLUG, a.id)).toBe(true); // idempotent
+    expect(await getUnreadCount(SLUG)).toBe(1);
+    const leads = await listLeads(SLUG, 0);
+    expect(leads.find((l) => l.id === a.id)?.read).toBe(true);
+    expect(leads.filter((l) => !l.read)).toHaveLength(1);
+  });
+
+  it("marks the right lead even after new leads shift the list", async () => {
+    const a = await addLead(SLUG, lead(1), t0);
+    await addLead(SLUG, lead(2), t0); // a is now at index 1
+    await markLeadRead(SLUG, a.id);
+    const leads = await listLeads(SLUG, 0);
+    expect(leads.map((l) => [l.name, l.read])).toEqual([
+      ["Client 2", false],
+      ["Client 1", true],
+    ]);
+  });
+
+  it("ignores forged or unknown ids without touching the counter", async () => {
+    await addLead(SLUG, lead(1), t0);
+    expect(await markLeadRead(SLUG, crypto.randomUUID())).toBe(false);
+    expect(await markLeadRead(SLUG, "not-a-uuid")).toBe(false);
+    expect(await getUnreadCount(SLUG)).toBe(1);
+  });
+
+  it("marks all read and zeroes the counter", async () => {
+    await addLead(SLUG, lead(1), t0);
+    await addLead(SLUG, lead(2), t0);
+    await markAllLeadsRead(SLUG);
+    expect(await getUnreadCount(SLUG)).toBe(0);
+    expect((await listLeads(SLUG, 0)).every((l) => l.read)).toBe(true);
+    await addLead(SLUG, lead(3), t0);
+    expect(await getUnreadCount(SLUG)).toBe(1);
+  });
+
+  it("never reports a negative unread count", async () => {
+    fake.strings.set(`leads:${SLUG}:unread`, "-3");
+    expect(await getUnreadCount(SLUG)).toBe(0);
+  });
+});
+
+describe("view counters", () => {
+  it("returns the last 7 UTC days oldest first, zero-filled", async () => {
+    seedDraft();
+    await recordView(SLUG, undefined, new Date("2026-09-28T23:00:00.000Z"));
+    await recordView(SLUG, undefined, new Date("2026-09-26T01:00:00.000Z"));
+    await recordView(SLUG, undefined, new Date("2026-09-26T02:00:00.000Z"));
+    const week = await getWeekViews(SLUG, new Date("2026-09-28T23:30:00.000Z"));
+    expect(week.map((d) => d.date)).toEqual([
+      "2026-09-22",
+      "2026-09-23",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-26",
+      "2026-09-27",
+      "2026-09-28",
+    ]);
+    expect(week.map((d) => d.views)).toEqual([0, 0, 0, 0, 2, 0, 1]);
+  });
+
+  it("reads per-project totals", async () => {
+    seedDraft();
+    await recordView(SLUG, "p-1", t0);
+    await recordView(SLUG, "p-1", t0);
+    expect(await getProjectViews(SLUG, ["p-1", "p-2"])).toEqual({ "p-1": 2, "p-2": 0 });
+    expect(await getProjectViews(SLUG, [])).toEqual({});
   });
 });

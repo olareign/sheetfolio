@@ -3,13 +3,23 @@ import { LocalTime } from "@/components/cms/LocalTime";
 import { issueHref, publishState } from "@/content/cms";
 import { collections, PublishableSite, type CollectionName } from "@/content/schemas";
 import { getCmsContext } from "@/lib/cms-data";
+import { getProjectViews } from "@/lib/site";
 
 export const metadata = { title: "Overview" };
 
 const STATE_LABEL = { live: "Live", changes: "Unpublished changes", unpublished: "Not published" } as const;
 
 export default async function OverviewPage() {
-  const { account, draft, published } = await getCmsContext();
+  const { account, draft, published, unread, weekViews } = await getCmsContext();
+  const weekTotal = weekViews.reduce((n, d) => n + d.views, 0);
+  const projectViews = await getProjectViews(
+    account.slug,
+    draft.projects.map((p) => p.id),
+  );
+  const ranked = [...draft.projects]
+    .map((p) => ({ ...p, views: projectViews[p.id] ?? 0 }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 5);
   const state = publishState(draft, published);
   const readiness = PublishableSite.safeParse(draft);
   const todo = readiness.success
@@ -34,15 +44,34 @@ export default async function OverviewPage() {
           </span>
         </div>
         <div>
-          <span className="sp-label">Projects</span>
-          <span className="cms-stat">{draft.projects.length}</span>
+          <span className="sp-label">Views this week</span>
+          <span className="cms-stat">{weekTotal}</span>
         </div>
         <div>
-          <span className="sp-label">Page</span>
-          <span className="sp-tb-mono">/{account.slug}</span>
+          <span className="sp-label">Unread leads</span>
+          <Link href="/dashboard/leads" className="cms-stat">
+            {unread}
+          </Link>
         </div>
       </div>
-      {/* TODO(day 4): views this week and unread leads. */}
+      {ranked.some((p) => p.views > 0) && (
+        <section className="cms-section" aria-labelledby="pv-title">
+          <h2 id="pv-title">Most viewed projects</h2>
+          <table className="sp-spec">
+            <caption className="sp-visually-hidden">All-time views per project</caption>
+            <tbody>
+              {ranked.map((p) => (
+                <tr key={p.id}>
+                  <th scope="row">{p.drawingNo}</th>
+                  <td>
+                    {p.title} · <span className="sp-annot">{p.views} views</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
       {(todo.length > 0 || empty.length > 0) && (
         <section className="cms-section" aria-labelledby="todo-title">
           <h2 id="todo-title">{todo.length ? "Before you can publish" : "To make your page complete"}</h2>

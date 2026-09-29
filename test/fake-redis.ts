@@ -47,6 +47,28 @@ export class FakeRedis {
     return next;
   }
 
+  async decr(key: string): Promise<number> {
+    const next = Number(this.strings.get(key) ?? "0") - 1;
+    this.strings.set(key, String(next));
+    return next;
+  }
+
+  async mget<T = unknown>(...keys: string[]): Promise<T> {
+    return keys.map((k) => {
+      const v = this.strings.get(k);
+      return v === undefined ? null : dec(v);
+    }) as T;
+  }
+
+  async llen(key: string): Promise<number> {
+    return this.lists.get(key)?.length ?? 0;
+  }
+
+  async smismember(key: string, members: string[]): Promise<(0 | 1)[]> {
+    const s = this.sets.get(key);
+    return members.map((m) => (s?.has(m) ? 1 : 0));
+  }
+
   async expire(key: string, seconds: number): Promise<number> {
     this.ttls.set(key, seconds);
     return 1;
@@ -79,7 +101,8 @@ export class FakeRedis {
 
   async lrange<T = unknown>(key: string, start: number, stop: number): Promise<T[]> {
     const l = this.lists.get(key) ?? [];
-    return l.slice(start, stop + 1).map((v) => dec(v) as T);
+    const end = stop < 0 ? l.length + stop + 1 : stop + 1; // Redis: -1 is the last element
+    return l.slice(start, end).map((v) => dec(v) as T);
   }
 
   pipeline() {

@@ -6,9 +6,25 @@ import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/(admin)/dashboard/actions";
 import { Button } from "@/components/sp/Button";
 
-export type NavItem = { href: string; label: string; count?: number };
+export type NavItem = {
+  href: string;
+  label: string;
+  count?: number;
+  /** Highlighted count, e.g. unread leads. */ badge?: number;
+};
 
-export function Sidebar({ slug, items, live }: { slug: string; items: NavItem[]; live: boolean }) {
+export function Sidebar({
+  slug,
+  items,
+  live,
+  chart,
+}: {
+  slug: string;
+  items: NavItem[];
+  live: boolean;
+  /** Server-rendered 7-day chart. */
+  chart?: React.ReactNode;
+}) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -29,10 +45,17 @@ export function Sidebar({ slug, items, live }: { slug: string; items: NavItem[];
         {items.map((item) => (
           <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
             <span>{item.label}</span>
-            {item.count !== undefined && <span className="cms-count">{item.count}</span>}
+            {item.badge ? (
+              <span className="cms-badge" aria-label={`${item.badge} unread`}>
+                {item.badge}
+              </span>
+            ) : (
+              item.count !== undefined && <span className="cms-count">{item.count}</span>
+            )}
           </Link>
         ))}
       </nav>
+      {chart}
       <div className="cms-sidebar-foot">
         {live ? (
           <Button

@@ -10,6 +10,7 @@ import { ActionBar } from "./ActionBar";
 import { Gallery } from "./Gallery";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
+import { ViewBeacon } from "./ViewBeacon";
 import { whatsappHref, type PageContext } from "./view-model";
 
 /** Project detail (PRD §3.2). */
@@ -125,6 +126,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
       </main>
       <SiteFooter {...ctx} />
       <ActionBar {...ctx} context={context} />
+      {!ctx.preview && <ViewBeacon slug={ctx.slug} projectId={project.id} />}
     </div>
   );
 }

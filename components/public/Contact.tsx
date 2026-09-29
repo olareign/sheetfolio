@@ -1,11 +1,11 @@
 import { Download, MessageCircle } from "lucide-react";
 import { Button } from "@/components/sp/Button";
-import { Field } from "@/components/sp/Field";
 import { visibleReferees } from "@/content/derive";
+import { EnquiryForm } from "./EnquiryForm";
 import { cvHref, whatsappHref, type PageContext } from "./view-model";
 
 /** Contact (PRD §3.1.7): always in the Blueprint theme, on the drafting grid. */
-export function Contact({ site, slug }: PageContext) {
+export function Contact({ site, slug, preview }: PageContext) {
   const { profile } = site;
   const referees = visibleReferees(site);
   return (
@@ -37,7 +37,11 @@ export function Contact({ site, slug }: PageContext) {
                 WhatsApp {profile.firstName}
               </Button>
             )}
-            <Button href={cvHref(slug)} native icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}>
+            <Button
+              href={cvHref(slug, site.publishedAt)}
+              native
+              icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}
+            >
               Download CV
             </Button>
           </div>
@@ -57,29 +61,7 @@ export function Contact({ site, slug }: PageContext) {
           )}
         </div>
         <div className="pp-panel">
-          {/* TODO(day 4): wire to the enquiry Server Action (Resend + lead storage + rate limit). */}
-          <form className="pp-form" aria-labelledby="contact-title" aria-describedby="enquiry-note">
-            <Field id="enquiry-name" label="Name" required>
-              <input id="enquiry-name" name="name" className="sp-input" autoComplete="name" required />
-            </Field>
-            <Field id="enquiry-email" label="Email" required>
-              <input id="enquiry-email" name="email" type="email" className="sp-input" autoComplete="email" required />
-            </Field>
-            <Field id="enquiry-company" label="Company / project">
-              <input id="enquiry-company" name="company" className="sp-input" autoComplete="organization" />
-            </Field>
-            <Field id="enquiry-message" label="Message" required>
-              <textarea id="enquiry-message" name="message" className="sp-input" rows={5} required />
-            </Field>
-            <div>
-              <Button type="submit" variant="primary" disabled>
-                Send enquiry
-              </Button>
-            </div>
-            <p id="enquiry-note" className="sp-field-hint">
-              The enquiry form opens soon. Until then, use WhatsApp.
-            </p>
-          </form>
+          <EnquiryForm slug={slug} firstName={profile.firstName} disabled={preview} />
         </div>
       </div>
     </section>

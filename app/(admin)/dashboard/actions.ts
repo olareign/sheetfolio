@@ -7,7 +7,7 @@ import { CollectionNameSchema } from "@/content/schemas";
 import { signOut } from "@/lib/auth";
 import { deleteItem, reorderItems, saveProfile, saveSettings, upsertItem } from "@/lib/collections";
 import { requireAccount } from "@/lib/session";
-import { publish, SiteError } from "@/lib/site";
+import { markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
 export type ActionResult =
   { ok: true; id?: string; at: string } | { ok: false; formError?: string; fieldErrors: Record<string, string> };
@@ -77,6 +77,18 @@ export async function publishAction(): Promise<ActionResult> {
   return run(async (slug) => {
     await publish(slug);
   });
+}
+
+export async function markLeadReadAction(id: unknown): Promise<ActionResult> {
+  const leadId = z.string().uuid().safeParse(id);
+  if (!leadId.success) return badRequest("Unknown enquiry.");
+  return run(async (slug) => {
+    if (!(await markLeadRead(slug, leadId.data))) throw new SiteError("NOT_FOUND", "Lead not found");
+  });
+}
+
+export async function markAllLeadsReadAction(): Promise<ActionResult> {
+  return run((slug) => markAllLeadsRead(slug));
 }
 
 export async function signOutAction(): Promise<void> {

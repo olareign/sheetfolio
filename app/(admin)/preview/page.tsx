@@ -12,7 +12,7 @@ export default async function PreviewPage() {
   return (
     <>
       <PreviewBanner live={Boolean(published)} />
-      <ProfilePage site={draft} slug={account.slug} basePath="/preview" />
+      <ProfilePage site={draft} slug={account.slug} basePath="/preview" preview />
     </>
   );
 }

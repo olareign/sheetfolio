@@ -183,16 +183,90 @@ export async function addLead(slug: string, input: LeadInput, now: Date = new Da
   return lead;
 }
 
-/** Page is zero-based. */
+/** Page is zero-based. `read` comes from the read-set, not the stored item. */
 export async function listLeads(slug: string, page: number, pageSize: number = LEADS_PAGE_SIZE): Promise<Lead[]> {
   const s = assertSlug(slug);
   const safePage = Number.isInteger(page) && page >= 0 ? page : 0;
   const start = safePage * pageSize;
   const raw = await redis().lrange<unknown>(keys.leads(s), start, start + pageSize - 1);
-  return raw.map((r) => {
+  const leads = raw.map((r) => {
     const parsed = Lead.safeParse(r);
     if (!parsed.success)
       throw new SiteError("INVALID", `Stored lead in ${keys.leads(s)} is invalid`, parsed.error.issues);
     return parsed.data;
   });
+  if (leads.length === 0) return leads;
+  const read = await redis().smismember(
+    keys.leadsRead(s),
+    leads.map((l) => l.id),
+  );
+  return leads.map((l, i) => ({ ...l, read: read[i] === 1 }));
+}
+
+export async function countLeads(slug: string): Promise<number> {
+  return redis().llen(keys.leads(assertSlug(slug)));
+}
+
+export async function getUnreadCount(slug: string): Promise<number> {
+  const n = await redis().get<number>(keys.leadsUnread(assertSlug(slug)));
+  return Math.max(0, Number(n ?? 0));
+}
+
+const LeadId = z.string().uuid();
+
+/**
+ * Marks one lead read. The read state lives in a set, so a lead arriving at the same moment
+ * (which shifts list positions) can never cause the wrong item to be updated.
+ * Returns false if the lead doesn't exist (e.g. trimmed or a forged id).
+ */
+export async function markLeadRead(slug: string, id: string): Promise<boolean> {
+  const s = assertSlug(slug);
+  if (!LeadId.safeParse(id).success) return false;
+  const all = await redis().lrange<{ id?: unknown }>(keys.leads(s), 0, -1);
+  if (!all.some((l) => l.id === id)) return false;
+  const added = await redis().sadd(keys.leadsRead(s), id);
+  if (added === 1) {
+    const left = await redis().decr(keys.leadsUnread(s));
+    if (left < 0) await redis().set(keys.leadsUnread(s), 0); // self-heal a drifted counter
+  }
+  return true;
+}
+
+/** Marks every stored lead read and resets the read-set to exactly the current leads (prunes trimmed ids). */
+export async function markAllLeadsRead(slug: string): Promise<void> {
+  const s = assertSlug(slug);
+  const ids = (await redis().lrange<{ id?: unknown }>(keys.leads(s), 0, -1))
+    .map((l) => l.id)
+    .filter((id): id is string => typeof id === "string");
+  const tx = redis().multi();
+  tx.del(keys.leadsRead(s));
+  if (ids.length) tx.sadd(keys.leadsRead(s), ...(ids as [string, ...string[]]));
+  // A lead arriving between the read above and this write would be counted as read; the window is
+  // milliseconds and the lead itself still shows as unread in the inbox.
+  tx.set(keys.leadsUnread(s), 0);
+  await tx.exec();
+}
+
+// ── View counters (dashboard) ───────────────────────────────────────────────
+
+export type DayViews = { date: string; views: number };
+
+/** Page views for the 7 UTC days ending today, oldest first. */
+export async function getWeekViews(slug: string, now: Date = new Date()): Promise<DayViews[]> {
+  const s = assertSlug(slug);
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setUTCDate(d.getUTCDate() - (6 - i));
+    return d.toISOString().slice(0, 10);
+  });
+  const counts = await redis().mget<(number | null)[]>(...dates.map((d) => keys.viewsDay(s, d)));
+  return dates.map((date, i) => ({ date, views: Number(counts[i] ?? 0) }));
+}
+
+/** All-time views per project id. */
+export async function getProjectViews(slug: string, projectIds: readonly string[]): Promise<Record<string, number>> {
+  const s = assertSlug(slug);
+  if (projectIds.length === 0) return {};
+  const counts = await redis().mget<(number | null)[]>(...projectIds.map((id) => keys.viewsProject(s, id)));
+  return Object.fromEntries(projectIds.map((id, i) => [id, Number(counts[i] ?? 0)]));
 }
