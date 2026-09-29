@@ -41,4 +41,17 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ ...base, AUTH_SECRET: "short" })).toThrow(/AUTH_SECRET/);
     expect(() => parseEnv({ ...base, UPSTASH_REDIS_REST_URL: "not a url" })).toThrow(/UPSTASH_REDIS_REST_URL/);
   });
+
+  it("accepts the KV_REST_API_* names Vercel's Upstash integration injects", () => {
+    const rest = { AUTH_SECRET: base.AUTH_SECRET }; // no UPSTASH_* names at all
+    const env = parseEnv({ ...rest, KV_REST_API_URL: "https://kv.upstash.io", KV_REST_API_TOKEN: "kv-token" });
+    expect(env.UPSTASH_REDIS_REST_URL).toBe("https://kv.upstash.io");
+    expect(env.UPSTASH_REDIS_REST_TOKEN).toBe("kv-token");
+  });
+
+  it("prefers the explicit UPSTASH_* names when both are set", () => {
+    expect(parseEnv({ ...base, KV_REST_API_URL: "https://other.upstash.io" }).UPSTASH_REDIS_REST_URL).toBe(
+      base.UPSTASH_REDIS_REST_URL,
+    );
+  });
 });

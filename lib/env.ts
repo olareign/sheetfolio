@@ -34,7 +34,12 @@ export type Env = z.infer<typeof EnvSchema>;
 
 /** Pure parser, exported for tests. Throws one readable error listing every problem. */
 export function parseEnv(source: Record<string, string | undefined>): Env {
-  const parsed = EnvSchema.safeParse(source);
+  // Upstash connected through Vercel's Storage tab injects KV_REST_API_* instead of UPSTASH_REDIS_REST_*.
+  const parsed = EnvSchema.safeParse({
+    ...source,
+    UPSTASH_REDIS_REST_URL: source.UPSTASH_REDIS_REST_URL || source.KV_REST_API_URL,
+    UPSTASH_REDIS_REST_TOKEN: source.UPSTASH_REDIS_REST_TOKEN || source.KV_REST_API_TOKEN,
+  });
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n");
     throw new Error(`Invalid environment configuration:\n${issues}\nSee .env.example.`);
