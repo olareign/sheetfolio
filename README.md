@@ -1,4 +1,4 @@
-# Siteproof
+# Sheetfolio
 
 Portfolio pages for civil engineers, managed from a schema-driven CMS. Next.js (App Router) + Upstash Redis.
 
@@ -43,6 +43,26 @@ enquiry still goes through). On Upstash the limit (5 per IP per hour) is enforce
 
 Without `AUTH_RESEND_KEY` in development, sign-in links and enquiry notifications are printed to the dev
 server log instead of emailed.
+
+## Deploying to Vercel
+
+`vercel.json` pins the framework to Next.js and the pnpm install/build commands, so the build is right even if
+the project was imported before the code existed (Vercel then detects the framework as "Other" and every build
+fails looking for a `public` output folder).
+
+Set these in Vercel → Project → Settings → Environment Variables for **Production** (and Preview if you use it):
+
+| Variable                                             | Notes                                                                                     |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Upstash database (REST)                                                                   |
+| `AUTH_SECRET`                                        | `npx auth secret`                                                                         |
+| `AUTH_RESEND_KEY`                                    | **Required in production**: the app refuses to serve without it                           |
+| `RESEND_FROM`                                        | e.g. `Sheetfolio <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
+| `NEXT_PUBLIC_SITE_URL`                               | the production URL, e.g. `https://sheetfolio.vercel.app` (used for links, sitemap, OG)    |
+| `ADMIN_EMAILS`                                       | who can open `/admin`                                                                     |
+| `BLOB_READ_WRITE_TOKEN`                              | added automatically when you connect a Vercel Blob store                                  |
+
+Production deploys come from pushes to `main`. `vercel` from the CLI creates a Preview; use `vercel --prod` for production.
 
 ## Scripts
 
