@@ -12,7 +12,9 @@ export const metadata: Metadata = { title: "Sign in" };
 const ERROR_MESSAGES: Record<string, string> = {
   Verification: "That sign-in link has expired or was already used. Request a new one.",
   AccessDenied: "Access denied for this email address.",
-  Configuration: "Sign-in is not configured correctly on the server. Contact support.",
+  // Auth.js also reports a failed email send as "Configuration".
+  Configuration:
+    "We couldn't send your sign-in email. Try again in a few minutes, or contact support if it keeps happening.",
 };
 
 type Props = { searchParams: Promise<{ sent?: string; error?: string }> };
