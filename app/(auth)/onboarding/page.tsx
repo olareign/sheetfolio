@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
 
   // TODO(product): final domain. Until then show whatever NEXT_PUBLIC_SITE_URL is set to.
   const siteUrl = env().NEXT_PUBLIC_SITE_URL;
-  const siteHost = siteUrl ? new URL(siteUrl).host : "siteproof";
+  const siteHost = siteUrl ? new URL(siteUrl).host : "sheetfolio";
 
   return (
     <SheetPanel sheet="A-02" title="Claim your page">

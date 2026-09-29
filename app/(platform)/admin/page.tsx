@@ -7,7 +7,7 @@ import { requireAdmin } from "@/lib/session";
 import "@/styles/cms.css";
 
 // Neutral title: a non-admin gets a 404 and nothing should hint that /admin exists.
-export const metadata: Metadata = { title: { absolute: "Siteproof" }, robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { absolute: "Sheetfolio" }, robots: { index: false, follow: false } };
 
 const STATUS = {
   live: { label: "Live", className: "sp-tag sp-tag--done" },

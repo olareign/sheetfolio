@@ -7,7 +7,7 @@ export default function NotFound() {
       <p>This page doesn&rsquo;t exist, or it hasn&rsquo;t been published yet.</p>
       <div>
         <Button href="/" variant="primary">
-          Go to Siteproof
+          Go to Sheetfolio
         </Button>
       </div>
     </SheetPanel>

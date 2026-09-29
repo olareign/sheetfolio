@@ -8,7 +8,7 @@ import { collections, type CollectionName } from "@/content/schemas";
 import { getCmsContext } from "@/lib/cms-data";
 import "@/styles/cms.css";
 
-export const metadata: Metadata = { title: { default: "Dashboard", template: "%s · Dashboard · Siteproof" } };
+export const metadata: Metadata = { title: { default: "Dashboard", template: "%s · Dashboard · Sheetfolio" } };
 
 const NAV_COLLECTIONS: CollectionName[] = [
   "experiences",

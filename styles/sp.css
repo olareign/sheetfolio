@@ -1,4 +1,4 @@
-/* styles/sp.css — Siteproof components. Requires tokens.css. */
+/* styles/sp.css — Sheetfolio components. Requires tokens.css. */
 .sp-root, .sp-root * { box-sizing: border-box; }
 .sp-root { font-family: var(--font-sans); color: var(--ink); background: var(--paper); }
 

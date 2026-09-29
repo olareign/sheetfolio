@@ -7,9 +7,9 @@ import "@/styles/app.css";
 
 export const metadata: Metadata = {
   metadataBase: publicSiteUrl(),
-  title: { default: "Siteproof", template: "%s · Siteproof" },
+  title: { default: "Sheetfolio", template: "%s · Sheetfolio" },
   description: "Portfolio pages for civil engineers, drawn like a construction drawing set.",
-  openGraph: { siteName: "Siteproof", type: "website" },
+  openGraph: { siteName: "Sheetfolio", type: "website" },
   twitter: { card: "summary_large_image" },
 };
 

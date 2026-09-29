@@ -21,7 +21,7 @@ describe("parseEnv", () => {
     expect(env.BLOB_READ_WRITE_TOKEN).toBeUndefined();
     expect(env.NEXT_PUBLIC_SITE_URL).toBeUndefined();
     expect(env.ADMIN_EMAILS).toEqual([]);
-    expect(env.RESEND_FROM).toBe("Siteproof <onboarding@resend.dev>");
+    expect(env.RESEND_FROM).toBe("Sheetfolio <onboarding@resend.dev>");
   });
 
   it("normalises admin emails", () => {

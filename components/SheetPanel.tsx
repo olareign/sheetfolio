@@ -6,7 +6,7 @@ export function SheetPanel({ sheet, title, children }: { sheet: string; title: s
     <main className="sp-auth sp-grid-bg">
       <section className="sp-auth-panel" aria-labelledby="auth-title">
         <div className="sp-auth-head">
-          <span className="sp-label">Siteproof</span>
+          <span className="sp-label">Sheetfolio</span>
           <span className="sp-label">Sheet {sheet}</span>
         </div>
         <div className="sp-auth-body">

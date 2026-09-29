@@ -1,6 +1,6 @@
-# Siteproof — Product Requirements Document
+# Sheetfolio — Product Requirements Document
 
-> Working name: **Siteproof** (formerly "realhole"). First profile: **Rasaq Idris Olawale**, Site Engineer.
+> Working name: **Sheetfolio** (formerly "realhole"). First profile: **Rasaq Idris Olawale**, Site Engineer.
 > Owner: Olareign · Version 1.0 · 28 Sep 2026
 > Companion file: `DESIGN_SYSTEM.md` (all visual rules, tokens and component CSS).
 
@@ -18,7 +18,7 @@
 
 ## 1. Overview
 
-Siteproof gives every civil engineer a public portfolio page, managed from a CMS, that shows a client or employer their whole record at a glance.
+Sheetfolio gives every civil engineer a public portfolio page, managed from a CMS, that shows a client or employer their whole record at a glance.
 
 ### 1.1 Problem
 
@@ -76,7 +76,7 @@ Sections, top to bottom:
 5. **Credentials** — certification cards with stamp + "View certificate" link (if scan uploaded), education card, research card, then a 6-cell row of core competencies.
 6. **Testimonials** — shown only if at least one exists.
 7. **Contact** — always in the Blueprint (dark) theme; headline, WhatsApp + Download CV buttons, "References available on request", and the enquiry form (name, email, company/project, message).
-8. **Footer** — "Rev. YYYY.MM · Last published DD Mon YYYY" and "Drawn on Siteproof".
+8. **Footer** — "Rev. YYYY.MM · Last published DD Mon YYYY" and "Drawn on Sheetfolio".
 
 Mobile (≤ 640px): single column, sections stacked, sticky bottom bar with **WhatsApp** (2/3 width) and **Call** (1/3).
 
@@ -91,7 +91,7 @@ Mobile (≤ 640px): single column, sections stacked, sticky bottom bar with **Wh
 
 ### 3.3 CMS dashboard — `/dashboard`
 
-- **Sidebar:** Siteproof logo, site slug, nav (Overview, Profile, Experience, Projects, Certifications, Education, Testimonials, Leads with unread badge, Settings) with item counts, 7-day views mini chart, "View site ↗".
+- **Sidebar:** Sheetfolio logo, site slug, nav (Overview, Profile, Experience, Projects, Certifications, Education, Testimonials, Leads with unread badge, Settings) with item counts, 7-day views mini chart, "View site ↗".
 - **Top bar:** breadcrumb, "Unpublished changes" status tag, "Draft saved HH:MM", **Preview**, **Publish** (primary).
 - **Overview:** publish status, last published date, views this week, unread leads.
 - **Profile editor:** all profile fields + a visibility toggle per private field.
@@ -103,7 +103,7 @@ Mobile (≤ 640px): single column, sections stacked, sticky bottom bar with **Wh
 
 ### 3.4 Contact
 
-- **WhatsApp:** `https://wa.me/<number>?text=<encoded message>`; default message: `Hi {FirstName}, I saw your profile on Siteproof and would like to discuss a project.` No WhatsApp API.
+- **WhatsApp:** `https://wa.me/<number>?text=<encoded message>`; default message: `Hi {FirstName}, I saw your profile on Sheetfolio and would like to discuss a project.` No WhatsApp API.
 - **Email:** contact form → server action → Resend email to the engineer **and** saved as a lead. Rate-limited to 5 per IP per hour.
 
 ### 3.5 Extras included in MVP
@@ -150,7 +150,7 @@ Publish = copy draft → published + revalidateTag(slug)
 | Email | Resend |
 | Rate limit | `@upstash/ratelimit` |
 | PDF | `@react-pdf/renderer` |
-| Styling | Siteproof design system: CSS variables + `sp-` classes (see `DESIGN_SYSTEM.md`). Tailwind optional for layout only; never override tokens. |
+| Styling | Sheetfolio design system: CSS variables + `sp-` classes (see `DESIGN_SYSTEM.md`). Tailwind optional for layout only; never override tokens. |
 | Icons | lucide-react, 1.5px stroke |
 
 ### 4.2 Schema-driven CMS (the core idea)
@@ -366,7 +366,7 @@ UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 AUTH_SECRET=
 AUTH_RESEND_KEY=
-RESEND_FROM="Siteproof <no-reply@yourdomain>"
+RESEND_FROM="Sheetfolio <no-reply@yourdomain>"
 BLOB_READ_WRITE_TOKEN=          # or CLOUDINARY_URL
 NEXT_PUBLIC_SITE_URL=
 ADMIN_EMAILS=                   # comma-separated
@@ -498,7 +498,7 @@ All projects: `images: []` (photos pending), `role: "Site Engineer"`.
 
 ## 12. Open questions
 
-- [ ] Final product name and domain (Siteproof is a working name).
+- [ ] Final product name and domain (Sheetfolio is a working name).
 - [ ] Images on Vercel Blob or Cloudinary?
 - [ ] Does Idris hold COREN registration or other certificates beyond HSEP?
 - [ ] Referees: names only publicly, or fully private with "available on request"?

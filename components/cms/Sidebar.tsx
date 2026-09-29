@@ -33,9 +33,9 @@ export function Sidebar({
     <aside className="cms-sidebar" aria-label="Dashboard">
       <Link href="/dashboard" className="cms-brand">
         <span className="cms-mark" aria-hidden="true">
-          SP
+          SF
         </span>
-        <b>Siteproof</b>
+        <b>Sheetfolio</b>
       </Link>
       <div className="cms-site">
         <span className="sp-label">Site</span>

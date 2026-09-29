@@ -10,7 +10,7 @@ const idris = (): Site =>
     updatedAt: "2026-09-28T00:00:00.000Z",
     publishedAt: "2026-09-28T10:00:00.000Z",
   });
-const URL_ = "https://siteproof.example/idris-rasaq";
+const URL_ = "https://sheetfolio.example/idris-rasaq";
 const PRIVATE_VALUES = ["29 Aug 1992", "Ile-Ife", "Osun (Iwo LGA)", "Married", "Nigerian"];
 const REFEREE_PHONES = ["0806 006 2556", "0703 987 7853", "0806 225 3706"];
 

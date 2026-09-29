@@ -1,4 +1,4 @@
-# Siteproof — Design System
+# Sheetfolio — Design System
 
 > Companion to `PRD.md`. This file is the source of truth for every visual decision.
 > Copy §3 into `styles/tokens.css` and §6 into `styles/sp.css` verbatim.
@@ -20,7 +20,7 @@
 
 ## 1. Concept
 
-Siteproof presents a civil engineer's career the way the profession presents a building: **as a set of drawings.** Every page reads like a sheet from a construction drawing set: drafting paper, a title block, dimension lines, drawing numbers and approval stamps. A client or employer recognises the language of the work before they read a word.
+Sheetfolio presents a civil engineer's career the way the profession presents a building: **as a set of drawings.** Every page reads like a sheet from a construction drawing set: drafting paper, a title block, dimension lines, drawing numbers and approval stamps. A client or employer recognises the language of the work before they read a word.
 
 ### Principles
 
@@ -206,7 +206,7 @@ export const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500
 ├ Experience: 4fr intro | 8fr chainage timeline (6 stations) ──────────────────────────────────────┤
 ├ Credentials: 3 cards (HSE stamp · B.Tech stamp · Research) → 6-cell competencies row ────────────┤
 ├ Contact (blueprint theme, grid bg): 5fr headline + CTAs | 7fr enquiry form ──────────────────────┤
-└ Footer 64: REV. · LAST PUBLISHED ............................................ DRAWN ON SITEPROOF ┘
+└ Footer 64: REV. · LAST PUBLISHED ............................................ DRAWN ON SHEETFOLIO ┘
 ```
 
 **Project detail:** header → grid-bg header (← All projects, tags, display-lg title, storey dimension, 6-col title block) → body 7fr gallery (FIG. 1 16:10 + 4 thumbs) | 5fr scope + spec table + contact card → prev/next footer (2 cols, 88 px).
@@ -218,7 +218,7 @@ export const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500
 ## 6. Component CSS — `styles/sp.css`
 
 ```css
-/* styles/sp.css — Siteproof components. Requires tokens.css. */
+/* styles/sp.css — Sheetfolio components. Requires tokens.css. */
 .sp-root, .sp-root * { box-sizing: border-box; }
 .sp-root { font-family: var(--font-sans); color: var(--ink); background: var(--paper); }
 

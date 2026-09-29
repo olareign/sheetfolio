@@ -11,7 +11,7 @@ export function SiteFooter({ site }: PageContext) {
             ? `Rev. ${revision(site.publishedAt)} · Last published ${publishedDate(site.publishedAt)}`
             : "Draft · not yet published"}
         </span>
-        <Link href="/">Drawn on Siteproof</Link>
+        <Link href="/">Drawn on Sheetfolio</Link>
       </div>
     </footer>
   );

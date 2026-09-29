@@ -44,7 +44,7 @@ describe("createEmptySite", () => {
 
   it("uses the PRD default WhatsApp message with the first name", () => {
     expect(empty().profile.whatsappMessage).toBe(
-      "Hi Idris, I saw your profile on Siteproof and would like to discuss a project.",
+      "Hi Idris, I saw your profile on Sheetfolio and would like to discuss a project.",
     );
   });
 

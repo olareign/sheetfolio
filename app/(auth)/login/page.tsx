@@ -42,7 +42,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <SheetPanel sheet="A-01" title="Sign in">
-      <p className="sp-lead">Manage your Siteproof page.</p>
+      <p className="sp-lead">Manage your Sheetfolio page.</p>
       {error && (
         <p className="sp-alert" role="alert">
           {ERROR_MESSAGES[error] ?? "Sign-in failed. Request a new link."}

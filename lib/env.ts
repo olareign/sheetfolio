@@ -12,7 +12,7 @@ const EnvSchema = z
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters (run `npx auth secret`)"),
     AUTH_RESEND_KEY: optional(z.string()),
-    RESEND_FROM: optional(z.string()).transform((v) => v ?? "Siteproof <onboarding@resend.dev>"),
+    RESEND_FROM: optional(z.string()).transform((v) => v ?? "Sheetfolio <onboarding@resend.dev>"),
     BLOB_READ_WRITE_TOKEN: optional(z.string()),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
