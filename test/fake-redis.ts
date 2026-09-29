@@ -69,6 +69,16 @@ export class FakeRedis {
     return members.map((m) => (s?.has(m) ? 1 : 0));
   }
 
+  async smembers(key: string): Promise<string[]> {
+    return [...(this.sets.get(key) ?? [])];
+  }
+
+  /** Single-pass SCAN over string keys with a trailing-* glob. */
+  async scan(_cursor: string, opts: { match?: string } = {}): Promise<[string, string[]]> {
+    const prefix = (opts.match ?? "*").replace(/\*$/, "");
+    return ["0", [...this.strings.keys()].filter((k) => k.startsWith(prefix))];
+  }
+
   async expire(key: string, seconds: number): Promise<number> {
     this.ttls.set(key, seconds);
     return 1;

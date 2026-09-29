@@ -12,6 +12,7 @@ const STATUS: Record<PublishState, { label: string; className: string }> = {
   live: { label: "Live", className: "sp-tag sp-tag--done" },
   changes: { label: "Unpublished changes", className: "sp-tag sp-tag--ongoing" },
   unpublished: { label: "Not published", className: "sp-tag" },
+  suspended: { label: "Suspended", className: "sp-tag sp-tag--ongoing" },
 };
 
 function crumbs(pathname: string, labels: Record<string, string>): { href: string; label: string }[] {

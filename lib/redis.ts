@@ -19,6 +19,8 @@ export const keys = {
   slug: (slug: string) => `slug:${slug}`,
   draft: (slug: string) => `site:${slug}:draft`,
   published: (slug: string) => `site:${slug}:published`,
+  /** First publish time, set once (NX): signup → first publish is a success metric (PRD §11). */
+  firstPublished: (slug: string) => `site:${slug}:first-published`,
   viewsDay: (slug: string, day: string) => `views:${slug}:${day}`,
   viewsProject: (slug: string, projectId: string) => `views:${slug}:p:${projectId}`,
   leads: (slug: string) => `leads:${slug}`,

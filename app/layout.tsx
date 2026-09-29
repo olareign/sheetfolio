@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { publicSiteUrl } from "@/lib/env";
 import { archivo, plexMono, plexSans } from "./fonts";
 import "@/styles/tokens.css";
 import "@/styles/sp.css";
 import "@/styles/app.css";
 
 export const metadata: Metadata = {
+  metadataBase: publicSiteUrl(),
   title: { default: "Siteproof", template: "%s · Siteproof" },
   description: "Portfolio pages for civil engineers, drawn like a construction drawing set.",
+  openGraph: { siteName: "Siteproof", type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

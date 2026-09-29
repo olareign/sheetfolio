@@ -59,3 +59,12 @@ export function usesConsoleMail(): boolean {
   const e = env();
   return e.NODE_ENV !== "production" && !e.AUTH_RESEND_KEY;
 }
+
+/**
+ * Public base URL for absolute links (metadataBase, sitemap, OG). Validated on its own because it is
+ * needed at build time, when the server secrets checked by `env()` may be absent.
+ */
+export function publicSiteUrl(): URL {
+  const parsed = z.url().safeParse(process.env.NEXT_PUBLIC_SITE_URL);
+  return new URL(parsed.success ? parsed.data : "http://localhost:3000");
+}

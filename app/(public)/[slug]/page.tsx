@@ -16,10 +16,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const site = await getPublished((await params).slug);
   if (!site) return {};
   const { name, headline, location, summary } = site.profile;
-  // TODO(day 5): Open Graph image and sitemap.
+  const description = summary ? summary.slice(0, 160) : `${headline} based in ${location}.`;
+  const title = `${name} · ${headline}`;
+  // The OG image comes from ./opengraph-image.tsx (name + headline, PRD §8).
   return {
-    title: { absolute: `${name} · ${headline}` },
-    description: summary ? summary.slice(0, 160) : `${headline} based in ${location}.`,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/${(await params).slug}` },
+    openGraph: { title, description, type: "profile", url: `/${(await params).slug}` },
   };
 }
 

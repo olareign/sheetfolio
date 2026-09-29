@@ -7,7 +7,12 @@ import { getProjectViews } from "@/lib/site";
 
 export const metadata = { title: "Overview" };
 
-const STATE_LABEL = { live: "Live", changes: "Unpublished changes", unpublished: "Not published" } as const;
+const STATE_LABEL = {
+  live: "Live",
+  changes: "Unpublished changes",
+  unpublished: "Not published",
+  suspended: "Suspended · contact support",
+} as const;
 
 export default async function OverviewPage() {
   const { account, draft, published, unread, weekViews } = await getCmsContext();

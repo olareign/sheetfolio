@@ -29,13 +29,24 @@ describe("yearRange", () => {
 });
 
 describe("publishState", () => {
-  const draft = { updatedAt: "2026-09-28T10:00:00.000Z" };
+  const draft = {
+    updatedAt: "2026-09-28T10:00:00.000Z",
+    settings: { theme: "sheet" as const, status: "draft" as const },
+  };
+  const pub = (publishedAt: string, status: "published" | "suspended" = "published") => ({
+    publishedAt,
+    settings: { theme: "sheet" as const, status },
+  });
   it("is unpublished without a published doc", () => expect(publishState(draft, null)).toBe("unpublished"));
   it("is live when the draft is not newer", () => {
-    expect(publishState(draft, { publishedAt: "2026-09-28T10:00:00.000Z" })).toBe("live");
+    expect(publishState(draft, pub("2026-09-28T10:00:00.000Z"))).toBe("live");
   });
   it("shows changes when the draft was saved after publishing", () => {
-    expect(publishState(draft, { publishedAt: "2026-09-28T09:59:59.000Z" })).toBe("changes");
+    expect(publishState(draft, pub("2026-09-28T09:59:59.000Z"))).toBe("changes");
+  });
+  it("reports suspension above everything else", () => {
+    expect(publishState(draft, pub("2026-09-28T10:00:00.000Z", "suspended"))).toBe("suspended");
+    expect(publishState({ ...draft, settings: { ...draft.settings, status: "suspended" } }, null)).toBe("suspended");
   });
 });
 

@@ -129,10 +129,18 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
     publishedAt: now.toISOString(),
     settings: { ...checked.data.settings, status: "published" },
   };
-  await redis().set(keys.published(slug), published);
+  const tx = redis().multi();
+  tx.set(keys.published(slug), published);
+  tx.set(keys.firstPublished(slug), published.publishedAt, { nx: true });
+  await tx.exec();
   // Expire immediately (not stale-while-revalidate): the engineer expects to see the change at once.
   revalidateTag(siteTag(slug), { expire: 0 });
   return published;
+}
+
+/** Every registered slug (the `sites` set). */
+export async function listSiteSlugs(): Promise<string[]> {
+  return redis().smembers(keys.sites());
 }
 
 // ── Slugs ───────────────────────────────────────────────────────────────────

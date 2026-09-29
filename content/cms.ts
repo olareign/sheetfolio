@@ -121,13 +121,14 @@ export function relationOptions(site: Site, name: CollectionName): { value: stri
   }));
 }
 
-export type PublishState = "live" | "changes" | "unpublished";
+export type PublishState = "live" | "changes" | "unpublished" | "suspended";
 
 /** "Unpublished changes" when the draft was saved after the last publish (PRD §4.3). */
 export function publishState(
-  draft: Pick<Site, "updatedAt">,
-  published: Pick<Site, "publishedAt"> | null,
+  draft: Pick<Site, "updatedAt" | "settings">,
+  published: Pick<Site, "publishedAt" | "settings"> | null,
 ): PublishState {
+  if (draft.settings.status === "suspended" || published?.settings.status === "suspended") return "suspended";
   if (!published?.publishedAt) return "unpublished";
   return Date.parse(draft.updatedAt) > Date.parse(published.publishedAt) ? "changes" : "live";
 }

@@ -698,3 +698,39 @@
   align-items: center;
   gap: var(--space-4);
 }
+
+/* Admin tables */
+.cms-admin {
+  max-width: 1280px;
+}
+.cms-table-wrap {
+  overflow-x: auto;
+}
+.cms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.cms-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font: 500 11px/1.3 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.cms-table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: middle;
+}
+.cms-table td b {
+  display: block;
+  font-weight: 600;
+}
+.cms-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
