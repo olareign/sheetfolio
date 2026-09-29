@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/sp/Button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { initials } from "@/content/derive";
 import { whatsappHref, type PageContext } from "./view-model";
 
@@ -33,6 +34,7 @@ export function SiteHeader({ site, basePath, sheet = "SP-000" }: PageContext & {
             </Button>
           )}
         </nav>
+        <ThemeToggle fallback={site.settings.theme} />
       </div>
     </header>
   );

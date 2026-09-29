@@ -461,9 +461,10 @@
   max-width: 420px;
   width: calc(100vw - 32px);
 }
+/* Sunken paper veil: dims the page in both themes (an --ink veil would lighten it in dark mode). */
 .cms-dialog::backdrop {
-  background: var(--ink);
-  opacity: 0.45;
+  background: var(--paper-sunken);
+  opacity: 0.85;
 }
 .cms-dialog h2 {
   margin: 0 0 var(--space-2);

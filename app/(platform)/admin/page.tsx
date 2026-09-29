@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SuspendButton } from "@/components/admin/SuspendButton";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LocalTime } from "@/components/cms/LocalTime";
 import { listSignups, listSites } from "@/lib/admin";
 import { requireAdmin } from "@/lib/session";
@@ -27,9 +28,12 @@ export default async function AdminPage() {
     <main className="cms-content cms-admin">
       <div className="cms-form-head">
         <h1 className="cms-title">Platform admin</h1>
-        <Link href="/dashboard" className="sp-annot">
-          Your dashboard
-        </Link>
+        <span className="cms-lead-toolbar">
+          <ThemeToggle />
+          <Link href="/dashboard" className="sp-annot">
+            Your dashboard
+          </Link>
+        </span>
       </div>
 
       <div className="cms-stats">

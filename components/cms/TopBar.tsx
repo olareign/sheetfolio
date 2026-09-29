@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { publishAction } from "@/app/(admin)/dashboard/actions";
 import { issueHref, type PublishState } from "@/content/cms";
 import { Button } from "@/components/sp/Button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LocalTime } from "./LocalTime";
 
 const STATUS: Record<PublishState, { label: string; className: string }> = {
@@ -65,6 +66,7 @@ export function TopBar({
         <span className="sp-annot">
           Draft saved <LocalTime iso={updatedAt} format="time" />
         </span>
+        <ThemeToggle />
         <Button href="/preview" target="_blank" rel="noopener">
           Preview
         </Button>

@@ -741,3 +741,25 @@
   display: block;
   margin-bottom: var(--space-3);
 }
+
+/* Theme toggle in the public header; on phones the nav hides, so it takes the right edge. */
+@media (max-width: 640px) {
+  .pp-header-inner > .sp-theme-toggle {
+    margin-left: auto;
+  }
+}
+
+/* Tablets: the hero title block needs ~420px for its three columns, so stack the hero below 1024px.
+   Long single-word labels ("QUALIFICATION") may also wrap rather than run into the next cell. */
+@media (max-width: 1024px) {
+  .pp-hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .pp-stamps {
+    margin-top: 0;
+    justify-content: flex-start;
+  }
+}
+.sp-titleblock .sp-label {
+  overflow-wrap: anywhere;
+}

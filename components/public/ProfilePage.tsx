@@ -7,6 +7,7 @@ import { ProjectSchedule } from "./ProjectSchedule";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 import { Testimonials } from "./Testimonials";
+import { ThemeScope } from "@/components/theme/ThemeScope";
 import { ViewBeacon } from "./ViewBeacon";
 import { toCardData, type PageContext } from "./view-model";
 
@@ -14,7 +15,7 @@ import { toCardData, type PageContext } from "./view-model";
 export function ProfilePage(ctx: PageContext) {
   const { site, basePath } = ctx;
   return (
-    <div className="pp" data-theme={site.settings.theme}>
+    <ThemeScope className="pp" defaultTheme={site.settings.theme}>
       <SiteHeader {...ctx} />
       <main>
         <Hero {...ctx} />
@@ -43,6 +44,6 @@ export function ProfilePage(ctx: PageContext) {
       <SiteFooter {...ctx} />
       <ActionBar {...ctx} />
       {!ctx.preview && <ViewBeacon slug={ctx.slug} />}
-    </div>
+    </ThemeScope>
   );
 }

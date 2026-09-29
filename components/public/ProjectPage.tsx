@@ -10,6 +10,7 @@ import { ActionBar } from "./ActionBar";
 import { Gallery } from "./Gallery";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
+import { ThemeScope } from "@/components/theme/ThemeScope";
 import { ViewBeacon } from "./ViewBeacon";
 import { whatsappHref, type PageContext } from "./view-model";
 
@@ -24,7 +25,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
   const context = `${project.drawingNo} ${project.title}`;
 
   return (
-    <div className="pp" data-theme={site.settings.theme}>
+    <ThemeScope className="pp" defaultTheme={site.settings.theme}>
       <SiteHeader {...ctx} sheet={project.drawingNo} />
       <main>
         <section className="sp-grid-bg" aria-labelledby="project-title">
@@ -127,6 +128,6 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
       <SiteFooter {...ctx} />
       <ActionBar {...ctx} context={context} />
       {!ctx.preview && <ViewBeacon slug={ctx.slug} projectId={project.id} />}
-    </div>
+    </ThemeScope>
   );
 }
