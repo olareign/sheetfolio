@@ -64,7 +64,7 @@ describe("Slug", () => {
     expect(Slug.parse("  Idris-Rasaq ")).toBe("idris-rasaq");
   });
 
-  it.each(["ab", "-abc", "abc-", "a--b", "a_b", "a b", "dashboard", "api", "login", "x".repeat(41)])(
+  it.each(["ab", "-abc", "abc-", "a--b", "a_b", "a b", "dashboard", "api", "login", "preview", "x".repeat(41)])(
     "rejects %s",
     (s) => {
       expect(Slug.safeParse(s).success).toBe(false);

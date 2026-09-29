@@ -64,8 +64,11 @@ export function TopBar({
         <span className="sp-annot">
           Draft saved <LocalTime iso={updatedAt} format="time" />
         </span>
-        {/* TODO(product): Preview (draft render) arrives with the public pages on Day 3. */}
-        <Button variant="primary" onClick={onPublish} disabled={pending || state === "live"}>
+        <Button href="/preview" target="_blank" rel="noopener">
+          Preview
+        </Button>
+        {/* Stays enabled when live: republishing is harmless and refreshes the cached public page (e.g. after a seed). */}
+        <Button variant="primary" onClick={onPublish} disabled={pending}>
           {pending ? "Publishing…" : "Publish"}
         </Button>
       </div>

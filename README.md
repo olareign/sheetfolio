@@ -39,24 +39,28 @@ Then set `UPSTASH_REDIS_REST_URL=http://localhost:8079` and `UPSTASH_REDIS_REST_
 
 ## Scripts
 
-| Script                         | Does                                |
-| ------------------------------ | ----------------------------------- |
-| `pnpm dev`                     | Dev server on :3000                 |
-| `pnpm test`                    | Unit tests (in-memory Redis fake)   |
-| `pnpm typecheck`               | `tsc --noEmit`                      |
-| `pnpm lint`                    | ESLint                              |
-| `pnpm format` / `format:check` | Prettier                            |
-| `pnpm build`                   | Production build (needs no secrets) |
+| Script                                    | Does                                                                                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                | Dev server on :3000                                                                           |
+| `pnpm test`                               | Unit tests (in-memory Redis fake)                                                             |
+| `pnpm typecheck`                          | `tsc --noEmit`                                                                                |
+| `pnpm lint`                               | ESLint                                                                                        |
+| `pnpm format` / `format:check`            | Prettier                                                                                      |
+| `pnpm build`                              | Production build (needs no secrets)                                                           |
+| `pnpm seed [--force] [--email you@x.com]` | Load `seed/idris.json` (PRD §9) into draft + published; `--email` links the slug to a sign-in |
 
 ## Layout
 
 ```
-app/(public)     landing, public profile pages
+app/(public)     landing, /[slug] profile and /[slug]/projects/[id] (ISR, purged on publish)
+app/(admin)/preview  the signed-in engineer's draft, rendered like the public page
 app/(auth)       /login, /onboarding
 app/(admin)      /dashboard (CMS)
 content/         Zod schemas: one definition per content type drives forms, validation and types
 lib/             env, redis (keys), auth, session, site (draft/publish/views/leads), accounts
 components/sp/   design-system components
+components/public/ public page sections
+components/cms/  dashboard components
 styles/          tokens.css + sp.css (verbatim from the design system), app.css (layout)
 ```
 

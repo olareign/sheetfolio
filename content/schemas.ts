@@ -84,6 +84,7 @@ export const RESERVED_SLUGS = new Set([
   "help",
   "about",
   "pricing",
+  "preview",
   "terms",
   "privacy",
   "blog",
@@ -184,7 +185,7 @@ export type Research = z.infer<typeof Research>;
 export const Referee = z.object({
   id: Id,
   name: RequiredText(120).describe("Name"),
-  role: RequiredText(160).describe("Role"),
+  role: Text(160).optional().describe("Role"),
   organisation: Text(160).optional().describe("Organisation"),
   phone: Text(40).optional().describe("Phone"),
 });

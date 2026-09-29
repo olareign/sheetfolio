@@ -1,0 +1,275 @@
+{
+  "slug": "idris-rasaq",
+  "site": {
+    "profile": {
+      "name": "Rasaq Idris Olawale",
+      "firstName": "Idris",
+      "headline": "Site Engineer",
+      "summary": "Site Engineer with over seven years of experience delivering building, road, and community infrastructure projects across public and private sectors in Nigeria. Proven record supervising construction works from mobilisation to handover including a 3-storey healthcare facility, institutional buildings, health centres, classrooms, and rural community projects. Certified in Health, Safety and Environment (HSE) management, with strong skills in site supervision, quality control, and coordination between contractors, consultants, and host communities.",
+      "location": "Akure, Ondo State",
+      "yearsExperience": 7,
+      "whatsapp": "2347033435818",
+      "whatsappMessage": "Hi Idris, I saw your profile on Siteproof and would like to discuss a project.",
+      "phone": "+234 703 343 5818",
+      "publicEmail": "Ridrisolawale@gmail.com",
+      "private": {
+        "dateOfBirth": "29 Aug 1992",
+        "placeOfBirth": "Ile-Ife",
+        "stateOfOrigin": "Osun (Iwo LGA)",
+        "maritalStatus": "Married",
+        "nationality": "Nigerian"
+      },
+      "visibility": {
+        "dateOfBirth": false,
+        "placeOfBirth": false,
+        "stateOfOrigin": false,
+        "maritalStatus": false,
+        "nationality": false,
+        "referees": false
+      }
+    },
+    "competencies": [
+      "Site supervision & project execution",
+      "HSE compliance on site",
+      "Quality control & works inspection",
+      "Stakeholder coordination",
+      "Planning & progress reporting",
+      "Workforce management"
+    ],
+    "experiences": [
+      {
+        "id": "exp-ijunt",
+        "company": "IJUNT Construction Limited",
+        "role": "Site Engineer",
+        "startYear": 2026
+      },
+      {
+        "id": "exp-samkey",
+        "company": "Samkey Engineering Co. Ltd",
+        "role": "Site Engineer",
+        "startYear": 2026,
+        "endYear": 2026
+      },
+      {
+        "id": "exp-bolaji",
+        "company": "BOLAJI Construction Company",
+        "role": "Site Engineer",
+        "startYear": 2024,
+        "endYear": 2024
+      },
+      {
+        "id": "exp-eniot",
+        "company": "Eniot and Co. Ltd",
+        "role": "Site Engineer",
+        "startYear": 2019,
+        "endYear": 2022
+      },
+      {
+        "id": "exp-ministry",
+        "company": "Ministry of Works and Infrastructure, Ondo State",
+        "role": "Corps Member (Planning Dept.)",
+        "startYear": 2019,
+        "endYear": 2020
+      },
+      {
+        "id": "exp-dortmund",
+        "company": "Dortmund and Company Limited",
+        "role": "Site Engineer",
+        "startYear": 2016,
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "id": "p-001",
+        "drawingNo": "SP-001",
+        "title": "School of Agriculture & Agricultural Technology, FUTA",
+        "experienceId": "exp-ijunt",
+        "location": "Akure, Ondo",
+        "category": "institutional",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2026,
+        "status": "ongoing",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-002",
+        "drawingNo": "SP-002",
+        "title": "Nigeria Customs canteen",
+        "experienceId": "exp-samkey",
+        "location": "Enugu",
+        "category": "building",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2026,
+        "status": "ongoing",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-003",
+        "drawingNo": "SP-003",
+        "title": "School of Information and Communication Technology",
+        "experienceId": "exp-samkey",
+        "location": "Location to be confirmed",
+        "category": "institutional",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2026,
+        "status": "ongoing",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-004",
+        "drawingNo": "SP-004",
+        "title": "3-storey Geriatric Centre, LUTH",
+        "experienceId": "exp-bolaji",
+        "location": "Surulere, Lagos",
+        "category": "healthcare",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2024,
+        "endYear": 2024,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-005",
+        "drawingNo": "SP-005",
+        "title": "External works, Senate Building, Rufus Giwa Polytechnic",
+        "experienceId": "exp-eniot",
+        "location": "Owo, Ondo",
+        "category": "external-works",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2020,
+        "endYear": 2021,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-006",
+        "drawingNo": "SP-006",
+        "title": "Basic Health Centres, Ilu-Tuntun & Ifelodun",
+        "experienceId": "exp-eniot",
+        "location": "Akure, Ondo",
+        "category": "healthcare",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2022,
+        "endYear": 2022,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-007",
+        "drawingNo": "SP-007",
+        "title": "Renovation of 3-classroom block, Ilaje Secondary School",
+        "experienceId": "exp-eniot",
+        "location": "Ilaje, Ondo",
+        "category": "renovation",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2022,
+        "endYear": 2022,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-008",
+        "drawingNo": "SP-008",
+        "title": "Community development projects (Atosin, Edu/Oka, Oddo, Isaoye, Oluwafemi, Abalaka/Batedo)",
+        "experienceId": "exp-eniot",
+        "location": "Idanre, Akure North & South",
+        "category": "community",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2020,
+        "endYear": 2021,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-009",
+        "drawingNo": "SP-009",
+        "title": "Departmental road construction",
+        "experienceId": "exp-dortmund",
+        "location": "Location to be confirmed",
+        "category": "road",
+        "role": "Site Engineer",
+        "scope": "",
+        "startYear": 2016,
+        "endYear": 2017,
+        "status": "completed",
+        "images": [],
+        "featured": false
+      }
+    ],
+    "certifications": [
+      {
+        "id": "cert-hse",
+        "title": "Health, Safety and Environment Management (HSEP)",
+        "shortTitle": "HSE",
+        "issuer": "International Institute of Project and Safety Management",
+        "year": 2020
+      }
+    ],
+    "education": [
+      {
+        "id": "edu-lautech",
+        "institution": "Ladoke Akintola University of Technology (LAUTECH)",
+        "qualification": "B.Tech, Engineering",
+        "startYear": 2012,
+        "endYear": 2018
+      },
+      {
+        "id": "edu-fstc",
+        "institution": "Federal Science and Technical College",
+        "qualification": "SSCE",
+        "startYear": 2004,
+        "endYear": 2010
+      }
+    ],
+    "research": {
+      "title": "Treatment of galvanised wastewater using activated cow-bone ash as an adsorbent, modified with silver nanoparticles.",
+      "year": 2018,
+      "summary": ""
+    },
+    "referees": [
+      {
+        "id": "ref-ogundowole",
+        "name": "Engr. Sogo Ogundowole",
+        "role": "Head of Works and Services",
+        "organisation": "Federal Polytechnic Ile-Oluji",
+        "phone": "0806 006 2556"
+      },
+      {
+        "id": "ref-akinpelu",
+        "name": "Akinpelu-Yusuf Ayomide Yidiat",
+        "role": "System Administrator",
+        "organisation": "Afe Babalola University, Ado-Ekiti",
+        "phone": "0703 987 7853"
+      },
+      {
+        "id": "ref-owolabi",
+        "name": "Engr. Adeniyi Owolabi",
+        "organisation": "ENLG Engineering Ltd",
+        "phone": "0806 225 3706"
+      }
+    ],
+    "testimonials": [],
+    "settings": {
+      "theme": "sheet",
+      "status": "draft"
+    },
+    "updatedAt": "2026-09-28T00:00:00.000Z"
+  }
+}

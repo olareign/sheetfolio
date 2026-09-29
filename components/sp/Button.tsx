@@ -12,7 +12,11 @@ type CommonProps = {
   className?: string;
 };
 
-type AnchorProps = CommonProps & { href: string } & Omit<ComponentPropsWithoutRef<"a">, keyof CommonProps | "href">;
+type AnchorProps = CommonProps & {
+  href: string;
+  /** Plain <a> instead of a client-side <Link>: downloads and API routes. External/hash links are always plain. */
+  native?: boolean;
+} & Omit<ComponentPropsWithoutRef<"a">, keyof CommonProps | "href">;
 type NativeButtonProps = CommonProps & { href?: undefined } & Omit<
     ComponentPropsWithoutRef<"button">,
     keyof CommonProps
@@ -28,12 +32,13 @@ export function buttonClass(variant: ButtonVariant = "default", size: ButtonSize
 /** DESIGN_SYSTEM §7.1. `cta` is the single safety-orange action per view. Icon-only buttons need `aria-label`. */
 export function Button(props: ButtonProps) {
   if (props.href !== undefined) {
-    const { variant, size, icon, children, className, href, ...rest } = props;
+    const { variant, size, icon, children, className, href, native, ...rest } = props;
+    const Anchor = native || !href.startsWith("/") ? "a" : Link;
     return (
-      <Link href={href} className={buttonClass(variant, size, className)} {...rest}>
+      <Anchor href={href} className={buttonClass(variant, size, className)} {...rest}>
         {icon}
         {children}
-      </Link>
+      </Anchor>
     );
   }
   const { variant, size, icon, children, className, type = "button", ...rest } = props;
