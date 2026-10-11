@@ -77,7 +77,8 @@ Personas, accessibility needs and technical limits per category are **OPEN** and
 | Matching | Members choose their job-matching tags during profile and account setup. |
 | Payments | **Paystack only for v1**; global sales-tax handling reviewed before marketing abroad. |
 | Team | Solo build, no fixed date yet. |
-| Format launch | **All 10 native formats ready before the first digest.** See the conflict in §13. |
+| Format launch | All 10 native formats are MVP scope. **The first digest ships once the first 3 formats are ready** (Engineering, Technology, Business); the rest finish in parallel and members in unfinished categories use a clean generic layout. Formats are built as configuration of shared sections (architecture document). Supersedes the earlier "all 10 before the first digest". |
+| MVP | **Phases 1 to 3** (measurement, pages, hand-curated digest), ending at the digest gate. AI tailoring, billing, trial and engagement features follow. Members are invited early members, free during validation. Bring-your-own AI key is excluded. See `docs/mvp-scope.md`. |
 | Build order | Five phases, §10. |
 | Parked | Verification; global marketing focus; job scraper. |
 
@@ -278,7 +279,7 @@ Kept: the engineering page and design system as native format 1.
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
 | **Scope against solo capacity** (10 formats, digest, tracking, billing, engagement; no date) | Delay to the first digest, which tests the loop | Define formats as configuration where possible (architecture); fixed build order; time-box format 1 |
-| **Conflict: "all 10 before first digest" vs "by signups"** | Order cannot be driven by signups if all exist first | Recorded as OPEN (O-1). Working order is fixed (§6) |
+| **10 formats against a solo builder** | Delay to the first digest | **Mitigated (confirmed):** digest ships once the first 3 formats are ready; formats built as shared-section configuration. Working order is fixed (§6) |
 | Weekly curation grows with categories | Operator overload | Cap at 3 categories for 6 weeks (FR-3.6) |
 | Public repository exposure of personal data | Privacy harm | Remediate before launch |
 | Pre-release versions of key libraries in existing code | Upgrade effort | Assess in architecture |
@@ -293,7 +294,7 @@ Kept: the engineering page and design system as native format 1.
 
 | ID | Question |
 | --- | --- |
-| O-1 | How do "all 10 formats before first digest" and "build by member signups" fit together? |
+| O-1 | ~~"All 10 before first digest" vs "build by signups"~~ **Resolved** by the mitigations in §3: first digest after 3 formats; fixed build order. Whether later formats are also gated on signups is still open. |
 | O-2 | Target date for the first digest. |
 | O-3 | How does a member's profession map to one of the 10 categories (list, search, free text)? |
 | O-4 | Matching tags: controlled vocabulary or free text? |
@@ -308,6 +309,7 @@ Kept: the engineering page and design system as native format 1.
 | O-13 | Retention for accounts, master records, diary photos and deleted accounts. |
 | O-14 | Time zone handling for members who haven't set one. |
 | O-15 | Backup and recovery targets. |
+| O-16 | How many invited MVP members are needed to read the digest gate? (Who they are and that they are free during validation: confirmed.) |
 
 ---
 
