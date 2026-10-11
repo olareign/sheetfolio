@@ -1,6 +1,6 @@
 # Sheetfolio: Product Brief and PRD (v2)
 
-> Status: **DRAFT for approval**, 11 Oct 2026
+> Status: **DRAFT for approval**, 11 Oct 2026 (updated after documents 1 to 15 were drafted; see §15 and `docs/open-questions.md`)
 > Owner: Olareign (@olareign) · Builder: solo
 > Supersedes `docs/prd.md` (v1.0, civil-engineer-only) once approved. Until then v1.0 describes the code that exists today.
 > Source of decisions: the Sheetfolio founder plan (10 Oct 2026) and the discovery session of 11 Oct 2026.
@@ -79,6 +79,11 @@ Personas, accessibility needs and technical limits per category are **OPEN** and
 | Team | Solo build, no fixed date yet. |
 | Format launch | All 10 native formats are MVP scope. **The first digest ships once the first 3 formats are ready** (Engineering, Technology, Business); the rest finish in parallel and members in unfinished categories use a clean generic layout. Formats are built as configuration of shared sections (architecture document). Supersedes the earlier "all 10 before the first digest". |
 | MVP | **Phases 1 to 3** (measurement, pages, hand-curated digest), ending at the digest gate. AI tailoring, billing, trial and engagement features follow. Members are invited early members, free during validation. Bring-your-own AI key is excluded. See `docs/mvp-scope.md`. |
+| Codebases | **Two repositories:** the existing Next.js frontend (trimmed) and a new TypeScript backend (ADR-11). The backend owns data, redirects, click recording, jobs and email. |
+| Datastore and sign-in | Proposed in `docs/architecture.md`: SQL primary database with Redis for limits and cache (ADR-1); magic link plus Google sign-in, one account per verified email, backend-owned sessions (ADR-2). Approved as ADRs 1 to 10; ADR-11 and ADR-12 await final confirmation. |
+| Repeat visits | MVP counts per-link visits only; **no repeat concept, no visitor cookie or identifier** (O-19 answered). |
+| Data retention | Detailed clicks 12 months then summarised; delete on request within 30 days; soft delete 30 days then purge; backups up to 24 hours of loss accepted. |
+| Operations | Essentials monitoring with email, phone push and messaging-app alerts; production deploys only from the main branch. |
 | Build order | Five phases, §10. |
 | Parked | Verification; global marketing focus; job scraper. |
 
@@ -252,8 +257,9 @@ Note: with a 14-day trial, a first member can reach a paywall before phase 4 shi
 | Payments and plans | Out of scope | In scope (phase 4) |
 | Custom domains | Out of scope | Listed under Pro (O-9) |
 | AI | CV import deferred | AI tailoring from a pasted job ad |
-| Datastore | Redis only; SQL banned | **OPEN.** Not required to keep; decided in the architecture document |
-| Sign-in, CMS approach | Magic link; schema-driven CMS | **OPEN.** Not required to keep |
+| Datastore | Redis only; SQL banned | **Proposed change:** SQL primary, Redis for limits and cache (ADR-1). Supersedes the v1.0 ban once approved |
+| Sign-in, CMS approach | Magic link; schema-driven CMS | **Proposed:** magic link plus Google; backend-owned sessions; shared section library with format definitions (ADR-2, ADR-3) |
+| Codebases | One Next.js app | Two repositories: frontend and backend (ADR-11) |
 | Measurement | Daily and per-project counters | Per-click records with attribution |
 
 Kept: the engineering page and design system as native format 1.
@@ -311,27 +317,31 @@ Kept: the engineering page and design system as native format 1.
 | O-15 | Backup and recovery targets. |
 | O-16 | How many invited MVP members are needed to read the digest gate? (Who they are and that they are free during validation: confirmed.) |
 
+**Status of questions after documents 3 to 15.** O-11 is proposed in the architecture document (ADRs 1 to 3); O-13 is answered in the data model; O-15 is answered in the operations document; O-19 is answered in the security document (per-link counts only in the MVP); O-37 is answered (TypeScript); O-38 is answered (machine-readable contract, generated frontend types); O-21 is proposed at 15 minutes. New questions O-17 to O-80 are listed in the document that raised them and consolidated, with their status, in `docs/open-questions.md`. Numbering note: O-17 appears in the MVP scope document as an answered question.
+
 ---
 
 ## 15. Planned document set
 
 Each document will name this PRD as the authority for product decisions, and the architecture decision records as the authority for technical ones. Approval is requested for each document before the next begins.
 
+Status: all 15 drafted. Documents 1 to 15 are committed on this branch; each awaits your final review in the pull request.
+
 1. Product brief and problem statement (§1, §2)
-2. PRD (this document)
-3. Target user profiles and user stories
-4. Functional and non-functional requirements
-5. MVP scope, priorities and exclusions
-6. User journeys, workflows and acceptance criteria
-7. UI/UX specification and screen inventory
-8. Architecture and architecture decision records
-9. Database design and data model
-10. API and third-party integration specification
-11. Security, privacy and risk assessment
-12. Testing and quality assurance strategy
-13. Implementation roadmap, task breakdown and dependencies
-14. AI coding instructions and repository conventions
-15. Deployment, monitoring and operational requirements
+2. PRD (this document) — `docs/prd-v2.md`
+3. Target user profiles and user stories — `docs/user-profiles-and-stories.md`
+4. Functional and non-functional requirements — `docs/requirements.md`
+5. MVP scope, priorities and exclusions — `docs/mvp-scope.md`
+6. User journeys, workflows and acceptance criteria — `docs/user-journeys.md`
+7. UI/UX specification and screen inventory — `docs/ui-ux-spec.md`
+8. Architecture and architecture decision records — `docs/architecture.md`
+9. Database design and data model — `docs/data-model.md`
+10. API and third-party integration specification — `docs/api-spec.md`
+11. Security, privacy and risk assessment — `docs/security-privacy-risk.md`
+12. Testing and quality assurance strategy — `docs/testing-qa-strategy.md`
+13. Implementation roadmap, task breakdown and dependencies — `docs/roadmap.md`
+14. AI coding instructions and repository conventions — `docs/engineering-conventions.md`
+15. Deployment, monitoring and operational requirements — `docs/deployment-operations.md`
 
 ---
 
@@ -340,4 +350,5 @@ Each document will name this PRD as the authority for product decisions, and the
 - [ ] Product decisions in §3 are correct
 - [ ] Assumptions in §12 are accepted or corrected
 - [ ] Open questions in §14 are acknowledged
-- [ ] Approved to start document 3
+- [x] Documents 3 to 15 drafted and committed
+- [ ] Final review of the full set in pull request #1 (see `docs/open-questions.md` for the decisions needed before M0)
