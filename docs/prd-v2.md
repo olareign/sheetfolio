@@ -122,6 +122,8 @@ IDs are stable. "Phase" refers to §10.
 - **FR-1.5** Email open counts are treated as a rough signal only; decisions use clicks.
 - **FR-1.6** Admin Digest tab: one row per week with sent, clicked, click rate, variants created, tailor rate; plus the 10 most-clicked jobs.
 - **FR-1.7** Members see views per variant and per application link on their dashboard.
+- **FR-1.8** If recording a click fails, the redirect or page still proceeds. Recording is best effort and failures are logged for the admin. (NEW, confirmed in discovery.)
+- **FR-1.9** Per-click records are kept 12 months, then summarized to weekly and per-link totals. (NEW, confirmed in discovery.)
 
 ### 5.2 Accounts, master record, formats, variants (phase 2)
 - **FR-2.1** Sign-up collects a profession and assigns one of the 10 categories (OPEN: how professions map to categories, O-3).
@@ -137,7 +139,7 @@ IDs are stable. "Phase" refers to §10.
 - **FR-3.2** Each member gets 5 to 8 jobs, best match first. Collection target is about 20 fresh jobs per category per week, none older than 14 days.
 - **FR-3.3** Send Tuesday at 07:00 in the member's time zone.
 - **FR-3.4** Each job card shows title, company, location, closing date, why it matched, a **View job** button (tracked) and a **Tailor my page for this** button that opens the variant editor with the job pre-filled.
-- **FR-3.5** Trial members receive the digest. Members whose trial lapsed do not.
+- **FR-3.5** Trial members receive the digest. Members whose trial lapsed do not. (CONFIRMED in discovery, 11 Oct 2026.)
 - **FR-3.6** First digest covers only categories that have members, at most 3 at a time for the first 6 weeks (ASSUMED, approved in discovery).
 - **FR-3.7** Sources are checked against their terms before use.
 
@@ -154,6 +156,13 @@ IDs are stable. "Phase" refers to §10.
 - **FR-5.1** Repeat-visit alert, built first: "Your application to {label} was opened again."
 - **FR-5.2** Who checked me. All plans: total views this week and countries. Pro: views per variant and per application link, with first and repeat visits. **Never shown:** visitor name, email or IP.
 - **FR-5.3** Site diary: weekly short entry (one photo and one line), shown under the latest project, newest first. Reminder email on the member's chosen day, skipped if they posted that week. Entries feed the matcher.
+
+### 5.6 Non-functional decisions
+The full list is in `docs/requirements.md` (NFR-1 to NFR-14). The decisions made in discovery:
+- **Performance (CONFIRMED):** public pages under 1.5 s on a 4G phone; Lighthouse performance and accessibility 90 or higher; applies to all 10 formats.
+- **Availability (CONFIRMED):** best effort on a small budget, fail safe: if recording fails, the redirect still works. No formal uptime target.
+- **Retention (CONFIRMED):** per-click detail 12 months, then summarized. Other retention is open (O-13).
+- **Scale (ASSUMED):** no member estimate exists yet; requirements assume up to the low hundreds of members at first and are re-checked with real numbers.
 
 ---
 
@@ -295,6 +304,10 @@ Kept: the engineering page and design system as native format 1.
 | O-9 | Is custom domain in v1 or later? |
 | O-10 | Which job boards feed the first digest, and do their terms allow redistribution? |
 | O-11 | Datastore, sign-in and CMS approach for the extended app (architecture document). |
+| O-12 | Limits for diary photos and other uploads (size, type, count). |
+| O-13 | Retention for accounts, master records, diary photos and deleted accounts. |
+| O-14 | Time zone handling for members who haven't set one. |
+| O-15 | Backup and recovery targets. |
 
 ---
 
