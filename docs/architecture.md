@@ -1,6 +1,6 @@
 # Sheetfolio: Architecture and Decision Records
 
-> Status: **DRAFT for approval**, 11 Oct 2026
+> Status: **DRAFT for approval**, 11 Oct 2026 (amended with ADR-11 after approval of ADR-1 to ADR-10)
 > Authority: `docs/prd-v2.md`, `docs/requirements.md`, `docs/mvp-scope.md`, `docs/user-journeys.md`, `docs/ui-ux-spec.md`.
 > This document **recommends** an architecture and records each major decision as an ADR with status **Proposed**. Nothing here is final until you accept it. No code, schema or API contract is written here: the data model is document 9 and the API spec is document 10.
 
@@ -41,7 +41,7 @@ Next.js App Router app on Vercel; Auth.js with email magic link through Resend; 
 
 PROPOSED, as a set of building blocks. Names are roles, not products, unless a decision record says otherwise.
 
-1. **Web application** (one deployable): public pages, member app, admin, redirect endpoints, email links.
+1. **Frontend application** (own repository): public pages, member app and admin screens. **Backend service** (own repository, ADR-11): API, business rules, redirect and click recording, scheduled work, email. Earlier text that says "web application" for server behaviour now means the backend.
 2. **Primary database** for accounts, masters, variants, links, jobs, digests and click records (ADR-1).
 3. **Cache/limiter store** for rate limiting and short-lived data (Redis, as today).
 4. **File storage** for images and materials (Blob, as today).
@@ -217,6 +217,30 @@ Each record: context, options, recommendation, consequences, what would make us 
 - Because the framework version differs from common knowledge, implementers must read the bundled framework docs before writing code (repository rule).
 - Prefer well-supported libraries; avoid adding a dependency for something small.
 
+### ADR-11: Separate frontend and backend codebases (NEW, from your instruction while preparing document 10)
+
+**Context.** Documents 1 to 9 assumed one Next.js deployable (ADR-7). You asked for separate frontend and backend codebases, in **two repositories**, for cleaner structure and independent deploys. This changes where data access, redirects, jobs and email live, and it conflicts with the earlier "extend the existing app" assumption, so it is recorded openly.
+
+**Recommendation (PROPOSED).**
+- **Frontend repository** (the existing Next.js app, trimmed): renders public pages, member app and admin screens; holds no database access and no secrets other than its own; calls the backend over HTTP.
+- **Backend repository** (new): owns the database (ADR-1), business rules (plan limits, follow/freeze resolution, matching), the redirect and click-recording fast path (ADR-4, CONFIRMED in your answer: *in the backend, behind the frontend host's edge*), scheduled and queued work (ADR-5), email (ADR-6), file handling, and later payments and AI.
+- **Contract between them:** the API specification (document 10) is the single agreed contract. Each side is tested against it.
+- **Shared types** are generated from, or checked against, the contract rather than copied by hand (mechanism OPEN, O-38).
+- **Backend language and framework are not chosen here** (O-37). The data model and API are written to be language-neutral. PROPOSED default if you have no preference: TypeScript, so the validation rules and types are shared with the frontend.
+
+**Consequences.**
+- **Sign-in must be redesigned.** The sign-in library in ADR-2 is built around Next.js. With a separate backend there are two models: (a) the frontend keeps the sign-in session and passes a signed token to the backend, or (b) the backend owns sessions and the frontend only forwards cookies. PROPOSED: **(b), the backend owns identity** (one place enforces access, ADR-2's one-account-by-verified-email rule, and admin role). Whether the library is kept or replaced is O-39.
+- **Redirects:** `/s/{code}` and `/j/{job}` addresses are served on the product's own domain. The frontend host's edge forwards these paths to the backend (rewrite/proxy) so the address stays the same, the destination is never taken from the URL, and the backend records the click after responding. Added hop is a speed risk against NFR-2 and is measured in testing (document 12).
+- **Public page rendering:** the frontend fetches published content from the backend and caches it; publish triggers a cache refresh on the frontend (backend calls a protected refresh endpoint). Stale-page window is OPEN (O-40).
+- **Two deployments, two sets of secrets, two pipelines** (document 15). More to run for one person; this is the main cost.
+- **Migration:** the existing app's data access and Redis keys move into the backend (document 13). The first real user's page must stay online during the move.
+- **Cross-site concerns:** CORS or same-origin proxying, cookie domain, and CSRF protection need an explicit design (document 11).
+- **Existing-code assumption:** "extension of the existing code" now means the frontend is extended and trimmed, and the backend is new code that reuses existing validation rules where possible.
+
+**Options considered.** (A) one Next.js app with strict internal boundaries (cheapest to run, fits earlier ADRs); (B) monorepo with two deployables (one pull-request flow, shared tooling); (C) **two repositories** (your choice: strongest independence, most coordination cost). C is accepted by you; the cost is stated above so it is a knowing choice.
+
+**Revisit if** coordination across two repositories slows the solo build noticeably, in which case moving to B is a low-cost step (same code, one repository).
+
 ---
 
 ## 5. Cross-cutting concerns
@@ -257,6 +281,7 @@ Each record: context, options, recommendation, consequences, what would make us 
 | Content | One format, schema-driven | Shared sections plus format definitions | ADR-3 |
 | Measurement | View counters | Per-click records with retention and summaries | ADR-4 |
 | Background work | None | Scheduled trigger plus queue | ADR-5 |
+| Codebases | One Next.js app | Separate frontend and backend repositories | ADR-11 |
 
 ---
 
@@ -270,6 +295,10 @@ Each record: context, options, recommendation, consequences, what would make us 
 | O-31 | Do the email service's free-tier limits fit the first digest and sign-in volume? | Check before phase 3 |
 | O-32 | Which managed SQL product and region? | Decide in documents 9 and 15 |
 | O-21 | Tolerance for "07:00 member time" | PROPOSED: within 15 minutes (ADR-5) |
+| O-37 | Backend language and framework | PROPOSED default: TypeScript; your preference welcome |
+| O-38 | How are contract types shared between the two repositories? | Decide in document 14 |
+| O-39 | Keep the current sign-in library behind the backend, or replace it (ADR-2 with ADR-11)? | Decide before phase 2 |
+| O-40 | Acceptable delay before a published change appears on public pages | PROPOSED: under 1 minute |
 
 ---
 
@@ -280,5 +309,6 @@ Each record: context, options, recommendation, consequences, what would make us 
 - [ ] ADR-3 formats as configuration of shared sections
 - [ ] ADR-4 to ADR-7 click recording, background work, email, hosting
 - [ ] ADR-8 to ADR-10 recorded as boundaries and rules
-- [ ] Open questions O-28 to O-32 acknowledged; O-21 answered as proposed
+- [ ] ADR-11 separate frontend and backend repositories (added after approval of the first ten; needs your re-confirmation)
+- [ ] Open questions O-28 to O-32 and O-37 to O-40 acknowledged; O-21 answered as proposed
 - [ ] Approved to start document 9 (database design and data model)
