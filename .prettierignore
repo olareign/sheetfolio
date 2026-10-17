@@ -1,5 +1,6 @@
 pnpm-lock.yaml
-.next
+**/.next
+**/dist
 docs
-styles/tokens.css
-styles/sp.css
+apps/web/styles/tokens.css
+apps/web/styles/sp.css
