@@ -1,6 +1,11 @@
 packages:
   - apps/*
 
+# One version of Next for the workspace. The repo root depends on it too: Turbopack's dev server resolves
+# `next/font/google` from the workspace root and fails with "Can't resolve '@vercel/turbopack-next/...'" otherwise.
+catalog:
+  next: 16.3.6
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
