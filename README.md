@@ -5,22 +5,21 @@ Portfolio pages for civil engineers, managed from a schema-driven CMS.
 - What to build: [`docs/prd.md`](docs/prd.md)
 - How it looks: [`docs/design-system.md`](docs/design-system.md)
 
-A pnpm workspace with two apps:
+A pnpm workspace with one app, `apps/web`: Next.js (App Router) + Upstash Redis, serving the public pages, the CMS and
+sign-in. It owns the whole user flow (sign-in, onboarding, profile creation) and calls no other service.
 
-| App        | What                                                                       | Port  |
-| ---------- | -------------------------------------------------------------------------- | ----- |
-| `apps/web` | Next.js (App Router) + Upstash Redis: public pages, CMS, auth. MVP1 as-is. | :3000 |
-| `apps/api` | NestJS: the backend for new work (email first; tracked links, digest).     | :4000 |
+The NestJS backend lives in its own repo, [`olareign/sheetfolio-api`](https://github.com/olareign/sheetfolio-api). It is
+**not connected to this app and not deployed**, which keeps hosting costs at zero while the product is market tested.
+Wiring the two together is a later step.
 
-MVP1, the single Next.js app before the split, is kept as the `mvp1` tag and branch.
+MVP1, the single Next.js app before the monorepo, is kept as the `mvp1` tag and branch.
 
 ## Setup
 
 ```bash
 pnpm install
 cp apps/web/.env.example apps/web/.env.local   # then fill it in, see below
-cp apps/api/.env.example apps/api/.env
-pnpm dev                                       # both apps; or pnpm dev:web / pnpm dev:api
+pnpm dev                                       # http://localhost:3000
 ```
 
 ### Web environment (`apps/web/.env.local`)
@@ -35,17 +34,6 @@ pnpm dev                                       # both apps; or pnpm dev:web / pn
 | `BLOB_READ_WRITE_TOKEN`                              | Image uploads (Day 2).                                                                          |
 
 The web app validates these on first use (`apps/web/lib/env.ts`) and fails with a list of what's missing.
-
-### API environment (`apps/api/.env`)
-
-| Variable                        | Needed for                                                                                     |
-| ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `PORT`                          | Listen port (default 4000).                                                                    |
-| `WEB_ORIGIN`                    | The web app's origin, the only browser origin allowed to call the API. Required in production. |
-| `RESEND_API_KEY`, `RESEND_FROM` | Email. Required in production; in development without a key, mail is printed to the console.   |
-
-The API validates these at boot (`apps/api/src/config/env.ts`) and refuses to start with a list of what's wrong.
-`GET /health` returns `{ status, email }`, where `email` is `resend` or `console`, so a misconfigured deploy is visible.
 
 ### Redis without an Upstash account
 
@@ -87,18 +75,14 @@ Production deploys come from pushes to `main`. `vercel` from the CLI creates a P
 
 ## Scripts
 
-| Script                                          | Does |
-| ----------------------------------------------- | ---- |
-| Run from the repo root; each runs in both apps. |
-
-| Script                         | Does                                                            |
-| ------------------------------ | --------------------------------------------------------------- |
-| `pnpm dev`                     | Web on :3000 and API on :4000 (`dev:web` / `dev:api` for one)   |
-| `pnpm test`                    | Unit tests (web: in-memory Redis fake; API: Vitest + supertest) |
-| `pnpm typecheck`               | `tsc --noEmit`                                                  |
-| `pnpm lint`                    | ESLint                                                          |
-| `pnpm format` / `format:check` | Prettier                                                        |
-| `pnpm build`                   | Production builds (need no secrets)                             |
+| Script                         | Does                                |
+| ------------------------------ | ----------------------------------- |
+| `pnpm dev`                     | Web on :3000                        |
+| `pnpm test`                    | Unit tests (in-memory Redis fake)   |
+| `pnpm typecheck`               | `tsc --noEmit`                      |
+| `pnpm lint`                    | ESLint                              |
+| `pnpm format` / `format:check` | Prettier                            |
+| `pnpm build`                   | Production builds (need no secrets) |
 
 ## Sign-in and accounts
 
@@ -154,14 +138,6 @@ components/sp/   design-system components
 components/public/ public page sections
 components/cms/  dashboard components
 styles/          tokens.css + sp.css (verbatim from the design system), app.css (layout)
-```
-
-API (`apps/api/src/`):
-
-```
-config/          validated environment (ENV token), loaded once at boot
-email/           EmailService: Resend REST, console fallback in development
-health/          GET /health
 ```
 
 Redis keys follow PRD §5.1. Auth.js adapter keys are stored under `auth:` so they never collide with the app's `user:{email}` records.
