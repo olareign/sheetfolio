@@ -1,0 +1,351 @@
+{
+  "slug": "abdulrasaq-taofeeq",
+  "site": {
+    "profile": {
+      "name": "Abdulrasaq Taofeeq Olarewaju",
+      "firstName": "Abdulrasaq",
+      "headline": "Backend-leaning fullstack engineer",
+      "summary": "Self-taught software engineer with 4+ years building and shipping production backend-leaning fullstack products. Leads a development team of 10+ at Tobams Group across Nexus, RLK, RLM and Rareeat, three repos and two domains on one shared API, and owns SafePick end-to-end at Pacifylabs, where I also build and test Rakuxon Care, SCIMS, EduMimi and KudiPay and mentor 20+ learners. Node.js, TypeScript and NestJS with PostgreSQL, MongoDB and Redis; React and Next.js frontends; authentication and RBAC; Stripe, PayPal and Paystack payments; AI integration. B.Sc. Chemistry, then self-taught. Author of The Server Side of Next.js, React to Engineer and Python Before AI.",
+      "location": "Ilorin, Kwara State, Nigeria",
+      "availability": "Open to remote & contract roles",
+      "yearsExperience": 4,
+      "whatsapp": "2347069786151",
+      "whatsappMessage": "Hi Abdulrasaq, I saw your profile on Sheetfolio and would like to discuss a project.",
+      "phone": "+234 706 978 6151",
+      "publicEmail": "abdulrasaqolarewaju88@gmail.com",
+      "private": {},
+      "visibility": {
+        "dateOfBirth": false,
+        "placeOfBirth": false,
+        "stateOfOrigin": false,
+        "maritalStatus": false,
+        "nationality": false,
+        "referees": false
+      }
+    },
+    "competencies": [
+      "Backend architecture & REST API design",
+      "Authentication, authorization & RBAC",
+      "Payments: Stripe, PayPal, Paystack",
+      "PostgreSQL, MongoDB & Redis data modelling",
+      "React & Next.js frontends",
+      "Team leadership, code review & mentoring"
+    ],
+    "experiences": [
+      {
+        "id": "exp-tobams",
+        "company": "Tobams Group",
+        "role": "Development Team Lead",
+        "startYear": 2023,
+        "notes": "Leads a team of 10+ across a three-repo product spanning two domains on a shared API, shipping and reviewing Nexus, RLK, RLM and Rareeat. Joined as a contract backend developer: optimised MongoDB indexing, built a secure authentication system, integrated PayPal and Stripe payments, and built e-commerce checkout backend systems."
+      },
+      {
+        "id": "exp-pacifylabs",
+        "company": "Pacifylabs Technologies Limited",
+        "role": "Software Engineer & Tutor",
+        "startYear": 2023,
+        "notes": "Owns SafePick end-to-end; builds and tests Rakuxon Care, SCIMS, EduMimi and KudiPay. Backend services and RESTful APIs in Node.js and TypeScript for Megamart and BookMyTime, with authentication, authorization and payment and email integrations. Mentors 20+ learners in JavaScript and backend and fullstack development, supervising projects and conducting code reviews."
+      },
+      {
+        "id": "exp-pacifylabs-intern",
+        "company": "Pacifylabs Technologies Limited",
+        "role": "Fullstack Developer Intern (NYSC)",
+        "startYear": 2022,
+        "endYear": 2023,
+        "notes": "Served the National Youth Service Corps year as a fullstack and web developer: tested a startup product before production, built mobile-responsive interfaces, and contributed to the frontend and backend of MedCare."
+      },
+      {
+        "id": "exp-ebiz",
+        "company": "EBIZ",
+        "role": "Fullstack Developer (contract)",
+        "startYear": 2023,
+        "endYear": 2023
+      },
+      {
+        "id": "exp-mobilemechanic",
+        "company": "Mobile Mechanic",
+        "role": "Backend Developer (contract)",
+        "startYear": 2025,
+        "endYear": 2025
+      }
+    ],
+    "projects": [
+      {
+        "id": "p-001",
+        "drawingNo": "SP-001",
+        "title": "SafePick",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Owner: backend architecture, system design and frontend",
+        "scope": "Child pickup authorization platform that verifies who is allowed to collect a child, reducing unauthorized-release risk for schools and guardians. Parent, delegate and school-facing applications. Built the React/Next.js frontend across multiple completed features and planned the backend architecture. Stack: NestJS, PostgreSQL, Next.js, Redis.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": true,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-002",
+        "drawingNo": "SP-002",
+        "title": "Nexus",
+        "location": "Remote",
+        "category": "data-ai",
+        "role": "Team lead and backend engineer",
+        "scope": "Analytics pipeline and admin platform. Built a platform statistics pipeline processing 10k+ records with MongoDB aggregation pipelines, plus BullMQ-driven automated daily admin email reports. Led frontend delivery as team lead on the Nexus website. Stack: Next.js, NestJS, MongoDB, BullMQ.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": true,
+        "experienceId": "exp-tobams"
+      },
+      {
+        "id": "p-003",
+        "drawingNo": "SP-003",
+        "title": "RLK",
+        "location": "Remote",
+        "category": "education",
+        "role": "Backend and AI integration",
+        "scope": "AI-integrated learning platform covering sustainability, leadership and entrepreneurship. Integrated AI capabilities into the product. Stack: Node.js, AI/LLM integration.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-tobams"
+      },
+      {
+        "id": "p-004",
+        "drawingNo": "SP-004",
+        "title": "RLM",
+        "location": "Remote",
+        "category": "education",
+        "role": "Backend and AI integration",
+        "scope": "AI-integrated learning platform covering sustainability, leadership and entrepreneurship. Integrated AI capabilities into the product. Stack: Node.js, AI/LLM integration.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-tobams"
+      },
+      {
+        "id": "p-005",
+        "drawingNo": "SP-005",
+        "title": "Rareeat",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Contributor",
+        "scope": "Contributed to product engineering across the Tobams Group platform. Stack: React, MongoDB, Redis.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-tobams"
+      },
+      {
+        "id": "p-006",
+        "drawingNo": "SP-006",
+        "title": "Tobams Group (TG) website",
+        "location": "Remote",
+        "category": "website",
+        "role": "Frontend team lead",
+        "scope": "Led frontend development as team lead, delivering production-ready interfaces with React/Next.js, HTML, CSS and Tailwind CSS.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-tobams"
+      },
+      {
+        "id": "p-007",
+        "drawingNo": "SP-007",
+        "title": "SCIMS",
+        "location": "Remote",
+        "category": "commerce",
+        "role": "Contributor",
+        "scope": "Multi-store point-of-sale and inventory system handling 10k+ products, with stock tracking, business analytics, and notification and payment integrations. Stack: Node.js, PostgreSQL, React.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": true,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-008",
+        "drawingNo": "SP-008",
+        "title": "Rakuxon Care",
+        "location": "Remote",
+        "category": "website",
+        "role": "Contributor",
+        "scope": "Dual-audience marketing and enquiry site for the UK care sector, covering home-care services and B2B care-business enablement. Stack: Node.js, PostgreSQL, React.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-009",
+        "drawingNo": "SP-009",
+        "title": "EduMimi",
+        "location": "Remote",
+        "category": "education",
+        "role": "Contributor, backend and frontend",
+        "scope": "Tutoring, courses and school-management platform. Contributed backend and frontend features. Stack: Node.js, Next.js.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-010",
+        "drawingNo": "SP-010",
+        "title": "KudiPay",
+        "location": "Remote",
+        "category": "fintech",
+        "role": "Tester and technical reviewer",
+        "scope": "Fintech wallet and bill-payment platform. Tested and reviewed wallet funding and automated airtime, data and bill-payment flows, focused on transaction reliability. Stack: Node.js.",
+        "startYear": 2023,
+        "status": "completed",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-011",
+        "drawingNo": "SP-011",
+        "title": "Megamart",
+        "location": "Remote",
+        "category": "commerce",
+        "role": "Backend developer",
+        "scope": "E-commerce platform. Developed and maintained backend services and RESTful APIs in Node.js and TypeScript, with authentication, authorization and payment integrations. Also built backend systems that accelerated the checkout process.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-012",
+        "drawingNo": "SP-012",
+        "title": "BookMyTime",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Backend developer",
+        "scope": "Booking platform. Developed and maintained backend services and RESTful APIs in Node.js and TypeScript, optimising PostgreSQL and MongoDB queries for performance and reliability.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs"
+      },
+      {
+        "id": "p-013",
+        "drawingNo": "SP-013",
+        "title": "MedCare",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Fullstack developer (intern)",
+        "scope": "Contributed to both the frontend and backend of MedCare. Tested the product at pre-production stage, fixed frontend and backend bugs to reduce downtime, and optimised database queries to improve retrieval speed and reduce server load.",
+        "startYear": 2022,
+        "status": "completed",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-pacifylabs",
+        "endYear": 2023
+      },
+      {
+        "id": "p-014",
+        "drawingNo": "SP-014",
+        "title": "Guest User Management System",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Backend architect",
+        "scope": "Designed the backend architecture for guest user onboarding and the guest-to-registered-user conversion flow, a pattern central to marketplace and consumer-facing platforms. Designed email verification strategies and account migration workflows for scalable guest account management.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-015",
+        "drawingNo": "SP-015",
+        "title": "Mobile Mechanics Web Application",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Backend developer and architect",
+        "scope": "Mechanic business platform matching car owners with mechanics. Designed the backend architecture and application workflow, structured the APIs for product, car owner and mechanic management, and produced technical proposals and system requirement specifications to support scalable growth.",
+        "startYear": 2025,
+        "status": "completed",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-mobilemechanic",
+        "endYear": 2025
+      },
+      {
+        "id": "p-016",
+        "drawingNo": "SP-016",
+        "title": "Job Recruitment Platform Backend",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Backend developer",
+        "scope": "Developed and maintained backend services, including notification systems for job applications and closed-posting alerts. Improved user experience with instant validation feedback and fixed portfolio URL validation to accept HTTP, HTTPS and WWW formats. Took part in deployment and production issue resolution.",
+        "startYear": 2023,
+        "status": "ongoing",
+        "images": [],
+        "featured": false
+      },
+      {
+        "id": "p-017",
+        "drawingNo": "SP-017",
+        "title": "EBIZ",
+        "location": "Remote",
+        "category": "platform",
+        "role": "Fullstack developer",
+        "scope": "Contract engagement as a fullstack developer.",
+        "startYear": 2023,
+        "status": "completed",
+        "images": [],
+        "featured": false,
+        "experienceId": "exp-ebiz",
+        "endYear": 2023
+      }
+    ],
+    "certifications": [
+      {
+        "id": "cert-devcareer",
+        "title": "Introduction to Career Skills in Software Development",
+        "shortTitle": "DEVCAR",
+        "issuer": "DevCareer Academy",
+        "year": 2023
+      },
+      {
+        "id": "cert-fcc",
+        "title": "Web Development Certification",
+        "shortTitle": "FCC",
+        "issuer": "freeCodeCamp",
+        "year": 2022
+      },
+      {
+        "id": "cert-firstaid",
+        "title": "Basic First Aid Certificate",
+        "shortTitle": "AID",
+        "issuer": "NYSC community development service",
+        "year": 2022
+      }
+    ],
+    "education": [
+      {
+        "id": "edu-eksu",
+        "institution": "Ekiti State University, Ado-Ekiti",
+        "qualification": "B.Sc. (Hons) Chemistry",
+        "startYear": 2016,
+        "endYear": 2022
+      }
+    ],
+    "referees": [],
+    "testimonials": [],
+    "settings": {
+      "theme": "blueprint"
+    }
+  }
+}
