@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enquiryEmail, escapeHtml, signInEmail } from "./email-templates";
+import { enquiryEmail, escapeHtml, passwordChangedEmail, passwordResetEmail, signInEmail } from "./email-templates";
 
 const lead = {
   name: 'Ada <script>alert("x")</script>',
@@ -76,5 +76,53 @@ describe("enquiryEmail", () => {
 describe("escapeHtml", () => {
   it("escapes the five significant characters", () => {
     expect(escapeHtml(`<a href="x">'&'</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
+  });
+});
+
+describe("passwordResetEmail", () => {
+  const url = "https://sheetfolio.app/reset-password?token=abc_DEF-123";
+  const mail = passwordResetEmail({ url, email: "idris@example.com", expiresInMinutes: 60 });
+
+  it("names the account, the expiry and what to do if it was not requested", () => {
+    expect(mail.subject).toBe("Reset your Sheetfolio password");
+    expect(mail.html).toContain("idris@example.com");
+    expect(mail.html).toContain("expires in 1 hour");
+    expect(mail.text).toContain("expires in 1 hour");
+    expect(mail.text).toContain("Ignore this email");
+  });
+
+  it("carries the link in the button and in plain text", () => {
+    expect(mail.html).toContain(`href="${url}"`);
+    expect(mail.text).toContain(url);
+  });
+
+  it("escapes the address in HTML", () => {
+    const hostile = passwordResetEmail({ url, email: '"><script>x</script>@e.co', expiresInMinutes: 60 });
+    expect(hostile.html).not.toContain("<script>");
+  });
+});
+
+describe("passwordChangedEmail", () => {
+  const mail = passwordChangedEmail({
+    email: "idris@example.com",
+    changedAt: new Date("2026-10-21T09:30:00.000Z"),
+    resetUrl: "https://sheetfolio.app/forgot-password",
+  });
+
+  it("states what changed, when (in UTC), and that every device was signed out", () => {
+    expect(mail.subject).toBe("Your Sheetfolio password was changed");
+    expect(mail.html).toContain("idris@example.com");
+    expect(mail.text).toContain("Wed, 21 Oct 2026 09:30:00 UTC");
+    expect(mail.text).toContain("Every device was signed out");
+  });
+
+  it("gives a way back in if it was not the owner", () => {
+    expect(mail.html).toContain('href="https://sheetfolio.app/forgot-password"');
+    expect(mail.text).toContain("If this wasn't you");
+    expect(mail.text).toContain("https://sheetfolio.app/forgot-password");
+  });
+
+  it("never contains a password or a token", () => {
+    expect(mail.text).not.toMatch(/token|password:/i);
   });
 });

@@ -103,6 +103,88 @@ export function signInEmail({
   return { subject, html, text };
 }
 
+// ── Password reset ──────────────────────────────────────────────────────────
+
+function minutesLabel(minutes: number): string {
+  return minutes % 60 === 0 ? `${minutes / 60} hour${minutes === 60 ? "" : "s"}` : `${minutes} minutes`;
+}
+
+export function passwordResetEmail({
+  url,
+  email,
+  expiresInMinutes,
+}: {
+  url: string;
+  email: string;
+  expiresInMinutes: number;
+}): EmailContent {
+  const expiry = minutesLabel(expiresInMinutes);
+  const subject = "Reset your Sheetfolio password";
+  const html = layout({
+    preheader: `Choose a new password. The link expires in ${expiry}.`,
+    sheet: "A-02",
+    body: [
+      h1("Reset your password"),
+      p(
+        `Someone asked to reset the password for <strong>${escapeHtml(email)}</strong>. Use the button below to choose a new one. The link works once and expires in ${expiry}.`,
+      ),
+      `<div style="margin:24px 0;">${button(url, "Choose a new password")}</div>`,
+      p(
+        `If the button doesn't work, copy this link into your browser:<br><a href="${escapeHtml(url)}" style="color:${T.blueprint};word-break:break-all;font-family:${MONO};font-size:13px;">${escapeHtml(url)}</a>`,
+        `font-size:14px;color:${T.inkMuted};`,
+      ),
+    ].join(""),
+    footer: `Didn't ask for this? Ignore this email. Your password stays the same until the link is used.`,
+  });
+  const text = [
+    "Reset your Sheetfolio password",
+    "",
+    `Someone asked to reset the password for ${email}. Use this link to choose a new one. It works once and expires in ${expiry}:`,
+    url,
+    "",
+    "Didn't ask for this? Ignore this email. Your password stays the same until the link is used.",
+  ].join("\n");
+  return { subject, html, text };
+}
+
+export function passwordChangedEmail({
+  email,
+  changedAt,
+  resetUrl,
+}: {
+  email: string;
+  changedAt: Date;
+  /** Absolute link to the forgot-password page, for "this wasn't me". */
+  resetUrl: string;
+}): EmailContent {
+  const when = changedAt.toUTCString().replace(" GMT", " UTC");
+  const subject = "Your Sheetfolio password was changed";
+  const html = layout({
+    preheader: "Your password was just changed. If that wasn't you, reset it now.",
+    sheet: "A-03",
+    body: [
+      h1("Your password was changed"),
+      p(
+        `The password for <strong>${escapeHtml(email)}</strong> was changed on ${escapeHtml(when)}. Every device was signed out, so you'll sign in again with the new password.`,
+      ),
+      p(`If you made this change, there's nothing more to do.`),
+      p(`<strong>If this wasn't you</strong>, someone else may have access. Reset your password now:`),
+      `<div style="margin:24px 0;">${button(resetUrl, "Reset my password")}</div>`,
+    ].join(""),
+    footer: `You get this email whenever a Sheetfolio password changes, so a change you didn't make never goes unnoticed.`,
+  });
+  const text = [
+    "Your Sheetfolio password was changed",
+    "",
+    `The password for ${email} was changed on ${when}. Every device was signed out, so you'll sign in again with the new password.`,
+    "",
+    "If you made this change, there's nothing more to do.",
+    "",
+    `If this wasn't you, someone else may have access. Reset your password now: ${resetUrl}`,
+  ].join("\n");
+  return { subject, html, text };
+}
+
 // ── New enquiry (to the engineer) ───────────────────────────────────────────
 
 export function enquiryEmail({

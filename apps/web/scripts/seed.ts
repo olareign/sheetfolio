@@ -37,6 +37,8 @@ function kvFor(redis: Redis): KV {
     get: (key) => redis.get(key),
     set: (key, value, opts) => redis.set(key, value, opts),
     del: (...keys) => redis.del(...keys),
+    incr: (key) => redis.incr(key),
+    getdel: (key) => redis.getdel(key),
   };
 }
 

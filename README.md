@@ -106,11 +106,22 @@ Two ways in, both on `/login`:
 
 - **Username (or email) and password**, the everyday way. Passwords are hashed with scrypt and stored under
   `cred:{email}`; `username:{name}` maps a username to its email. 8 attempts per account and 30 per IP per 15 minutes.
-- **Email link**, for a first sign-in or a forgotten password. Once signed in, **Settings → Sign-in** sets or changes
-  the password.
+- **Email link**, for a first sign-in. Once signed in, **Settings → Sign-in** sets a password.
+
+Recovery and safeguards:
+
+- **Forgot password** (`/forgot-password` → `/reset-password?token=…`). The link is single-use, expires in an hour, and
+  only the newest link works. Only a SHA-256 of the token is stored (`reset:{hash}`). The form answers identically
+  whether or not the account exists, and does the work after responding, so neither the text nor the timing leaks
+  who has an account. 3 requests per account and 10 per IP per hour.
+- **Sign out everywhere.** A password change or reset bumps `session-epoch:{email}`; every session carries the epoch it
+  was issued under and is rejected once it no longer matches. Changing your password in Settings keeps the current
+  device signed in. Setting a first password does not sign anyone out. This costs one Redis read per signed-in request.
+- **Notification.** Every change or reset emails the owner ("Your Sheetfolio password was changed") with a link back
+  to `/forgot-password`.
 
 Sessions are signed cookies (JWT), not database rows: Auth.js only supports password sign-in that way. The adapter
-still stores users and email-link tokens under `auth:`. A password change does not sign out other devices.
+still stores users and email-link tokens under `auth:`.
 
 ### Seeding
 

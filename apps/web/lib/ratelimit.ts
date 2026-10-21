@@ -48,6 +48,38 @@ export async function allowLoginAttempt(identifier: string, ip: string): Promise
   }
 }
 
+let resetByAccount: Ratelimit | undefined;
+let resetByIp: Ratelimit | undefined;
+
+/**
+ * Password-reset requests: 3 per account and 10 per IP per hour. This stops someone using the form
+ * to flood a person's inbox with reset emails. Fails open like the other limiters.
+ */
+export async function allowResetRequest(identifier: string, ip: string): Promise<boolean> {
+  resetByAccount ??= new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(3, "1 h"),
+    prefix: "ratelimit:reset:account",
+    analytics: false,
+  });
+  resetByIp ??= new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    prefix: "ratelimit:reset:ip",
+    analytics: false,
+  });
+  try {
+    const [account, address] = await Promise.all([
+      resetByAccount.limit(identifier.trim().toLowerCase()),
+      resetByIp.limit(ip),
+    ]);
+    return account.success && address.success;
+  } catch (err) {
+    console.error("[auth] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return true;
+  }
+}
+
 /** Best-effort client IP from proxy headers (Vercel sets x-forwarded-for). */
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();

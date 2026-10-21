@@ -5,7 +5,7 @@ import Resend from "next-auth/providers/resend";
 import { UpstashRedisAdapter } from "@auth/upstash-redis-adapter";
 import { z } from "zod";
 import { getUserRecord } from "./accounts";
-import { authenticate } from "./credentials";
+import { authenticate, getSessionEpoch, isSessionCurrent } from "./credentials";
 import { sendEmail } from "./email";
 import { signInEmail } from "./email-templates";
 import { env } from "./env";
@@ -23,7 +23,14 @@ export class TooManyAttempts extends CredentialsSignin {
 const PasswordLogin = z.object({ identifier: z.string().trim().min(1).max(254), password: z.string().min(1).max(128) });
 
 // Lazy config: env is read per request, so `next build` doesn't need secrets.
-export const { handlers, auth, signIn, signOut } = NextAuth(() => {
+export const {
+  handlers,
+  auth,
+  signIn,
+  signOut,
+  /** Re-issues the current session cookie with a fresh epoch, so a password change keeps this device signed in. */
+  unstable_update: refreshSession,
+} = NextAuth(() => {
   const e = env();
 
   return {
@@ -73,6 +80,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       error: "/login",
     },
     callbacks: {
+      async jwt({ token, user, trigger }) {
+        const email = (user?.email ?? token.email)?.toLowerCase();
+        if (!email) return token;
+        // Sign-in or an explicit refresh: stamp the account's current epoch.
+        if (user || trigger === "update") {
+          token.epoch = await getSessionEpoch(email);
+          return token;
+        }
+        // Every later request: a password change or reset since sign-in has bumped the epoch, so end this session.
+        const stamped = typeof token.epoch === "number" ? token.epoch : undefined;
+        return (await isSessionCurrent(email, stamped)) ? token : null;
+      },
       session({ session, token }) {
         if (token.sub) session.user.id = token.sub;
         return session;

@@ -26,10 +26,18 @@ export class FakeRedis {
     return v === undefined ? null : (dec(v) as T);
   }
 
-  async set(key: string, value: unknown, opts?: { nx?: boolean }): Promise<"OK" | null> {
+  async set(key: string, value: unknown, opts?: { nx?: boolean; ex?: number }): Promise<"OK" | null> {
     if (opts?.nx && this.strings.has(key)) return null;
     this.strings.set(key, enc(value));
+    if (opts?.ex !== undefined) this.ttls.set(key, opts.ex);
     return "OK";
+  }
+
+  async getdel<T = unknown>(key: string): Promise<T | null> {
+    const v = this.strings.get(key);
+    this.strings.delete(key);
+    this.ttls.delete(key);
+    return v === undefined ? null : (dec(v) as T);
   }
 
   async del(...keys: string[]): Promise<number> {

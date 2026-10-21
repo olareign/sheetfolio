@@ -15,7 +15,7 @@ vi.mock("@upstash/ratelimit", () => ({
 }));
 vi.mock("./redis", () => ({ redis: () => ({}) }));
 
-const { allowLoginAttempt, clientIp } = await import("./ratelimit");
+const { allowLoginAttempt, allowResetRequest, clientIp } = await import("./ratelimit");
 
 describe("clientIp", () => {
   it("takes the first x-forwarded-for hop", () => {
@@ -61,6 +61,32 @@ describe("allowLoginAttempt", () => {
     expect(await allowLoginAttempt("ada@example.com", "203.0.113.7")).toBe(true);
     expect(log).toHaveBeenCalledOnce();
     expect(String(log.mock.calls[0])).not.toContain("ada@example.com");
+    log.mockRestore();
+  });
+});
+
+describe("allowResetRequest", () => {
+  it("allows a request under both limits and counts the account case-insensitively", async () => {
+    const keys: string[] = [];
+    limits.run = async (prefix, key) => {
+      keys.push(`${prefix}:${key}`);
+      return { success: true };
+    };
+    expect(await allowResetRequest(" Ada@Example.com ", "203.0.113.7")).toBe(true);
+    expect(keys).toContain("ratelimit:reset:account:ada@example.com");
+  });
+
+  it.each(["account", "ip"])("blocks when the %s limit is hit", async (which) => {
+    limits.run = async (prefix) => ({ success: !prefix.endsWith(which) });
+    expect(await allowResetRequest("ada@example.com", "203.0.113.7")).toBe(false);
+  });
+
+  it("fails open when the limiter is unreachable", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    limits.run = async () => {
+      throw new Error("connection refused");
+    };
+    expect(await allowResetRequest("ada@example.com", "203.0.113.7")).toBe(true);
     log.mockRestore();
   });
 });

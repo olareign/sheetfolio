@@ -8,7 +8,17 @@ vi.mock("@/lib/redis", async (importOriginal) => {
   return { ...actual, redis: () => state.redis };
 });
 
-const { authenticate, changePassword, getCredentials, setPassword } = await import("./credentials");
+const {
+  authenticate,
+  changePassword,
+  createResetToken,
+  getCredentials,
+  getSessionEpoch,
+  isSessionCurrent,
+  peekResetToken,
+  resetPassword,
+  setPassword,
+} = await import("./credentials");
 
 const email = "ada@example.com";
 const now = new Date("2026-10-21T09:00:00.000Z");
@@ -112,5 +122,106 @@ describe("changePassword", () => {
       ok: false,
       reason: "NO_PASSWORD",
     });
+  });
+});
+
+describe("session epoch", () => {
+  it("starts at 0, and a session with no stamp counts as 0, so shipping this signs nobody out", async () => {
+    expect(await getSessionEpoch(email)).toBe(0);
+    expect(await isSessionCurrent(email, undefined)).toBe(true);
+    expect(await isSessionCurrent(email, 0)).toBe(true);
+  });
+
+  it("a password change moves the epoch on, which ends every session stamped earlier", async () => {
+    await setPassword({ email, password: "correct horse battery", username: "ada" });
+    expect(await isSessionCurrent(email, 0)).toBe(true); // setting a first password signs nobody out
+
+    await changePassword(email, "correct horse battery", "a brand new password");
+
+    expect(await getSessionEpoch(email)).toBe(1);
+    expect(await isSessionCurrent(email, 0)).toBe(false);
+    expect(await isSessionCurrent(email, undefined)).toBe(false);
+    expect(await isSessionCurrent(email, 1)).toBe(true);
+  });
+
+  it("a refused password change leaves sessions alone", async () => {
+    await setPassword({ email, password: "correct horse battery" });
+    await changePassword(email, "not the password", "a brand new password");
+    expect(await getSessionEpoch(email)).toBe(0);
+  });
+});
+
+describe("password reset", () => {
+  beforeEach(async () => {
+    await setPassword({ email, password: "correct horse battery", username: "ada" });
+  });
+
+  it("stores only a hash of the token, and it expires in an hour", async () => {
+    const token = await createResetToken(email);
+
+    const stored = [...fake.strings.keys()].filter((k) => k.startsWith("reset:"));
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).not.toContain(token);
+    expect([...fake.strings.values()].join(" ")).not.toContain(token);
+    expect(fake.ttls.get(stored[0] as string)).toBe(3600);
+    expect(fake.ttls.get("reset-latest:ada@example.com")).toBe(3600);
+  });
+
+  it("peeks the owner without using the token up", async () => {
+    const token = await createResetToken(email);
+    expect(await peekResetToken(token)).toBe(email);
+    expect(await peekResetToken(token)).toBe(email);
+  });
+
+  it.each([
+    ["unknown", "x".repeat(43)],
+    ["too short", "abc"],
+    ["wrong characters", "a b".repeat(10)],
+    ["empty", ""],
+  ])("rejects a %s token", async (_name, token) => {
+    expect(await peekResetToken(token)).toBeNull();
+    expect(await resetPassword(token, "a brand new password")).toEqual({ ok: false, reason: "INVALID_TOKEN" });
+  });
+
+  it("a newer request replaces the older link", async () => {
+    const first = await createResetToken(email);
+    const second = await createResetToken(email);
+
+    expect(await peekResetToken(first)).toBeNull();
+    expect(await peekResetToken(second)).toBe(email);
+    expect(await resetPassword(first, "a brand new password")).toEqual({ ok: false, reason: "INVALID_TOKEN" });
+  });
+
+  it("sets the new password, keeps the username, and signs the account out everywhere", async () => {
+    const token = await createResetToken(email);
+
+    expect(await resetPassword(token, "a brand new password")).toEqual({ ok: true, email });
+
+    expect(await authenticate("ada", "a brand new password")).toEqual({ email });
+    expect(await authenticate("ada", "correct horse battery")).toBeNull();
+    expect(await getSessionEpoch(email)).toBe(1);
+  });
+
+  it("works only once", async () => {
+    const token = await createResetToken(email);
+    await resetPassword(token, "a brand new password");
+
+    expect(await resetPassword(token, "yet another password")).toEqual({ ok: false, reason: "INVALID_TOKEN" });
+    expect(await authenticate("ada", "a brand new password")).toEqual({ email });
+  });
+
+  it("a too-short password is refused without burning the link", async () => {
+    const token = await createResetToken(email);
+
+    await expect(resetPassword(token, "short")).rejects.toThrow();
+
+    expect(await resetPassword(token, "a perfectly fine password")).toEqual({ ok: true, email });
+  });
+
+  it("can set the first password for an account that signs in by email link", async () => {
+    const token = await createResetToken("magic@example.com");
+
+    expect(await resetPassword(token, "a brand new password")).toEqual({ ok: true, email: "magic@example.com" });
+    expect(await authenticate("magic@example.com", "a brand new password")).toEqual({ email: "magic@example.com" });
   });
 });

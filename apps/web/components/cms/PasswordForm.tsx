@@ -7,7 +7,7 @@ import { SubmitButton } from "@/components/sp/SubmitButton";
 import { PASSWORD_MIN } from "@/content/schemas";
 
 /** Settings → Sign-in: set a password and username the first time, then change the password. */
-export function PasswordForm({ username }: { username: string | null }) {
+export function PasswordForm({ username, changed = false }: { username: string | null; changed?: boolean }) {
   const [state, action] = useActionState<PasswordState, FormData>(savePassword, {});
   const hasPassword = username !== null;
   return (
@@ -26,6 +26,11 @@ export function PasswordForm({ username }: { username: string | null }) {
         {state.error && (
           <p className="sp-alert" role="alert">
             {state.error}
+          </p>
+        )}
+        {changed && (
+          <p className="sp-note" role="status">
+            Password changed. Every other device was signed out, and we emailed you a confirmation.
           </p>
         )}
         {state.saved && (

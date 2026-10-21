@@ -17,13 +17,13 @@ const ERROR_MESSAGES: Record<string, string> = {
     "We couldn't send your sign-in email. Try again in a few minutes, or contact support if it keeps happening.",
 };
 
-type Props = { searchParams: Promise<{ sent?: string; error?: string; mode?: string }> };
+type Props = { searchParams: Promise<{ sent?: string; error?: string; mode?: string; reset?: string }> };
 
 export default async function LoginPage({ searchParams }: Props) {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const { sent, error, mode } = await searchParams;
+  const { sent, error, mode, reset } = await searchParams;
   const byLink = mode === "link";
   const devConsoleMail = usesConsoleMail();
 
@@ -46,6 +46,11 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <SheetPanel sheet="A-01" title="Sign in">
       <p className="sp-lead">Manage your Sheetfolio page.</p>
+      {reset && (
+        <p className="sp-note" role="status">
+          Password updated. Sign in with your new password.
+        </p>
+      )}
       {error && (
         <p className="sp-alert" role="alert">
           {ERROR_MESSAGES[error] ?? "Sign-in failed. Request a new link."}
@@ -56,7 +61,11 @@ export default async function LoginPage({ searchParams }: Props) {
         {byLink ? (
           <Link href="/login">Sign in with a password instead</Link>
         ) : (
-          <Link href="/login?mode=link">First time, or forgot your password? Email me a sign-in link</Link>
+          <>
+            <Link href="/forgot-password">Forgot your password?</Link>
+            {" · "}
+            <Link href="/login?mode=link">Email me a sign-in link</Link>
+          </>
         )}
       </p>
     </SheetPanel>

@@ -1,8 +1,14 @@
 "use server";
 
+import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { NewPassword, Username } from "@/content/schemas";
+import { refreshSession } from "@/lib/auth";
 import { changePassword, getCredentials, setPassword } from "@/lib/credentials";
+import { sendEmail } from "@/lib/email";
+import { publicSiteUrl } from "@/lib/env";
+import { sendPasswordChangedNotice } from "@/lib/password-reset";
 import { requireUser } from "@/lib/session";
 
 export type PasswordState = { error?: string; saved?: boolean };
@@ -14,7 +20,8 @@ const Fields = z.object({ newPassword: NewPassword, confirm: z.string() }).refin
 
 /**
  * Sets a password for the signed-in account (first time: also picks a username) or changes it
- * (current password required). Acts only on the caller's own email, taken from the session.
+ * (current password required; every other device is signed out and the owner is emailed). Acts only on
+ * the caller's own email, taken from the session.
  */
 export async function savePassword(_prev: PasswordState, formData: FormData): Promise<PasswordState> {
   const { email } = await requireUser();
@@ -28,7 +35,13 @@ export async function savePassword(_prev: PasswordState, formData: FormData): Pr
   if (existing) {
     const result = await changePassword(email, String(formData.get("currentPassword") ?? ""), fields.data.newPassword);
     if (!result.ok) return { error: "Your current password is not correct." };
-    return { saved: true };
+    // The change signed every session out, this one included: re-stamp it so this device stays signed in.
+    await refreshSession({});
+    after(() => sendPasswordChangedNotice(email, { send: sendEmail, origin: publicSiteUrl().origin }));
+    // Redirect rather than return. A cookie set in an action makes Next re-render this page in the same
+    // response using the browser's old, now stale cookie, which would bounce to /login. A redirect makes
+    // the next request carry the new cookie.
+    redirect("/dashboard/settings?changed=password");
   }
 
   const username = Username.safeParse(String(formData.get("username") ?? ""));
