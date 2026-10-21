@@ -770,3 +770,83 @@
   gap: var(--space-2);
   font: 400 13px/1.3 var(--font-sans);
 }
+
+/* Dashboard → CV: layouts on the left, live PDF preview on the right */
+.cms-cv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+.cms-cv-pick {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+.cms-cv-preview {
+  flex: 1 1 460px;
+  min-width: 0;
+  position: sticky;
+  top: var(--space-4);
+}
+.cms-cv-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.cms-cv-preview-head h2 {
+  margin: 0;
+}
+.cms-cv-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.cms-cv-frame {
+  position: relative;
+  margin-top: var(--space-3);
+  height: min(78vh, 880px);
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.cms-cv-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #ffffff;
+}
+.cms-cv-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font: 400 13px/1.4 var(--font-mono);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+.cms-cv-view {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.cms-cv-view:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.cms-cv-card[data-previewing="true"] .cms-cv-name::after {
+  content: " · previewing";
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+@media (max-width: 960px) {
+  .cms-cv-preview {
+    position: static;
+  }
+}

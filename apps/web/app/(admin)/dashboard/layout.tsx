@@ -29,12 +29,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       label: collections[name].label,
       count: draft[name].length,
     })),
+    { href: "/dashboard/cv", label: "CV" },
     { href: "/dashboard/leads", label: "Leads", badge: unread },
     { href: "/dashboard/settings", label: "Settings" },
   ];
   const labels = Object.fromEntries([
     ...NAV_COLLECTIONS.map((n) => [n, collections[n].label]),
     ["profile", "Profile"],
+    ["cv", "CV"],
     ["settings", "Settings"],
     ["leads", "Leads"],
   ]);

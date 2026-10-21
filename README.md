@@ -97,7 +97,7 @@ request from the published page (`/api/cv/{slug}?template=…`).
 | Minimal        | Sans-serif, no lines or colour at all    | Maximum compatibility                   |
 
 **The owner chooses which layouts their page offers**, and which is the default, in the dashboard under
-**Settings → CV layouts** (every layout is on by default; Modern is the default). The choice is part of the draft, so it
+**Dashboard → CV** (every layout is on by default; Modern is the default). The same page shows a live preview of your saved draft in any layout, as the real PDF (`/api/cv/preview`, signed-in owner only, never cached). The choice is part of the draft, so it
 reaches the public page on **Publish**. On the page, one offered layout is a plain "Download CV" button; several open a
 list with the default first. The route only serves offered layouts: a missing, unknown or not-offered `?template=` gets the
 page's default.
