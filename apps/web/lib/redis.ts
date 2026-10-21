@@ -1,5 +1,6 @@
 import "server-only";
 import { Redis } from "@upstash/redis";
+import { credentialKeys } from "./credential-store";
 import { env } from "./env";
 
 let client: Redis | undefined;
@@ -17,6 +18,7 @@ export function redis(): Redis {
 export const keys = {
   user: (email: string) => `user:${email.toLowerCase()}`,
   slug: (slug: string) => `slug:${slug}`,
+  ...credentialKeys,
   draft: (slug: string) => `site:${slug}:draft`,
   published: (slug: string) => `site:${slug}:published`,
   /** First publish time, set once (NX): signup → first publish is a success metric (PRD §11). */

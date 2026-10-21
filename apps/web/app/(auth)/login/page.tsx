@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { usesConsoleMail } from "@/lib/env";
 import { SheetPanel } from "@/components/SheetPanel";
-import { LoginForm } from "./LoginForm";
+import { LoginForm, PasswordForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -17,13 +17,14 @@ const ERROR_MESSAGES: Record<string, string> = {
     "We couldn't send your sign-in email. Try again in a few minutes, or contact support if it keeps happening.",
 };
 
-type Props = { searchParams: Promise<{ sent?: string; error?: string }> };
+type Props = { searchParams: Promise<{ sent?: string; error?: string; mode?: string }> };
 
 export default async function LoginPage({ searchParams }: Props) {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const { sent, error } = await searchParams;
+  const { sent, error, mode } = await searchParams;
+  const byLink = mode === "link";
   const devConsoleMail = usesConsoleMail();
 
   if (sent) {
@@ -50,7 +51,14 @@ export default async function LoginPage({ searchParams }: Props) {
           {ERROR_MESSAGES[error] ?? "Sign-in failed. Request a new link."}
         </p>
       )}
-      <LoginForm />
+      {byLink ? <LoginForm /> : <PasswordForm />}
+      <p className="sp-annot">
+        {byLink ? (
+          <Link href="/login">Sign in with a password instead</Link>
+        ) : (
+          <Link href="/login?mode=link">First time, or forgot your password? Email me a sign-in link</Link>
+        )}
+      </p>
     </SheetPanel>
   );
 }

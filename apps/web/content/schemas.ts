@@ -35,6 +35,13 @@ export const CATEGORIES = [
   "community",
   "healthcare",
   "institutional",
+  // Software work: the page format is profession-neutral, the project categories are per field.
+  "platform",
+  "website",
+  "commerce",
+  "fintech",
+  "education",
+  "data-ai",
 ] as const;
 export const Category = z.enum(CATEGORIES);
 export type Category = z.infer<typeof Category>;
@@ -47,6 +54,12 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   community: "Community",
   healthcare: "Healthcare",
   institutional: "Institutional",
+  platform: "Platform",
+  website: "Website",
+  commerce: "Commerce",
+  fintech: "Fintech",
+  education: "Education",
+  "data-ai": "Data & AI",
 };
 
 const Id = z.string().min(1).max(64);
@@ -328,6 +341,25 @@ export const UserRecord = z.object({
   createdAt: z.iso.datetime(),
 });
 export type UserRecord = z.infer<typeof UserRecord>;
+
+// ── Credentials ─────────────────────────────────────────────────────────────
+
+/** Sign-in handle: lowercase letters and digits, with single `.`, `_` or `-` between them. */
+export const Username = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, "At least 3 characters")
+  .max(30, "At most 30 characters")
+  .regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/, "Lowercase letters and numbers, with single . _ or - between them");
+export type Username = z.infer<typeof Username>;
+
+export const PASSWORD_MIN = 10;
+// Upper bound keeps a hostile request from forcing the server to hash megabytes.
+export const NewPassword = z
+  .string()
+  .min(PASSWORD_MIN, `At least ${PASSWORD_MIN} characters`)
+  .max(128, "At most 128 characters");
 
 // ── Onboarding ──────────────────────────────────────────────────────────────
 

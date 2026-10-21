@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createEmptySite, Project, PublishableSite, Site, Slug } from "./schemas";
+import {
+  CATEGORIES,
+  CATEGORY_LABELS,
+  createEmptySite,
+  NewPassword,
+  Project,
+  PublishableSite,
+  Site,
+  Slug,
+  Username,
+} from "./schemas";
 
 const now = new Date("2026-09-28T10:00:00.000Z");
 const empty = () =>
@@ -122,5 +132,42 @@ describe("PublishableSite", () => {
       whatsapp: "2347033435818",
     };
     expect(PublishableSite.safeParse(site).success).toBe(true);
+  });
+});
+
+describe("Username", () => {
+  it("lowercases and trims, and accepts single separators between letters and digits", () => {
+    expect(Username.parse("  Ada.Lovelace-1815 ")).toBe("ada.lovelace-1815");
+    expect(Username.parse("idris-rasaq")).toBe("idris-rasaq");
+  });
+
+  it.each(["ab", "x".repeat(31), "has space", "-lead", "trail-", "dou..ble", "semi;colon", "emoji🙂ok", "a@b.com"])(
+    "rejects %j",
+    (value) => {
+      expect(Username.safeParse(value).success).toBe(false);
+    },
+  );
+});
+
+describe("NewPassword", () => {
+  it("accepts 10 to 128 characters, spaces included", () => {
+    expect(NewPassword.safeParse("a".repeat(10)).success).toBe(true);
+    expect(NewPassword.safeParse("correct horse battery staple").success).toBe(true);
+    expect(NewPassword.safeParse("a".repeat(128)).success).toBe(true);
+  });
+
+  it("rejects 9 characters and 129 characters", () => {
+    expect(NewPassword.safeParse("a".repeat(9)).success).toBe(false);
+    expect(NewPassword.safeParse("a".repeat(129)).success).toBe(false);
+  });
+});
+
+describe("project categories", () => {
+  it("labels every category, so no project can render without a tag", () => {
+    for (const category of CATEGORIES) expect(CATEGORY_LABELS[category]).toBeTruthy();
+  });
+
+  it("accepts a software category on a project", () => {
+    expect(Project.safeParse(project({ category: "fintech" })).success).toBe(true);
   });
 });

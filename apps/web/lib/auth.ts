@@ -1,13 +1,26 @@
 import "server-only";
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import Resend from "next-auth/providers/resend";
 import { UpstashRedisAdapter } from "@auth/upstash-redis-adapter";
+import { z } from "zod";
+import { getUserRecord } from "./accounts";
+import { authenticate } from "./credentials";
 import { sendEmail } from "./email";
 import { signInEmail } from "./email-templates";
 import { env } from "./env";
+import { allowLoginAttempt, clientIp } from "./ratelimit";
 import { redis } from "./redis";
 
 const MAGIC_LINK_MINUTES = 60;
+const SESSION_DAYS = 30;
+
+/** Thrown from `authorize` so the login action can tell "slow down" apart from "wrong password". */
+export class TooManyAttempts extends CredentialsSignin {
+  code = "too_many_attempts";
+}
+
+const PasswordLogin = z.object({ identifier: z.string().trim().min(1).max(254), password: z.string().min(1).max(128) });
 
 // Lazy config: env is read per request, so `next build` doesn't need secrets.
 export const { handlers, auth, signIn, signOut } = NextAuth(() => {
@@ -17,8 +30,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
     // Adapter keys live under `auth:` so they never mix with the app's own `user:{email}` records.
     adapter: UpstashRedisAdapter(redis(), { baseKeyPrefix: "auth:" }),
     secret: e.AUTH_SECRET,
-    session: { strategy: "database" },
+    logger: {
+      // A wrong password is expected traffic, and Auth.js would print a stack trace for each one.
+      error(error) {
+        if (error instanceof CredentialsSignin) return;
+        console.error(`[auth][error] ${error.name}: ${error.message}`);
+      },
+    },
+    // Password sign-in only works with JWT sessions. The adapter still stores users and the
+    // one-time email-link tokens; the session itself is a signed cookie.
+    session: { strategy: "jwt", maxAge: SESSION_DAYS * 24 * 60 * 60 },
     providers: [
+      Credentials({
+        credentials: { identifier: {}, password: {} },
+        async authorize(input, request) {
+          const parsed = PasswordLogin.safeParse(input);
+          if (!parsed.success) return null;
+          const { identifier, password } = parsed.data;
+          if (!(await allowLoginAttempt(identifier, clientIp(request.headers)))) throw new TooManyAttempts();
+
+          const found = await authenticate(identifier, password);
+          if (!found) return null;
+          const account = await getUserRecord(found.email);
+          return { id: account?.id ?? `cred:${found.email}`, email: found.email, name: account?.name };
+        },
+      }),
       Resend({
         apiKey: e.AUTH_RESEND_KEY,
         from: e.RESEND_FROM,
@@ -37,8 +73,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       error: "/login",
     },
     callbacks: {
-      session({ session, user }) {
-        session.user.id = user.id;
+      session({ session, token }) {
+        if (token.sub) session.user.id = token.sub;
         return session;
       },
     },

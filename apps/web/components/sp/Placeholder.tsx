@@ -33,6 +33,21 @@ export const PLACEHOLDER_PATHS: Record<Category, string[]> = {
     "M300 240v-56l36-26 36 26v56",
   ],
   road: ["M30 190l60-20h220l60 20", "M30 190v20h340v-20"],
+  // Software categories: a window / diagram line drawing in the same single-stroke style.
+  platform: ["M60 70h280v160H60zM60 104h280", "M92 150h80v56H92zM196 150h112M196 174h112M196 198h84"],
+  website: [
+    "M50 80h300v150H50zM50 112h300",
+    "M72 96h8M92 96h8M112 96h8",
+    "M82 140h150M82 164h110M82 188h130M262 140h64v64h-64z",
+  ],
+  commerce: ["M60 100h40l30 100h160l24-76H112", "M148 232h8M276 232h8"],
+  fintech: ["M60 100h280v130H60zM60 140h280", "M90 190h60M270 190h40"],
+  education: ["M200 80L60 140l140 60 140-60z", "M110 168v50c28 20 152 20 180 0v-50", "M340 140v70"],
+  "data-ai": [
+    "M60 230h280M60 230V90",
+    "M90 200v-40M140 200v-70M190 200v-96M240 200v-56M290 200v-86",
+    "M90 130l50-26 50 40 50-30 50 12",
+  ],
 };
 
 const HEALTHCARE_CROSS = "M186 150h28v8h8v12h-8v8h-28v-8h-8v-12h8z";
