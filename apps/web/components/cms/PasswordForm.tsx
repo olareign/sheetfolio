@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { savePassword, type PasswordState } from "@/app/(admin)/dashboard/settings/actions";
 import { Field } from "@/components/sp/Field";
+import { PasswordInput } from "@/components/sp/PasswordInput";
 import { SubmitButton } from "@/components/sp/SubmitButton";
 import { PASSWORD_MIN } from "@/content/schemas";
 
@@ -41,14 +42,7 @@ export function PasswordForm({ username, changed = false }: { username: string |
         <div className="cms-grid">
           {hasPassword ? (
             <Field id="currentPassword" label="Current password" required>
-              <input
-                id="currentPassword"
-                name="currentPassword"
-                type="password"
-                autoComplete="current-password"
-                className="sp-input"
-                required
-              />
+              <PasswordInput id="currentPassword" name="currentPassword" autoComplete="current-password" required />
             </Field>
           ) : (
             <Field id="username" label="Username" required hint="Lowercase letters and numbers, e.g. ada-lovelace">
@@ -65,25 +59,16 @@ export function PasswordForm({ username, changed = false }: { username: string |
             </Field>
           )}
           <Field id="newPassword" label="New password" required hint={`At least ${PASSWORD_MIN} characters`}>
-            <input
+            <PasswordInput
               id="newPassword"
               name="newPassword"
-              type="password"
               autoComplete="new-password"
               minLength={PASSWORD_MIN}
-              className="sp-input"
               required
             />
           </Field>
           <Field id="confirm" label="Repeat new password" required>
-            <input
-              id="confirm"
-              name="confirm"
-              type="password"
-              autoComplete="new-password"
-              className="sp-input"
-              required
-            />
+            <PasswordInput id="confirm" name="confirm" autoComplete="new-password" required />
           </Field>
         </div>
         <SubmitButton pendingLabel="Saving…">{hasPassword ? "Change password" : "Save password"}</SubmitButton>

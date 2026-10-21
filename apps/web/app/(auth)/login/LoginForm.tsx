@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Field, fieldDescribedBy } from "@/components/sp/Field";
+import { PasswordInput } from "@/components/sp/PasswordInput";
 import { SubmitButton } from "@/components/sp/SubmitButton";
 import { requestMagicLink, signInWithPassword, type LoginState, type PasswordLoginState } from "./actions";
 
@@ -29,14 +30,7 @@ export function PasswordForm() {
         />
       </Field>
       <Field id="password" label="Password" required>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="sp-input"
-        />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required />
       </Field>
       <div>
         <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>

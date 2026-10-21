@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { Field } from "@/components/sp/Field";
+import { PasswordInput } from "@/components/sp/PasswordInput";
 import { SubmitButton } from "@/components/sp/SubmitButton";
 import { PASSWORD_MIN } from "@/content/schemas";
 import { completeReset, type ResetState } from "./actions";
@@ -19,18 +20,16 @@ export function ResetForm({ token }: { token: string }) {
       )}
       <input type="hidden" name="token" value={token} />
       <Field id="newPassword" label="New password" required hint={`At least ${PASSWORD_MIN} characters`}>
-        <input
+        <PasswordInput
           id="newPassword"
           name="newPassword"
-          type="password"
           autoComplete="new-password"
           minLength={PASSWORD_MIN}
-          className="sp-input"
           required
         />
       </Field>
       <Field id="confirm" label="Repeat new password" required>
-        <input id="confirm" name="confirm" type="password" autoComplete="new-password" className="sp-input" required />
+        <PasswordInput id="confirm" name="confirm" autoComplete="new-password" required />
       </Field>
       <div>
         <SubmitButton pendingLabel="Saving…">Save new password</SubmitButton>
