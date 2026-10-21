@@ -100,8 +100,33 @@ Production deploys come from pushes to `main`. `vercel` from the CLI creates a P
 | `pnpm format` / `format:check` | Prettier                                                        |
 | `pnpm build`                   | Production builds (need no secrets)                             |
 
-Seeding the web app: `pnpm --filter @sheetfolio/web seed [--force] [--email you@x.com]` loads `apps/web/seed/idris.json`
-(PRD §9) into draft + published; `--email` links the slug to a sign-in.
+## Sign-in and accounts
+
+Two ways in, both on `/login`:
+
+- **Username (or email) and password**, the everyday way. Passwords are hashed with scrypt and stored under
+  `cred:{email}`; `username:{name}` maps a username to its email. 8 attempts per account and 30 per IP per 15 minutes.
+- **Email link**, for a first sign-in or a forgotten password. Once signed in, **Settings → Sign-in** sets or changes
+  the password.
+
+Sessions are signed cookies (JWT), not database rows: Auth.js only supports password sign-in that way. The adapter
+still stores users and email-link tokens under `auth:`. A password change does not sign out other devices.
+
+### Seeding
+
+Run from `apps/web` (`pnpm --filter @sheetfolio/web seed ...` from the root). Reads the Redis credentials in
+`.env.local`, so check which database that points at before running anything.
+
+| Command                                                                  | Does                                                        |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `pnpm seed --file seed/x.json --email a@b.com`                           | Write a page and link its slug to that sign-in email        |
+| `pnpm seed --file seed/x.json --email a@b.com --username ada`            | ...and give the account a username and a generated password |
+| `pnpm seed --credentials-only --slug idris-rasaq --username idris-rasaq` | Give an existing account a username and generated password  |
+| `pnpm seed --credentials-only --slug idris-rasaq --reset-password`       | Replace an existing password                                |
+| `pnpm seed --list`                                                       | Accounts and whether each has a password                    |
+
+Add `--force` to overwrite an existing page. Generated passwords go to `.credentials.local` (git-ignored, owner-only)
+and are never printed; set `SEED_PASSWORD` to choose one. Seed files: `seed/idris.json`, `seed/abdulrasaq.json`.
 
 ## Layout
 
