@@ -1,8 +1,9 @@
-import { Download, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/sp/Button";
 import { visibleReferees } from "@/content/derive";
 import { EnquiryForm } from "./EnquiryForm";
-import { cvHref, whatsappHref, type PageContext } from "./view-model";
+import { CvDownload } from "./CvDownload";
+import { whatsappHref, type PageContext } from "./view-model";
 
 /** Contact (PRD §3.1.7): always in the Blueprint theme, on the drafting grid. */
 export function Contact({ site, slug, preview }: PageContext) {
@@ -37,13 +38,7 @@ export function Contact({ site, slug, preview }: PageContext) {
                 WhatsApp {profile.firstName}
               </Button>
             )}
-            <Button
-              href={cvHref(slug, site.publishedAt)}
-              native
-              icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}
-            >
-              Download CV
-            </Button>
+            <CvDownload slug={slug} publishedAt={site.publishedAt} defaultTemplate={site.settings.cvTemplate} />
           </div>
           {referees.length > 0 ? (
             <div>

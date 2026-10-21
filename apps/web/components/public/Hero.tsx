@@ -1,10 +1,11 @@
-import { Download, Mail, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle } from "lucide-react";
 import { Button } from "@/components/sp/Button";
 import { DimensionLine } from "@/components/sp/DimensionLine";
 import { Stamp } from "@/components/sp/Stamp";
 import { TitleBlock, type TitleBlockCell } from "@/components/sp/TitleBlock";
 import { currentRole, heroFigures, revision, scopeOfWork, visiblePrivate } from "@/content/derive";
-import { cvHref, whatsappHref, type PageContext } from "./view-model";
+import { CvDownload } from "./CvDownload";
+import { whatsappHref, type PageContext } from "./view-model";
 
 export function Hero({ site, slug }: PageContext) {
   const { profile } = site;
@@ -47,13 +48,7 @@ export function Hero({ site, slug }: PageContext) {
             <Button href="#contact" variant="primary" icon={<Mail size={18} strokeWidth={1.5} aria-hidden="true" />}>
               Send an email
             </Button>
-            <Button
-              href={cvHref(slug, site.publishedAt)}
-              icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}
-              native
-            >
-              Download CV
-            </Button>
+            <CvDownload slug={slug} publishedAt={site.publishedAt} defaultTemplate={site.settings.cvTemplate} />
           </div>
           <div className="pp-figures">
             {heroFigures(site).map((f) => (

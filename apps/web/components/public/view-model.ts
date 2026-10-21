@@ -1,4 +1,5 @@
 import type { ProjectCardData } from "@/components/sp/ProjectCard";
+import type { CvTemplateId } from "@/content/cv-templates";
 import { employerOf, projectYears } from "@/content/derive";
 import type { Project, Site } from "@/content/schemas";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -13,9 +14,17 @@ export type PageContext = {
   preview?: boolean;
 };
 
-/** Versioned by publish time so each published CV can be cached forever (see /api/cv). */
-export const cvHref = (slug: string, publishedAt?: string) =>
-  `/api/cv/${slug}${publishedAt ? `?v=${encodeURIComponent(publishedAt)}` : ""}`;
+/**
+ * Versioned by publish time so each published CV can be cached forever (see /api/cv). Without a template the
+ * page owner's default is served.
+ */
+export function cvHref(slug: string, publishedAt?: string, template?: CvTemplateId): string {
+  const query = new URLSearchParams();
+  if (publishedAt) query.set("v", publishedAt);
+  if (template) query.set("template", template);
+  const qs = query.toString();
+  return `/api/cv/${slug}${qs ? `?${qs}` : ""}`;
+}
 
 export function whatsappHref(site: Site, context?: string): string {
   return whatsappLink(site.profile.whatsapp, site.profile.whatsappMessage, context);

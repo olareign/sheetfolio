@@ -84,6 +84,33 @@ Production deploys come from pushes to `main`. `vercel` from the CLI creates a P
 | `pnpm format` / `format:check` | Prettier                            |
 | `pnpm build`                   | Production builds (need no secrets) |
 
+## CV templates
+
+The "Download CV" button on a public page opens a list of four layouts. Each one is the same content, drawn
+differently, as a PDF generated on request from the published page (`/api/cv/{slug}?template=…`).
+
+| Template       | Look                                     | Best for                                |
+| -------------- | ---------------------------------------- | --------------------------------------- |
+| Classic        | Serif, centred name, underlined headings | Government, law, academia, engineering  |
+| Modern         | Sans-serif, one accent colour (default)  | Tech and most professions               |
+| Projects first | Sans-serif, projects ahead of experience | Engineers, freelancers, career changers |
+| Minimal        | Sans-serif, no lines or colour at all    | Maximum compatibility                   |
+
+The owner picks which one is offered first in **Settings → Default CV template**; visitors can still choose any.
+The default is Modern. An unknown or missing `?template=` serves the page's default.
+
+All four follow the same ATS rules: one column; real, selectable text; standard section names (Summary, Experience,
+Projects, Skills, Education); contact details in the body, not a header or footer; plain bullets; no photos, icons,
+tables, text boxes or coloured backgrounds; words never split by hyphenation. No Sheetfolio furniture appears on a CV
+(no drawing numbers or revision stamps).
+
+- Layouts are data in `lib/cv-layouts.ts`; one renderer (`lib/cv-pdf.tsx`) draws them, so they cannot drift apart.
+  To add a template, add its id in `content/cv-templates.ts` and a layout entry.
+- What goes on the CV is `content/cv.ts`. Line breaks in an experience's Notes become separate bullets.
+- Fonts are embedded (`lib/fonts`, see its README) so Yoruba letters (Ọ, ẹ, ṣ), ₦ and curly quotes print correctly.
+  Emoji and scripts the fonts lack (for example CJK) are removed from the CV rather than printed as junk.
+- Tests read each PDF back as text, the way an ATS would (`test/pdf-text.ts`).
+
 ## Sign-in and accounts
 
 Two ways in, both on `/login`:
