@@ -8,6 +8,11 @@ const byName = (fields: ReturnType<typeof describeFields>) => Object.fromEntries
 describe("describeFields (PRD §4.2 mapping)", () => {
   const project = byName(collectionFields("projects"));
 
+  it("renders the website link as a text field and keeps the server-written preview out of the form", () => {
+    expect(project.websiteUrl).toMatchObject({ kind: "url", required: false, label: "Project website" });
+    expect(project.preview).toBeUndefined();
+  });
+
   it("skips the id and keeps schema order", () => {
     expect(project.id).toBeUndefined();
     expect(collectionFields("projects")[0]?.name).toBe("title");

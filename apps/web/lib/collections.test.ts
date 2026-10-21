@@ -289,3 +289,30 @@ describe("saveCvLayouts", () => {
     });
   });
 });
+
+describe("project preview is server-managed", () => {
+  const preview = { sourceUrl: "https://acme.test/", image: "https://blob.test/p.png", fetchedAt: "2026-10-22T10:00:00.000Z" };
+
+  it("keeps the stored preview when the form sends none or a stale one", async () => {
+    const id = await upsertItem(SLUG, "projects", "new", project({ websiteUrl: "https://acme.test/" }));
+    await mutateDraftForTest(id, preview);
+    await upsertItem(SLUG, "projects", id, project({ websiteUrl: "https://acme.test/", title: "Renamed" }));
+    expect((await draft()).projects[0]).toMatchObject({ title: "Renamed", preview });
+    await upsertItem(SLUG, "projects", id, project({ websiteUrl: "https://acme.test/", preview: { ...preview, image: "https://evil.test/x.png" } }));
+    expect((await draft()).projects[0]?.preview?.image).toBe("https://blob.test/p.png");
+  });
+
+  it("rejects a website link that is not http(s)", async () => {
+    await expect(upsertItem(SLUG, "projects", "new", project({ websiteUrl: "javascript:alert(1)" }))).rejects.toMatchObject({
+      issues: [expect.objectContaining({ path: ["websiteUrl"] })],
+    });
+  });
+});
+
+async function mutateDraftForTest(id: string, preview: Record<string, unknown>) {
+  const current = await draft();
+  fake.strings.set(
+    `site:${SLUG}:draft`,
+    JSON.stringify({ ...current, projects: current.projects.map((p) => (p.id === id ? { ...p, preview } : p)) }),
+  );
+}

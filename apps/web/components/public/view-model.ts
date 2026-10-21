@@ -1,5 +1,6 @@
 import type { ProjectCardData } from "@/components/sp/ProjectCard";
 import type { CvTemplateId } from "@/content/cv-templates";
+import { hostOf, projectCover } from "@/content/covers";
 import { employerOf, projectYears } from "@/content/derive";
 import type { Project, Site } from "@/content/schemas";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -32,7 +33,6 @@ export function whatsappHref(site: Site, context?: string): string {
 
 export function toCardData(site: Site, p: Project): ProjectCardData {
   const employer = employerOf(site, p)?.company ?? p.client;
-  const cover = p.images[0];
   return {
     id: p.id,
     title: p.title,
@@ -40,6 +40,7 @@ export function toCardData(site: Site, p: Project): ProjectCardData {
     status: p.status,
     years: projectYears(p),
     meta: [employer, p.location].filter(Boolean).join(" · "),
-    cover: cover ? { url: cover.url, alt: cover.caption || p.title } : undefined,
+    cover: projectCover(p),
+    websiteHost: p.websiteUrl ? hostOf(p.websiteUrl) : undefined,
   };
 }

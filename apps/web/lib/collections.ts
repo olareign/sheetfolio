@@ -64,7 +64,12 @@ export async function upsertItem(
       const index = items.findIndex((i) => i.id === itemId);
       if (id !== "new" && index === -1) throw new SiteError("NOT_FOUND", `No ${name} item ${id}`);
       checkCrossItemRules(name, item, draft);
-      const next = index === -1 ? [...items, item] : items.map((i) => (i.id === itemId ? item : i));
+      // A project's website preview is written by the server, never by the form, so an edit keeps the stored one.
+      const saved =
+        name === "projects"
+          ? { ...item, preview: (items[index] as { preview?: unknown } | undefined)?.preview }
+          : item;
+      const next = index === -1 ? [...items, saved] : items.map((i) => (i.id === itemId ? saved : i));
       return { ...draft, [name]: next };
     },
     now,

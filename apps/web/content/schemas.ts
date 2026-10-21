@@ -141,6 +141,23 @@ export const ProjectImage = z.object({
 });
 export type ProjectImage = z.infer<typeof ProjectImage>;
 
+/** An http(s) link; `z.url()` alone also accepts schemes like `javascript:` and `mailto:`. */
+export const WebUrl = z
+  .url()
+  .refine((u) => /^https?:\/\//i.test(u), "Use a link that starts with http:// or https://");
+
+/** What we read from a project's website: its own title, description and a picture, so the card needs no upload. */
+export const ProjectPreview = z.object({
+  /** The link this was read from; a different `websiteUrl` means the preview is stale. */
+  sourceUrl: WebUrl,
+  image: WebUrl.optional(),
+  imageSource: z.enum(["og", "screenshot"]).optional(),
+  title: Text(200).optional(),
+  description: Text(400).optional(),
+  fetchedAt: z.iso.datetime(),
+});
+export type ProjectPreview = z.infer<typeof ProjectPreview>;
+
 export const Project = z
   .object({
     id: Id,
@@ -152,7 +169,9 @@ export const Project = z
     lng: z.number().min(-180).max(180).optional().describe("Longitude"),
     category: Category.describe("Category"),
     role: RequiredText(120).describe("Your role"),
-    scope: Text(2000).default("").describe("Scope of work"),
+    scope: Text(2000).default("").describe("What was done"),
+    websiteUrl: WebUrl.optional().describe("Project website"),
+    preview: ProjectPreview.optional(),
     startYear: Year.describe("Start year"),
     endYear: Year.optional().describe("End year"),
     status: z.enum(["completed", "ongoing"]).describe("Status"),

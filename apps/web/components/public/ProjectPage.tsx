@@ -1,9 +1,10 @@
-import { MessageCircle } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/sp/Button";
 import { SpecTable } from "@/components/sp/SpecTable";
 import { StatusTag, Tag } from "@/components/sp/Tag";
 import { TitleBlock } from "@/components/sp/TitleBlock";
+import { hostOf, projectCover } from "@/content/covers";
 import { employerOf, projectYears } from "@/content/derive";
 import { CATEGORY_LABELS, type Project } from "@/content/schemas";
 import { ActionBar } from "./ActionBar";
@@ -23,6 +24,8 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
   const prev = site.projects[index - 1];
   const next = site.projects[index + 1];
   const context = project.title;
+  const cover = projectCover(project);
+  const websiteHost = project.websiteUrl ? hostOf(project.websiteUrl) : undefined;
 
   return (
     <ThemeScope className="pp" defaultTheme={site.settings.theme}>
@@ -43,8 +46,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
             <h1 id="project-title" className="sp-display-lg">
               {project.title}
             </h1>
-            {/* A drawing title block keeps every cell; unknown values show "—". */}
-            {/* TODO(product): optional dimension figure (e.g. storeys) needs a field on Project. */}
+            {/* Every cell stays on screen; unknown values show "—" so cards line up across projects. */}
             <TitleBlock
               columns={6}
               cells={[
@@ -59,12 +61,25 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
         </section>
         <section className="pp-section" aria-label="Project details">
           <div className="pp-wrap pp-proj-body">
-            <Gallery images={project.images} category={project.category} title={project.title} />
+            <Gallery images={project.images} cover={cover} title={project.title} websiteHost={websiteHost} />
             <div className="pp-side">
               {project.scope && (
                 <div>
                   <h2>What was done</h2>
                   <p>{project.scope}</p>
+                </div>
+              )}
+              {project.websiteUrl && (
+                <div>
+                  <Button
+                    href={project.websiteUrl}
+                    variant="primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    icon={<ArrowUpRight size={18} strokeWidth={1.75} aria-hidden="true" />}
+                  >
+                    Visit {websiteHost}
+                  </Button>
                 </div>
               )}
               <SpecTable
@@ -93,7 +108,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
                   </p>
                   <Button
                     href={whatsappHref(site, context)}
-                    variant="cta"
+                    variant="primary"
                     target="_blank"
                     rel="noopener"
                     icon={<MessageCircle size={18} strokeWidth={1.5} aria-hidden="true" />}

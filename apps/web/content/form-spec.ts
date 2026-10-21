@@ -9,7 +9,7 @@ import type { CollectionName } from "./schemas";
 export type UploadKind = "image" | "document";
 
 export type FieldKind =
-  "text" | "email" | "textarea" | "number" | "select" | "checkbox" | "upload" | "images" | "relation";
+  "text" | "email" | "url" | "textarea" | "number" | "select" | "checkbox" | "upload" | "images" | "relation";
 
 export type FieldSpec = {
   name: string;
@@ -31,6 +31,8 @@ export type DescribeOptions = {
   skip?: readonly string[];
   /** URL fields and what they accept. Any other `z.url()` field defaults to an image upload. */
   uploads?: Readonly<Record<string, UploadKind>>;
+  /** `z.url()` fields that are plain links to type in, not files to upload. */
+  links?: readonly string[];
   /** Id fields that point at another collection. */
   relations?: Readonly<Record<string, CollectionName>>;
 };
@@ -75,6 +77,7 @@ function describeField(name: string, schema: z.ZodType, opts: DescribeOptions): 
   const base = { name, label: description ?? humanize(name), required: !optional, hasDefault, wide: false };
 
   if (opts.relations?.[name]) return { ...base, kind: "relation", relation: opts.relations[name] };
+  if (opts.links?.includes(name)) return { ...base, kind: "url", wide: true };
   if (inner instanceof z.ZodURL || opts.uploads?.[name]) {
     return { ...base, kind: "upload", upload: opts.uploads?.[name] ?? "image", wide: true };
   }

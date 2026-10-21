@@ -1,3 +1,4 @@
+import { needsCover } from "./covers";
 import { describeFields, type DescribeOptions, type FieldSpec } from "./form-spec";
 import { CATEGORY_LABELS, collections, type CollectionItem, type CollectionName, type Site } from "./schemas";
 
@@ -7,7 +8,7 @@ import { CATEGORY_LABELS, collections, type CollectionItem, type CollectionName,
  */
 
 export type RowStatus = { label: string; tone: "done" | "ongoing" | "default" };
-export type ListRow = { id: string; title: string; subtitle?: string; status?: RowStatus };
+export type ListRow = { id: string; title: string; subtitle?: string; status?: RowStatus; /** A nudge shown under the title, e.g. a missing picture. */ note?: string };
 
 type Config<N extends CollectionName> = {
   singular: string;
@@ -47,8 +48,13 @@ export const cms: { [N in CollectionName]: Config<N> } = {
       title: p.title,
       subtitle: `${CATEGORY_LABELS[p.category]} · ${yearRange(p.startYear, p.endYear, "")}`.replace(/ – $/, ""),
       status: p.status === "ongoing" ? { label: "Ongoing", tone: "ongoing" } : { label: "Completed", tone: "done" },
+      note: needsCover(p) ? "Needs a cover: add a website link or a photo" : undefined,
     }),
-    fieldOptions: { relations: { experienceId: "experiences" } },
+    hints: {
+      websiteUrl: "Optional. We read the site's title, description and picture to fill in your project page for you.",
+      images: "Optional. Your own photos replace the website picture.",
+    },
+    fieldOptions: { relations: { experienceId: "experiences" }, links: ["websiteUrl"] },
     newItem: (site, now) => ({
       role: site.profile.headline,
       category: "building",

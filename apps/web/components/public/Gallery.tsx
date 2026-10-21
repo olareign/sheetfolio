@@ -2,29 +2,43 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CropFrame } from "@/components/sp/CropFrame";
-import { Placeholder } from "@/components/sp/Placeholder";
-import type { Category, ProjectImage } from "@/content/schemas";
+import { CoverImage } from "@/components/sp/CoverImage";
+import { MediaFrame } from "@/components/sp/MediaFrame";
+import type { Cover } from "@/content/covers";
+import type { ProjectImage } from "@/content/schemas";
 
-/** Main image plus thumbnails (PRD §3.2). */
-export function Gallery({ images, category, title }: { images: ProjectImage[]; category: Category; title: string }) {
+/** Main picture plus thumbnails (PRD §3.2). With no photos of its own, a project shows its cover and says where it came from. */
+export function Gallery({
+  images,
+  cover,
+  title,
+  websiteHost,
+}: {
+  images: ProjectImage[];
+  cover: Cover;
+  title: string;
+  websiteHost?: string;
+}) {
   const [index, setIndex] = useState(0);
   const current = images[index];
 
   if (!current) {
     return (
       <figure className="pp-gallery">
-        <CropFrame wide pending>
-          <Placeholder category={category} />
-        </CropFrame>
-        <figcaption className="sp-annot">Site photos to follow.</figcaption>
+        <MediaFrame wide>
+          <CoverImage cover={cover} sizes="(max-width: 900px) 100vw, 760px" priority />
+        </MediaFrame>
+        <figcaption className="sp-annot">
+          {cover.kind === "preview" && `Preview of ${websiteHost ?? "the project website"}.`}
+          {cover.kind === "stock" && "Stock photo. Project photos to follow."}
+        </figcaption>
       </figure>
     );
   }
 
   return (
     <figure className="pp-gallery">
-      <CropFrame wide>
+      <MediaFrame wide>
         <Image
           src={current.url}
           alt={current.caption || `${title}, photo ${index + 1}`}
@@ -32,7 +46,7 @@ export function Gallery({ images, category, title }: { images: ProjectImage[]; c
           priority={index === 0}
           sizes="(max-width: 900px) 100vw, 760px"
         />
-      </CropFrame>
+      </MediaFrame>
       {images.length > 1 && (
         <div className="pp-thumbs" role="group" aria-label="Choose a photo">
           {images.map((img, i) => (
@@ -41,19 +55,15 @@ export function Gallery({ images, category, title }: { images: ProjectImage[]; c
               type="button"
               className="pp-thumb"
               aria-current={i === index}
-              aria-label={`Show figure ${i + 1}${img.caption ? `: ${img.caption}` : ""}`}
+              aria-label={`Show photo ${i + 1}${img.caption ? `: ${img.caption}` : ""}`}
               onClick={() => setIndex(i)}
             >
               <Image src={img.url} alt="" fill sizes="180px" />
-              <span>FIG. {i + 1}</span>
             </button>
           ))}
         </div>
       )}
-      <figcaption className="sp-annot">
-        FIG. {index + 1}
-        {current.caption ? ` — ${current.caption}` : ""}
-      </figcaption>
+      {current.caption && <figcaption className="sp-annot">{current.caption}</figcaption>}
     </figure>
   );
 }

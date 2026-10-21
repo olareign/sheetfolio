@@ -14,6 +14,8 @@ const EnvSchema = z
     AUTH_RESEND_KEY: optional(z.string()),
     RESEND_FROM: optional(z.string()).transform((v) => v ?? "Sheetfolio <onboarding@resend.dev>"),
     BLOB_READ_WRITE_TOKEN: optional(z.string()),
+    /** Screenshot service for project previews; `{url}` is replaced by the encoded link. Defaults to Microlink. */
+    SCREENSHOT_URL_TEMPLATE: optional(z.string().includes("{url}")),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
       (raw ?? "")

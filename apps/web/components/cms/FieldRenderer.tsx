@@ -54,6 +54,18 @@ export function FieldRenderer({
         <input {...common} type={spec.kind} maxLength={spec.maxLength} {...form.register(name, optionalText)} />
       );
       break;
+    case "url":
+      control = (
+        <input
+          {...common}
+          type="url"
+          inputMode="url"
+          autoComplete="off"
+          placeholder="https://"
+          {...form.register(name, optionalText)}
+        />
+      );
+      break;
     case "textarea":
       control = <textarea {...common} rows={5} maxLength={spec.maxLength} {...form.register(name, optionalText)} />;
       break;

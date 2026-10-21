@@ -2,13 +2,13 @@
 
 /* Type scale (§4) */
 .sp-display-xl {
-  font: 800 96px/0.92 var(--font-display);
-  letter-spacing: -0.015em;
+  font: 800 96px/0.96 var(--font-display);
+  letter-spacing: -0.035em;
   margin: 0;
 }
 .sp-display-lg {
-  font: 800 64px/0.95 var(--font-display);
-  letter-spacing: -0.01em;
+  font: 800 64px/1 var(--font-display);
+  letter-spacing: -0.03em;
   margin: 0;
 }
 .sp-body-strong {
@@ -27,21 +27,7 @@
   }
 }
 
-/* Placeholder drawings (§8) */
-.sp-ph path,
-.sp-ph circle {
-  fill: none;
-  stroke: var(--concrete);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-.sp-ph .sp-ph-dash {
-  stroke-dasharray: 10 8;
-}
-.sp-ph .sp-ph-accent {
-  stroke: var(--hivis);
-}
-.sp-crop--wide {
+.sp-media--wide {
   aspect-ratio: 16 / 10;
   margin: 0;
 }
@@ -580,7 +566,8 @@
 .pp-thumb {
   position: relative;
   padding: 0;
-  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
   background: var(--paper-sunken);
   aspect-ratio: 4 / 3;
   cursor: pointer;

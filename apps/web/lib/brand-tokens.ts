@@ -8,11 +8,11 @@ export const BRAND_TOKENS = {
   inkMuted: "#475569",
   rule: "#cbd5e1",
   hairline: "#e2e8f0",
-  blueprint: "#0f766e",
+  blueprint: "#4338ca",
   hivisInk: "#b42318",
   cured: "#15803d",
-  page: "#f8fafc", // --paper: the ground behind panels (email body)
-  paperSunken: "#f1f5f9",
+  page: "#fafafd", // --paper: the ground behind panels (email body)
+  paperSunken: "#f1f2fa",
   onBlueprint: "#ffffff",
 } as const;
 

@@ -844,3 +844,20 @@
     position: static;
   }
 }
+
+/* A saved item that needs a word with its owner (e.g. no picture found for a project link). */
+.cms-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cms-row-note {
+  color: var(--blueprint);
+  font-weight: 500;
+}

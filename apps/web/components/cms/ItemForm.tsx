@@ -43,12 +43,14 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
 
   const [formError, setFormError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [deleting, startDelete] = useTransition();
   const title = String(useWatch({ control: form.control, name: config.titleField }) ?? "");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
+    setNotice(null);
     const result = await saveItemAction(collection, id, values);
     if (!result.ok) {
       setFormError(applyServerErrors(form, result));
@@ -58,8 +60,9 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
       router.replace(`/dashboard/${collection}/${result.id}`);
       return;
     }
-    form.reset(form.getValues());
+    form.reset(result.values ? withFieldKeys({ ...result.values }, fields.map((f) => f.name)) : form.getValues());
     setSavedAt(result.at);
+    setNotice(result.notice ?? null);
   });
 
   function onDelete() {
@@ -100,6 +103,11 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
           </div>
         ))}
       </div>
+      {notice && (
+        <p className="cms-notice" role="status">
+          {notice}
+        </p>
+      )}
       <div className="cms-actions">
         <Button type="submit" variant="primary" disabled={isSubmitting}>
           {isSubmitting ? "Saving…" : isNew ? `Add ${config.singular}` : "Save draft"}

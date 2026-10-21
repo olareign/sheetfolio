@@ -65,6 +65,7 @@ function Row({ row, href, selected, sortable }: { row: ListRow; href: string; se
         <span className="cms-row-title">
           <b>{row.title}</b>
           {row.subtitle && <span>{row.subtitle}</span>}
+          {row.note && <span className="cms-row-note">{row.note}</span>}
         </span>
         <span className="cms-row-status">
           {row.status && <span className={`sp-tag${tone}`}>{row.status.label}</span>}

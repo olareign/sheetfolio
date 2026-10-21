@@ -92,6 +92,25 @@ describe("listRows / relationOptions", () => {
     expect(rows[0]).toMatchObject({ id: "p", subtitle: "Healthcare · 2024", status: { tone: "done" } });
   });
 
+  it("nudges a project that has no cover, and stops once it has a website picture or a photo", () => {
+    const item = {
+      id: "p",
+      title: "Clinic",
+      location: "Lagos",
+      category: "healthcare" as const,
+      role: "Site Engineer",
+      scope: "",
+      startYear: 2024,
+      status: "completed" as const,
+      images: [],
+      featured: false,
+    };
+    const preview = { sourceUrl: "https://a.test/", image: "https://b.test/i.png", fetchedAt: "2026-10-22T10:00:00.000Z" };
+    expect(listRows("projects", [item])[0]?.note).toMatch(/Needs a cover/);
+    expect(listRows("projects", [{ ...item, websiteUrl: "https://a.test/", preview }])[0]?.note).toBeUndefined();
+    expect(listRows("projects", [{ ...item, images: [{ url: "https://b.test/p.jpg", isCover: true }] }])[0]?.note).toBeUndefined();
+  });
+
   it("marks the current role and labels employers for the project select", () => {
     const s = site();
     s.experiences = [{ id: "e1", company: "IJUNT", role: "Site Engineer", startYear: 2026 }];

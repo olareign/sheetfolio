@@ -6,11 +6,12 @@ import { issuesToFieldErrors } from "@/content/form-spec";
 import { CollectionNameSchema } from "@/content/schemas";
 import { signOut } from "@/lib/auth";
 import { deleteItem, reorderItems, saveCvLayouts, saveProfile, saveSettings, upsertItem } from "@/lib/collections";
+import { refreshProjectPreview } from "@/lib/project-preview";
 import { requireAccount } from "@/lib/session";
-import { markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
+import { getDraft, markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
 export type ActionResult =
-  { ok: true; id?: string; at: string } | { ok: false; formError?: string; fieldErrors: Record<string, string> };
+  { ok: true; id?: string; at: string; /** Saved fine, but something worth telling the owner. */ notice?: string; /** The item as stored, when the server changed it after the save (a filled-in description). */ values?: Record<string, unknown> } | { ok: false; formError?: string; fieldErrors: Record<string, string> };
 
 const ItemId = z.union([z.literal("new"), z.string().min(1).max(64)]);
 
@@ -30,12 +31,16 @@ function failure(err: unknown): ActionResult {
  * Every action: authenticate (Server Actions are public endpoints), act on the caller's own slug only,
  * refresh the dashboard, and turn domain errors into form errors.
  */
-async function run(fn: (slug: string) => Promise<string | void>): Promise<ActionResult> {
+async function run(
+  fn: (slug: string) => Promise<string | void | { id?: string; notice?: string; values?: Record<string, unknown> }>,
+): Promise<ActionResult> {
   const { account } = await requireAccount();
   try {
-    const id = (await fn(account.slug)) ?? undefined;
+    const out = await fn(account.slug);
+    const { id, notice, values } =
+      typeof out === "object" && out !== null ? out : { id: out ?? undefined, notice: undefined, values: undefined };
     revalidatePath("/dashboard", "layout");
-    return { ok: true, id, at: new Date().toISOString() };
+    return { ok: true, id, at: new Date().toISOString(), notice, values };
   } catch (err) {
     return failure(err);
   }
@@ -49,7 +54,31 @@ export async function saveItemAction(collection: unknown, id: unknown, data: unk
   const name = CollectionNameSchema.safeParse(collection);
   const itemId = ItemId.safeParse(id);
   if (!name.success || !itemId.success) return badRequest("Unknown item.");
-  return run((slug) => upsertItem(slug, name.data, itemId.data, data));
+  return run(async (slug) => {
+    const saved = await upsertItem(slug, name.data, itemId.data, data);
+    if (name.data !== "projects") return saved;
+    const notice = await previewNotice(slug, saved);
+    const stored = (await getDraft(slug))?.projects.find((p) => p.id === saved);
+    return { id: saved, notice, values: stored as Record<string, unknown> | undefined };
+  });
+}
+
+const PREVIEW_BUDGET_MS = 10_000;
+
+/**
+ * Reads the project's website for a picture, title and description. The project is already saved, so this
+ * never fails the save: a slow, broken or blocked site comes back as a notice for the owner instead.
+ */
+async function previewNotice(slug: string, projectId: string): Promise<string | undefined> {
+  const slow = new Promise<{ notice: string }>((resolve) =>
+    setTimeout(() => resolve({ notice: "Saved. The website is slow to answer, so its preview isn't ready yet. Save again in a moment." }), PREVIEW_BUDGET_MS),
+  );
+  try {
+    return (await Promise.race([refreshProjectPreview(slug, projectId), slow])).notice;
+  } catch (err) {
+    console.error("[project-preview] failed:", err instanceof Error ? err.message : err);
+    return "Saved, but the website preview failed. Upload a cover photo, or try saving again.";
+  }
 }
 
 export async function deleteItemAction(collection: unknown, id: unknown): Promise<ActionResult> {
