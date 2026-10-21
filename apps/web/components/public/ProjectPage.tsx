@@ -22,16 +22,16 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
   const index = site.projects.findIndex((p) => p.id === project.id);
   const prev = site.projects[index - 1];
   const next = site.projects[index + 1];
-  const context = `${project.drawingNo} ${project.title}`;
+  const context = project.title;
 
   return (
     <ThemeScope className="pp" defaultTheme={site.settings.theme}>
-      <SiteHeader {...ctx} sheet={project.drawingNo} />
+      <SiteHeader {...ctx} />
       <main>
         <section className="sp-grid-bg" aria-labelledby="project-title">
           <div className="pp-wrap pp-proj-head">
             <div className="pp-crumbs">
-              <span className="sp-label">/ Projects / {project.drawingNo}</span>
+              <span className="sp-label">/ Projects</span>
               <Link href={`${basePath}#projects`} className="sp-annot">
                 ← All projects
               </Link>
@@ -48,7 +48,6 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
             <TitleBlock
               columns={6}
               cells={[
-                { label: "Drawing no.", value: project.drawingNo, mono: true },
                 { label: "Client", value: project.client ?? "—" },
                 { label: "Contractor", value: employer ?? "—" },
                 { label: "Location", value: project.location },
@@ -90,7 +89,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
                 <div className="pp-panel pp-hide-sm">
                   <h2>Building something similar?</h2>
                   <p className="pp-panel-text">
-                    Ask {site.profile.firstName} about {project.drawingNo} or your own project.
+                    Ask {site.profile.firstName} about {project.title} or your own project.
                   </p>
                   <Button
                     href={whatsappHref(site, context)}
@@ -110,7 +109,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
           <nav className="pp-wrap pp-pager" aria-label="Other projects">
             {prev ? (
               <Link href={`${basePath}/projects/${prev.id}`}>
-                <span className="sp-label">← Previous · {prev.drawingNo}</span>
+                <span className="sp-label">← Previous</span>
                 <b>{prev.title}</b>
               </Link>
             ) : (
@@ -118,7 +117,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
             )}
             {next && (
               <Link href={`${basePath}/projects/${next.id}`} className="pp-pager-next">
-                <span className="sp-label">Next · {next.drawingNo} →</span>
+                <span className="sp-label">Next →</span>
                 <b>{next.title}</b>
               </Link>
             )}

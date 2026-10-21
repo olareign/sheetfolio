@@ -6,7 +6,7 @@ import { CropFrame } from "@/components/sp/CropFrame";
 import { Placeholder } from "@/components/sp/Placeholder";
 import type { Category, ProjectImage } from "@/content/schemas";
 
-/** FIG. 1 main image in crop marks + FIG. 2… thumbnails (PRD §3.2). */
+/** Main image plus thumbnails (PRD §3.2). */
 export function Gallery({ images, category, title }: { images: ProjectImage[]; category: Category; title: string }) {
   const [index, setIndex] = useState(0);
   const current = images[index];
@@ -14,7 +14,7 @@ export function Gallery({ images, category, title }: { images: ProjectImage[]; c
   if (!current) {
     return (
       <figure className="pp-gallery">
-        <CropFrame wide pending no="FIG. 1">
+        <CropFrame wide pending>
           <Placeholder category={category} />
         </CropFrame>
         <figcaption className="sp-annot">Site photos to follow.</figcaption>
@@ -24,7 +24,7 @@ export function Gallery({ images, category, title }: { images: ProjectImage[]; c
 
   return (
     <figure className="pp-gallery">
-      <CropFrame wide no={`FIG. ${index + 1}`}>
+      <CropFrame wide>
         <Image
           src={current.url}
           alt={current.caption || `${title}, photo ${index + 1}`}

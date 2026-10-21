@@ -82,7 +82,6 @@
     "projects": [
       {
         "id": "p-001",
-        "drawingNo": "SP-001",
         "title": "School of Agriculture & Agricultural Technology, FUTA",
         "experienceId": "exp-ijunt",
         "location": "Akure, Ondo",
@@ -96,7 +95,6 @@
       },
       {
         "id": "p-002",
-        "drawingNo": "SP-002",
         "title": "Nigeria Customs canteen",
         "experienceId": "exp-samkey",
         "location": "Enugu",
@@ -110,7 +108,6 @@
       },
       {
         "id": "p-003",
-        "drawingNo": "SP-003",
         "title": "School of Information and Communication Technology",
         "experienceId": "exp-samkey",
         "location": "Location to be confirmed",
@@ -124,7 +121,6 @@
       },
       {
         "id": "p-004",
-        "drawingNo": "SP-004",
         "title": "3-storey Geriatric Centre, LUTH",
         "experienceId": "exp-bolaji",
         "location": "Surulere, Lagos",
@@ -139,7 +135,6 @@
       },
       {
         "id": "p-005",
-        "drawingNo": "SP-005",
         "title": "External works, Senate Building, Rufus Giwa Polytechnic",
         "experienceId": "exp-eniot",
         "location": "Owo, Ondo",
@@ -154,7 +149,6 @@
       },
       {
         "id": "p-006",
-        "drawingNo": "SP-006",
         "title": "Basic Health Centres, Ilu-Tuntun & Ifelodun",
         "experienceId": "exp-eniot",
         "location": "Akure, Ondo",
@@ -169,7 +163,6 @@
       },
       {
         "id": "p-007",
-        "drawingNo": "SP-007",
         "title": "Renovation of 3-classroom block, Ilaje Secondary School",
         "experienceId": "exp-eniot",
         "location": "Ilaje, Ondo",
@@ -184,7 +177,6 @@
       },
       {
         "id": "p-008",
-        "drawingNo": "SP-008",
         "title": "Community development projects (Atosin, Edu/Oka, Oddo, Isaoye, Oluwafemi, Abalaka/Batedo)",
         "experienceId": "exp-eniot",
         "location": "Idanre, Akure North & South",
@@ -199,7 +191,6 @@
       },
       {
         "id": "p-009",
-        "drawingNo": "SP-009",
         "title": "Departmental road construction",
         "experienceId": "exp-dortmund",
         "location": "Location to be confirmed",

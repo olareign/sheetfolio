@@ -14,7 +14,6 @@ export function Hero({ site, slug }: PageContext) {
   const cells: TitleBlockCell[] = [
     { label: "Engineer", value: profile.name },
     { label: "Discipline", value: profile.headline },
-    { label: "Sheet", value: "SP-000", mono: true },
     { label: "Base", value: profile.location },
     { label: "Qualification", value: site.education[0]?.qualification ?? "" },
     { label: "Rev.", value: site.publishedAt ? revision(site.publishedAt) : "Draft", mono: true },

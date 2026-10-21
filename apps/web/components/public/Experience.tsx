@@ -41,7 +41,6 @@ export function Experience({ site, basePath }: PageContext) {
                     {projects.map((p) => (
                       <li key={p.id}>
                         <Link href={`${basePath}/projects/${p.id}`}>
-                          <span className="sp-annot">{p.drawingNo}</span>
                           {p.title}
                         </Link>
                       </li>

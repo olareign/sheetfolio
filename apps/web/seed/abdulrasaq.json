@@ -72,7 +72,6 @@
     "projects": [
       {
         "id": "p-001",
-        "drawingNo": "SP-001",
         "title": "SafePick",
         "location": "Remote",
         "category": "platform",
@@ -86,7 +85,6 @@
       },
       {
         "id": "p-002",
-        "drawingNo": "SP-002",
         "title": "Nexus",
         "location": "Remote",
         "category": "data-ai",
@@ -100,7 +98,6 @@
       },
       {
         "id": "p-003",
-        "drawingNo": "SP-003",
         "title": "RLK",
         "location": "Remote",
         "category": "education",
@@ -114,7 +111,6 @@
       },
       {
         "id": "p-004",
-        "drawingNo": "SP-004",
         "title": "RLM",
         "location": "Remote",
         "category": "education",
@@ -128,7 +124,6 @@
       },
       {
         "id": "p-005",
-        "drawingNo": "SP-005",
         "title": "Rareeat",
         "location": "Remote",
         "category": "platform",
@@ -142,7 +137,6 @@
       },
       {
         "id": "p-006",
-        "drawingNo": "SP-006",
         "title": "Tobams Group (TG) website",
         "location": "Remote",
         "category": "website",
@@ -156,7 +150,6 @@
       },
       {
         "id": "p-007",
-        "drawingNo": "SP-007",
         "title": "SCIMS",
         "location": "Remote",
         "category": "commerce",
@@ -170,7 +163,6 @@
       },
       {
         "id": "p-008",
-        "drawingNo": "SP-008",
         "title": "Rakuxon Care",
         "location": "Remote",
         "category": "website",
@@ -184,7 +176,6 @@
       },
       {
         "id": "p-009",
-        "drawingNo": "SP-009",
         "title": "EduMimi",
         "location": "Remote",
         "category": "education",
@@ -198,7 +189,6 @@
       },
       {
         "id": "p-010",
-        "drawingNo": "SP-010",
         "title": "KudiPay",
         "location": "Remote",
         "category": "fintech",
@@ -212,7 +202,6 @@
       },
       {
         "id": "p-011",
-        "drawingNo": "SP-011",
         "title": "Megamart",
         "location": "Remote",
         "category": "commerce",
@@ -226,7 +215,6 @@
       },
       {
         "id": "p-012",
-        "drawingNo": "SP-012",
         "title": "BookMyTime",
         "location": "Remote",
         "category": "platform",
@@ -240,7 +228,6 @@
       },
       {
         "id": "p-013",
-        "drawingNo": "SP-013",
         "title": "MedCare",
         "location": "Remote",
         "category": "platform",
@@ -255,7 +242,6 @@
       },
       {
         "id": "p-014",
-        "drawingNo": "SP-014",
         "title": "Guest User Management System",
         "location": "Remote",
         "category": "platform",
@@ -268,7 +254,6 @@
       },
       {
         "id": "p-015",
-        "drawingNo": "SP-015",
         "title": "Mobile Mechanics Web Application",
         "location": "Remote",
         "category": "platform",
@@ -283,7 +268,6 @@
       },
       {
         "id": "p-016",
-        "drawingNo": "SP-016",
         "title": "Job Recruitment Platform Backend",
         "location": "Remote",
         "category": "platform",
@@ -296,7 +280,6 @@
       },
       {
         "id": "p-017",
-        "drawingNo": "SP-017",
         "title": "EBIZ",
         "location": "Remote",
         "category": "platform",

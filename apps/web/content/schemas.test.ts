@@ -24,7 +24,6 @@ const empty = () =>
 
 const project = (over: Record<string, unknown> = {}) => ({
   id: "p1",
-  drawingNo: "SP-001",
   title: "Geriatric Centre",
   location: "Surulere, Lagos",
   category: "healthcare",
@@ -112,8 +111,7 @@ describe("Project", () => {
     expect(Project.safeParse(project({ images })).success).toBe(false);
   });
 
-  it("rejects a malformed drawing number and unknown category", () => {
-    expect(Project.safeParse(project({ drawingNo: "4" })).success).toBe(false);
+  it("rejects an unknown category", () => {
     expect(Project.safeParse(project({ category: "bridge" })).success).toBe(false);
   });
 });

@@ -13,12 +13,10 @@ describe.each(files)("seed/%s", (file) => {
     expect(parsed.error?.issues ?? []).toEqual([]);
   });
 
-  it("gives every project a unique id and drawing number, and links only to real employers", () => {
+  it("gives every project a unique id, and links only to real employers", () => {
     const parsed = PublishableSite.parse({ ...(site as object), updatedAt: new Date().toISOString() });
     const ids = parsed.projects.map((p) => p.id);
-    const drawings = parsed.projects.map((p) => p.drawingNo);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(new Set(drawings).size).toBe(drawings.length);
     const employers = new Set(parsed.experiences.map((e) => e.id));
     for (const p of parsed.projects) if (p.experienceId) expect(employers.has(p.experienceId)).toBe(true);
   });

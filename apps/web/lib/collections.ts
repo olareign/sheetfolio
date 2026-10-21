@@ -28,10 +28,7 @@ export async function mutateDraft(slug: string, fn: (draft: Site) => SiteInput, 
 /** Rules that span more than one item, which the per-item schema can't see. */
 function checkCrossItemRules(name: CollectionName, item: Item & Record<string, unknown>, draft: Site): void {
   if (name !== "projects") return;
-  const project = item as Item & { drawingNo: string; experienceId?: string };
-  if (draft.projects.some((p) => p.id !== project.id && p.drawingNo === project.drawingNo)) {
-    throw invalid("drawingNo", `${project.drawingNo} is already used by another project`);
-  }
+  const project = item as Item & { experienceId?: string };
   if (project.experienceId && !draft.experiences.some((e) => e.id === project.experienceId)) {
     throw invalid("experienceId", "That employer no longer exists");
   }

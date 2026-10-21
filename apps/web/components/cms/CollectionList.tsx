@@ -62,7 +62,6 @@ function Row({ row, href, selected, sortable }: { row: ListRow; href: string; se
         <span className="cms-drag-spacer" />
       )}
       <Link href={href} className="cms-row-link" aria-current={selected ? "page" : undefined}>
-        <span className="cms-row-no">{row.no}</span>
         <span className="cms-row-title">
           <b>{row.title}</b>
           {row.subtitle && <span>{row.subtitle}</span>}
@@ -98,7 +97,7 @@ export function CollectionList({ collection, label, singular, rows }: Props) {
 
   const count = (n: number) => `${n} ${singular}${n === 1 ? "" : "s"}`;
   const q = query.trim().toLowerCase();
-  const visible = q ? order.filter((r) => `${r.no} ${r.title} ${r.subtitle ?? ""}`.toLowerCase().includes(q)) : order;
+  const visible = q ? order.filter((r) => `${r.title} ${r.subtitle ?? ""}`.toLowerCase().includes(q)) : order;
   const sortable = !q && order.length > 1; // reordering a filtered list would be ambiguous
 
   function onDragEnd({ active, over }: DragEndEvent) {

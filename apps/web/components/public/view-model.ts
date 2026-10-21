@@ -35,7 +35,6 @@ export function toCardData(site: Site, p: Project): ProjectCardData {
   const cover = p.images[0];
   return {
     id: p.id,
-    drawingNo: p.drawingNo,
     title: p.title,
     category: p.category,
     status: p.status,

@@ -67,7 +67,6 @@ export default async function OverviewPage() {
             <tbody>
               {ranked.map((p) => (
                 <tr key={p.id}>
-                  <th scope="row">{p.drawingNo}</th>
                   <td>
                     {p.title} · <span className="sp-annot">{p.views} views</span>
                   </td>

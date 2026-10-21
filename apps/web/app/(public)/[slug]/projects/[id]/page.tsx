@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: { absolute: `${project.title} · ${site.profile.name}` },
     description: project.scope
       ? project.scope.slice(0, 160)
-      : `${project.drawingNo}: ${project.title}, ${project.location}.`,
+      : `${project.title}, ${project.location}.`,
   };
 }
 

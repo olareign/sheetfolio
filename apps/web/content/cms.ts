@@ -7,14 +7,14 @@ import { CATEGORY_LABELS, collections, type CollectionItem, type CollectionName,
  */
 
 export type RowStatus = { label: string; tone: "done" | "ongoing" | "default" };
-export type ListRow = { id: string; no: string; title: string; subtitle?: string; status?: RowStatus };
+export type ListRow = { id: string; title: string; subtitle?: string; status?: RowStatus };
 
 type Config<N extends CollectionName> = {
   singular: string;
   /** Field shown as the editor heading. */
   titleField: string;
   empty: string;
-  row: (item: CollectionItem<N>, index: number) => Omit<ListRow, "id">;
+  row: (item: CollectionItem<N>) => Omit<ListRow, "id">;
   fieldOptions?: DescribeOptions;
   /** Help text under specific fields. */
   hints?: Record<string, string>;
@@ -26,22 +26,13 @@ export function yearRange(start: number, end?: number, current = "now"): string 
   return start === end ? String(start) : `${start} – ${end}`;
 }
 
-const seq = (index: number) => String(index + 1).padStart(2, "0");
-
-/** Next free drawing number: one above the highest existing `SP-nnn`. */
-export function nextDrawingNo(projects: readonly { drawingNo: string }[]): string {
-  const max = projects.reduce((m, p) => Math.max(m, Number(p.drawingNo.slice(3)) || 0), 0);
-  return `SP-${String(max + 1).padStart(3, "0")}`;
-}
-
 export const cms: { [N in CollectionName]: Config<N> } = {
   experiences: {
     singular: "role",
     titleField: "company",
     hints: { endYear: "Leave empty if this is your current role" },
     empty: "Add your first role, most recent first.",
-    row: (e, i) => ({
-      no: seq(i),
+    row: (e) => ({
       title: e.company,
       subtitle: `${e.role} · ${yearRange(e.startYear, e.endYear)}`,
       status: e.endYear === undefined ? { label: "Current", tone: "ongoing" } : undefined,
@@ -53,14 +44,12 @@ export const cms: { [N in CollectionName]: Config<N> } = {
     titleField: "title",
     empty: "Add your first project. Photos can come later.",
     row: (p) => ({
-      no: p.drawingNo,
       title: p.title,
       subtitle: `${CATEGORY_LABELS[p.category]} · ${yearRange(p.startYear, p.endYear, "")}`.replace(/ – $/, ""),
       status: p.status === "ongoing" ? { label: "Ongoing", tone: "ongoing" } : { label: "Completed", tone: "done" },
     }),
     fieldOptions: { relations: { experienceId: "experiences" } },
     newItem: (site, now) => ({
-      drawingNo: nextDrawingNo(site.projects),
       role: site.profile.headline,
       category: "building",
       status: "completed",
@@ -73,7 +62,7 @@ export const cms: { [N in CollectionName]: Config<N> } = {
     singular: "certification",
     titleField: "title",
     empty: "Add a certification. It appears as a stamp on your page.",
-    row: (c, i) => ({ no: seq(i), title: c.title, subtitle: `${c.issuer} · ${c.year}` }),
+    row: (c) => ({ title: c.title, subtitle: `${c.issuer} · ${c.year}` }),
     fieldOptions: { uploads: { fileUrl: "document" } },
     newItem: (_site, now) => ({ year: now.getFullYear() }),
   },
@@ -81,8 +70,7 @@ export const cms: { [N in CollectionName]: Config<N> } = {
     singular: "qualification",
     titleField: "qualification",
     empty: "Add your degrees and school certificates.",
-    row: (e, i) => ({
-      no: seq(i),
+    row: (e) => ({
       title: e.qualification,
       subtitle: `${e.institution} · ${yearRange(e.startYear, e.endYear)}`,
     }),
@@ -92,14 +80,14 @@ export const cms: { [N in CollectionName]: Config<N> } = {
     singular: "testimonial",
     titleField: "author",
     empty: "Add a testimonial from a client or employer.",
-    row: (t, i) => ({ no: seq(i), title: t.author, subtitle: [t.role, t.company].filter(Boolean).join(" · ") }),
+    row: (t) => ({ title: t.author, subtitle: [t.role, t.company].filter(Boolean).join(" · ") }),
     newItem: () => ({}),
   },
   referees: {
     singular: "referee",
     titleField: "name",
     empty: "Add referees. They stay private unless you show them in Profile.",
-    row: (r, i) => ({ no: seq(i), title: r.name, subtitle: [r.role, r.organisation].filter(Boolean).join(" · ") }),
+    row: (r) => ({ title: r.name, subtitle: [r.role, r.organisation].filter(Boolean).join(" · ") }),
     newItem: () => ({}),
   },
 };
@@ -110,7 +98,7 @@ export function collectionFields(name: CollectionName): FieldSpec[] {
 
 export function listRows<N extends CollectionName>(name: N, items: readonly CollectionItem<N>[]): ListRow[] {
   const config = cms[name] as Config<N>;
-  return items.map((item, i) => ({ id: item.id, ...config.row(item, i) }));
+  return items.map((item) => ({ id: item.id, ...config.row(item) }));
 }
 
 /** Options for a relation select, e.g. a project's employer. */

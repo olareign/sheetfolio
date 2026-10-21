@@ -18,7 +18,6 @@ const t0 = new Date("2026-09-28T10:00:00.000Z");
 let fake: FakeRedis;
 
 const project = (over: Record<string, unknown> = {}) => ({
-  drawingNo: "SP-001",
   title: "Geriatric Centre",
   location: "Surulere, Lagos",
   category: "healthcare",
@@ -51,14 +50,14 @@ beforeEach(() => {
 describe("upsertItem", () => {
   it("creates with a server-generated id, appending in order", async () => {
     const a = await upsertItem(SLUG, "projects", "new", project({ id: "client-chosen" }));
-    const b = await upsertItem(SLUG, "projects", "new", project({ drawingNo: "SP-002", title: "Canteen" }));
+    const b = await upsertItem(SLUG, "projects", "new", project({ title: "Canteen" }));
     expect(a).not.toBe("client-chosen");
     expect((await draft()).projects.map((p) => p.id)).toEqual([a, b]);
   });
 
   it("edits in place and keeps position", async () => {
     const a = await upsertItem(SLUG, "projects", "new", project());
-    await upsertItem(SLUG, "projects", "new", project({ drawingNo: "SP-002" }));
+    await upsertItem(SLUG, "projects", "new", project({}));
     await upsertItem(SLUG, "projects", a, project({ title: "Renamed" }));
     const d = await draft();
     expect(d.projects[0]).toMatchObject({ id: a, title: "Renamed" });
@@ -80,14 +79,6 @@ describe("upsertItem", () => {
       ]),
     });
     expect((await draft()).projects).toEqual([]);
-  });
-
-  it("rejects a duplicate drawing number", async () => {
-    await upsertItem(SLUG, "projects", "new", project());
-    await expect(upsertItem(SLUG, "projects", "new", project())).rejects.toMatchObject({
-      code: "INVALID",
-      issues: [expect.objectContaining({ path: ["drawingNo"] })],
-    });
   });
 
   it("rejects a link to an employer that doesn't exist", async () => {

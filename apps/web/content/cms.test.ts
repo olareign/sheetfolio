@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cms, issueHref, listRows, nextDrawingNo, publishState, relationOptions, yearRange } from "./cms";
+import { cms, issueHref, listRows, publishState, relationOptions, yearRange } from "./cms";
 import { collections, createEmptySite } from "./schemas";
 
 const now = new Date("2026-09-28T10:00:00.000Z");
@@ -11,14 +11,6 @@ const site = () =>
     publicEmail: "i@example.com",
     now,
   });
-
-describe("nextDrawingNo", () => {
-  it("starts at SP-001", () => expect(nextDrawingNo([])).toBe("SP-001"));
-  it("goes one above the highest, not the count", () => {
-    expect(nextDrawingNo([{ drawingNo: "SP-001" }, { drawingNo: "SP-007" }])).toBe("SP-008");
-  });
-  it("keeps going past 999", () => expect(nextDrawingNo([{ drawingNo: "SP-999" }])).toBe("SP-1000"));
-});
 
 describe("yearRange", () => {
   it("formats open, single and closed ranges", () => {
@@ -75,18 +67,17 @@ describe("new item defaults", () => {
     }
   });
 
-  it("pre-fills a project's drawing number and role", () => {
+  it("pre-fills a project's role and start year", () => {
     const s = site();
-    expect(cms.projects.newItem(s, now)).toMatchObject({ drawingNo: "SP-001", role: "Site Engineer", startYear: 2026 });
+    expect(cms.projects.newItem(s, now)).toMatchObject({ role: "Site Engineer", startYear: 2026 });
   });
 });
 
 describe("listRows / relationOptions", () => {
-  it("shows the drawing number and status for projects", () => {
+  it("shows the subtitle and status for projects", () => {
     const rows = listRows("projects", [
       {
         id: "p",
-        drawingNo: "SP-004",
         title: "Geriatric Centre",
         location: "Surulere",
         category: "healthcare",
@@ -98,7 +89,7 @@ describe("listRows / relationOptions", () => {
         featured: false,
       },
     ]);
-    expect(rows[0]).toMatchObject({ id: "p", no: "SP-004", subtitle: "Healthcare · 2024", status: { tone: "done" } });
+    expect(rows[0]).toMatchObject({ id: "p", subtitle: "Healthcare · 2024", status: { tone: "done" } });
   });
 
   it("marks the current role and labels employers for the project select", () => {

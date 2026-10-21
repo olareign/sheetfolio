@@ -10,7 +10,7 @@ describe("describeFields (PRD §4.2 mapping)", () => {
 
   it("skips the id and keeps schema order", () => {
     expect(project.id).toBeUndefined();
-    expect(collectionFields("projects")[0]?.name).toBe("drawingNo");
+    expect(collectionFields("projects")[0]?.name).toBe("title");
   });
 
   it("takes labels from .describe()", () => {

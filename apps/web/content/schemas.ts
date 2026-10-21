@@ -141,12 +141,9 @@ export const ProjectImage = z.object({
 });
 export type ProjectImage = z.infer<typeof ProjectImage>;
 
-export const DrawingNo = z.string().regex(/^SP-\d{3,}$/, "Format SP-001");
-
 export const Project = z
   .object({
     id: Id,
-    drawingNo: DrawingNo.describe("Drawing no."),
     title: RequiredText(160).describe("Project title"),
     client: Text(160).optional().describe("Client"),
     experienceId: Id.optional().describe("Employer"),

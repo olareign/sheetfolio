@@ -6,7 +6,7 @@ import { initials } from "@/content/derive";
 import { whatsappHref, type PageContext } from "./view-model";
 
 /** Header bar (PRD §3.1.1). The WhatsApp button is outlined so the hero keeps the one orange CTA. */
-export function SiteHeader({ site, basePath, sheet = "SP-000" }: PageContext & { sheet?: string }) {
+export function SiteHeader({ site, basePath }: PageContext) {
   const hasWhatsApp = Boolean(site.profile.whatsapp);
   return (
     <header className="pp-header">
@@ -16,7 +16,6 @@ export function SiteHeader({ site, basePath, sheet = "SP-000" }: PageContext & {
             {initials(site.profile.name)}
           </span>
           <span className="pp-brand-name">{site.profile.name}</span>
-          <span className="sp-label pp-sheet">/ Sheet {sheet}</span>
         </Link>
         <nav className="pp-nav" aria-label="Page sections">
           <a href={`${basePath}#projects`}>Projects</a>

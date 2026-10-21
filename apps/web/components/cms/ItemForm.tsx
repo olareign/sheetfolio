@@ -80,7 +80,6 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
     <form className="cms-form" onSubmit={onSubmit} noValidate>
       <div className="cms-form-head">
         <h1 className="cms-title">{isNew ? `New ${config.singular}` : title || `Edit ${config.singular}`}</h1>
-        {defaultValues.drawingNo !== undefined && <span className="sp-label">{String(defaultValues.drawingNo)}</span>}
       </div>
       {formError && (
         <p className="sp-alert" role="alert">

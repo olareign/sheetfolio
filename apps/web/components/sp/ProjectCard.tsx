@@ -7,7 +7,6 @@ import { StatusTag, Tag } from "./Tag";
 
 export type ProjectCardData = {
   id: string;
-  drawingNo: string;
   title: string;
   category: Category;
   status: "completed" | "ongoing";
@@ -21,7 +20,7 @@ export type ProjectCardData = {
 export function ProjectCard({ project, href }: { project: ProjectCardData; href: string }) {
   return (
     <Link className="sp-card" href={href}>
-      <CropFrame no={project.drawingNo} pending={!project.cover}>
+      <CropFrame pending={!project.cover}>
         {project.cover ? (
           <Image
             src={project.cover.url}

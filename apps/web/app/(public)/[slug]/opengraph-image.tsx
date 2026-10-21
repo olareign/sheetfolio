@@ -35,7 +35,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         style={{ display: "flex", justifyContent: "space-between", fontSize: 22, letterSpacing: 4, color: T.inkMuted }}
       >
         <span>SHEETFOLIO</span>
-        <span>SHEET SP-000</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ fontSize: 26, letterSpacing: 4, color: T.inkMuted, textTransform: "uppercase" }}>{line}</div>
@@ -53,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           color: T.blueprint,
         }}
       >
-        <span>{projects > 0 ? `Drawing schedule · ${projects} sheets` : "Portfolio"}</span>
+        <span>{projects > 0 ? `${projects} ${projects === 1 ? "project" : "projects"}` : "Portfolio"}</span>
         <span>/{slug}</span>
       </div>
     </div>,
