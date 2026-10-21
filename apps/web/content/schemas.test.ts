@@ -39,7 +39,7 @@ describe("createEmptySite", () => {
     expect(Site.safeParse(site).success).toBe(true);
     expect(site.projects).toEqual([]);
     expect(site.experiences).toEqual([]);
-    expect(site.settings).toEqual({ theme: "sheet", status: "draft" });
+    expect(site.settings).toEqual({ theme: "sheet", status: "draft", cvTemplate: "modern" });
     expect(site.updatedAt).toBe(now.toISOString());
     expect(site.publishedAt).toBeUndefined();
   });
@@ -169,5 +169,19 @@ describe("project categories", () => {
 
   it("accepts a software category on a project", () => {
     expect(Project.safeParse(project({ category: "fintech" })).success).toBe(true);
+  });
+});
+
+describe("settings.cvTemplate", () => {
+  it("defaults to modern, so a site saved before templates existed still loads", () => {
+    const stored = { ...empty(), settings: { theme: "blueprint", status: "published" } };
+    expect(Site.parse(stored).settings.cvTemplate).toBe("modern");
+  });
+
+  it("accepts the four templates and rejects anything else", () => {
+    for (const cvTemplate of ["classic", "modern", "projects", "minimal"]) {
+      expect(Site.safeParse({ ...empty(), settings: { cvTemplate } }).success).toBe(true);
+    }
+    expect(Site.safeParse({ ...empty(), settings: { cvTemplate: "fancy" } }).success).toBe(false);
   });
 });

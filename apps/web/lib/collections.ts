@@ -138,10 +138,14 @@ export async function saveProfile(slug: string, data: unknown, now: Date = new D
 export async function saveSettings(slug: string, data: unknown, now: Date = new Date()): Promise<void> {
   const parsed = SettingsInput.safeParse(data);
   if (!parsed.success) throw new SiteError("INVALID", "Invalid settings", parsed.error.issues);
-  const { theme, ...contact } = parsed.data;
+  const { theme, cvTemplate, ...contact } = parsed.data;
   await mutateDraft(
     slug,
-    (draft) => ({ ...draft, profile: { ...draft.profile, ...contact }, settings: { ...draft.settings, theme } }),
+    (draft) => ({
+      ...draft,
+      profile: { ...draft.profile, ...contact },
+      settings: { ...draft.settings, theme, cvTemplate },
+    }),
     now,
   );
 }

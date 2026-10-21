@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CV_TEMPLATE_IDS, DEFAULT_CV_TEMPLATE } from "./cv-templates";
 
 // Plain-language messages for the CMS. This module is imported by both client forms and
 // server validation, so both show the same wording. Unhandled cases fall back to Zod's defaults.
@@ -267,6 +268,8 @@ export type Profile = z.infer<typeof Profile>;
 export const SiteSettings = z.object({
   theme: z.enum(["sheet", "blueprint"]).default("sheet"),
   status: z.enum(["draft", "published", "suspended"]).default("draft"),
+  /** Which CV layout the page's "Download CV" button offers first; visitors can pick any. */
+  cvTemplate: z.enum(CV_TEMPLATE_IDS).default(DEFAULT_CV_TEMPLATE),
 });
 
 export const Site = z.object({
@@ -430,6 +433,7 @@ export type ProfileEditorInput = z.input<typeof ProfileEditorInput>;
 /** Settings screen: contact channels and theme. Slug changes are not supported yet. */
 export const SettingsInput = z.object({
   theme: SiteSettings.shape.theme.describe("Default theme"),
+  cvTemplate: SiteSettings.shape.cvTemplate.describe("Default CV template"),
   whatsapp: Profile.shape.whatsapp,
   whatsappMessage: Profile.shape.whatsappMessage,
   publicEmail: Profile.shape.publicEmail,
