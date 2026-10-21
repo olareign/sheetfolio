@@ -110,7 +110,10 @@ export async function getPublished(slug: string): Promise<Site | null> {
     ["site-published", valid.data],
     { tags: [siteTag(valid.data)] },
   );
-  return read();
+  const cached = await read();
+  // The data cache outlives deployments, so an entry written before a schema change lacks any field added since
+  // (it once crashed a page on a new setting). Parsing again fills in the defaults.
+  return cached ? Site.parse(cached) : null;
 }
 
 /** Validate draft for publishing → copy to published with `publishedAt = now` → drop the public cache. */

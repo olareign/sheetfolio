@@ -49,6 +49,12 @@ describe("offeredCvTemplates", () => {
     expect(offered("modern", ["minimal", "classic"])).toEqual(["classic", "minimal"]);
   });
 
+  it("treats a missing setting (a document saved before it existed) as every layout with the usual default", () => {
+    expect(offeredCvTemplates({})).toEqual(["modern", "classic", "projects", "minimal"]);
+    expect(offeredCvTemplates({ cvTemplate: "classic" })).toEqual(["classic", "modern", "projects", "minimal"]);
+    expect(offeredCvTemplates({ cvTemplates: ["minimal"] })).toEqual(["minimal"]);
+  });
+
   it("repeats nothing and never returns an empty list, even for an empty setting", () => {
     expect(offered("classic", ["classic", "classic", "minimal"])).toEqual(["classic", "minimal"]);
     expect(offered("classic", [])).toEqual(["classic"]);

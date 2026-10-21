@@ -35,14 +35,16 @@ export function parseCvTemplate(value: unknown): CvTemplateId | null {
 
 /**
  * The layouts a page offers, with the effective default first and the rest in the usual order. Total on purpose: it
- * never returns an empty list, even for an empty or inconsistent setting, so a bad document cannot take the download away.
+ * never returns an empty list, and a missing setting (a document saved before the setting existed) means "all of
+ * them, with the usual default", so a stale document can never take the download away or crash a page.
  */
 export function offeredCvTemplates(settings: {
-  cvTemplate: CvTemplateId;
-  cvTemplates: readonly CvTemplateId[];
+  cvTemplate?: CvTemplateId;
+  cvTemplates?: readonly CvTemplateId[];
 }): CvTemplateId[] {
-  const chosen = CV_TEMPLATE_IDS.filter((id) => settings.cvTemplates.includes(id));
-  const offered = chosen.length > 0 ? chosen : [settings.cvTemplate];
-  const lead = offered.includes(settings.cvTemplate) ? settings.cvTemplate : (offered[0] ?? settings.cvTemplate);
+  const preferred = settings.cvTemplate ?? DEFAULT_CV_TEMPLATE;
+  const chosen = CV_TEMPLATE_IDS.filter((id) => (settings.cvTemplates ?? CV_TEMPLATE_IDS).includes(id));
+  const offered = chosen.length > 0 ? chosen : [preferred];
+  const lead = offered.includes(preferred) ? preferred : (offered[0] ?? preferred);
   return [lead, ...offered.filter((id) => id !== lead)];
 }
