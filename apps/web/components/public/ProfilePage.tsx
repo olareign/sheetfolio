@@ -25,7 +25,7 @@ export function ProfilePage(ctx: PageContext) {
               <div className="pp-section-head">
                 <div>
                   <span className="sp-label">
-                    Drawing schedule · {site.projects.length} {site.projects.length === 1 ? "sheet" : "sheets"}
+                    {site.projects.length} {site.projects.length === 1 ? "project" : "projects"}
                   </span>
                   <h2 id="projects-title" className="sp-heading">
                     Projects

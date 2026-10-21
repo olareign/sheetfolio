@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SheetPanel } from "@/components/SheetPanel";
+import { AuthPanel } from "@/components/AuthPanel";
 import { peekResetToken } from "@/lib/credentials";
 import { ExpiredLink, ResetForm } from "./ResetForm";
 
@@ -18,7 +18,7 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
   const valid = token ? (await peekResetToken(token)) !== null : false;
 
   return (
-    <SheetPanel sheet="A-03" title="Choose a new password">
+    <AuthPanel title="Choose a new password">
       {valid && token ? (
         <>
           <p className="sp-lead">Pick a new password. You will be signed out everywhere and sign in again with it.</p>
@@ -27,6 +27,6 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
       ) : (
         <ExpiredLink />
       )}
-    </SheetPanel>
+    </AuthPanel>
   );
 }

@@ -29,15 +29,13 @@ function button(href: string, text: string): string {
 </td></tr></table>`;
 }
 
-/** Drawing-sheet frame shared by every email: header strip, body, footer. */
+/** Frame shared by every email: header strip, body, footer. */
 function layout({
   preheader,
-  sheet,
   body,
   footer,
 }: {
   preheader: string;
-  sheet: string;
   body: string;
   footer: string;
 }) {
@@ -49,7 +47,7 @@ function layout({
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${T.paper};border:1px solid ${T.rule};">
 <tr><td style="padding:12px 24px;border-bottom:1px solid ${T.rule};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td>${label("Sheetfolio")}</td><td align="right">${label(`Sheet ${sheet}`)}</td>
+<td>${label("Sheetfolio")}</td>
 </tr></table></td></tr>
 <tr><td style="padding:32px 24px;font-family:${SANS};font-size:16px;line-height:1.6;color:${T.ink};">${body}</td></tr>
 <tr><td style="padding:16px 24px;border-top:1px solid ${T.hairline};font-family:${SANS};font-size:12px;line-height:1.5;color:${T.inkMuted};">${footer}</td></tr>
@@ -78,7 +76,6 @@ export function signInEmail({
   const subject = "Your Sheetfolio sign-in link";
   const html = layout({
     preheader: `Sign in to Sheetfolio. The link expires in ${expiry}.`,
-    sheet: "A-01",
     body: [
       h1("Sign in to Sheetfolio"),
       p(
@@ -122,7 +119,6 @@ export function passwordResetEmail({
   const subject = "Reset your Sheetfolio password";
   const html = layout({
     preheader: `Choose a new password. The link expires in ${expiry}.`,
-    sheet: "A-02",
     body: [
       h1("Reset your password"),
       p(
@@ -161,7 +157,6 @@ export function passwordChangedEmail({
   const subject = "Your Sheetfolio password was changed";
   const html = layout({
     preheader: "Your password was just changed. If that wasn't you, reset it now.",
-    sheet: "A-03",
     body: [
       h1("Your password was changed"),
       p(
@@ -221,7 +216,6 @@ export function enquiryEmail({
   const subject = `New enquiry from ${lead.name}`;
   const html = layout({
     preheader: `${lead.name}: ${lead.message.slice(0, 90)}`,
-    sheet: "Enquiry",
     body: [
       `<div style="margin:0 0 8px;">${label("Issued for enquiry")}</div>`,
       h1(`New enquiry from ${lead.name}`),
@@ -234,7 +228,7 @@ export function enquiryEmail({
         `font-size:14px;color:${T.inkMuted};`,
       ),
     ].join(""),
-    footer: `Sent because someone used the enquiry form on <a href="${escapeHtml(page)}" style="color:${T.inkMuted};">${escapeHtml(page.replace(/^https?:\/\//, ""))}</a>. Drawn on Sheetfolio.`,
+    footer: `Sent because someone used the enquiry form on <a href="${escapeHtml(page)}" style="color:${T.inkMuted};">${escapeHtml(page.replace(/^https?:\/\//, ""))}</a>. Made with Sheetfolio.`,
   });
   const text = [
     `New enquiry from ${lead.name}`,

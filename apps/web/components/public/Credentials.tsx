@@ -14,7 +14,7 @@ export function Credentials({ site }: PageContext) {
       <div className="pp-wrap">
         <div className="pp-section-head">
           <div>
-            <span className="sp-label">Approvals &amp; qualifications</span>
+            <span className="sp-label">Qualifications</span>
             <h2 id="credentials-title" className="sp-heading">
               Credentials
             </h2>
@@ -68,14 +68,13 @@ export function Credentials({ site }: PageContext) {
           )}
         </div>
         {competencies.length > 0 && (
-          <ol className="pp-competencies" aria-label="Core competencies">
-            {competencies.slice(0, 6).map((c, i) => (
+          <ul className="pp-competencies" aria-label="Core competencies">
+            {competencies.slice(0, 6).map((c) => (
               <li key={c}>
-                <span className="sp-label">{String(i + 1).padStart(2, "0")}</span>
                 {c}
               </li>
             ))}
-          </ol>
+          </ul>
         )}
       </div>
     </section>

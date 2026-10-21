@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getUserRecord } from "@/lib/accounts";
 import { env } from "@/lib/env";
 import { requireUser } from "@/lib/session";
-import { SheetPanel } from "@/components/SheetPanel";
+import { AuthPanel } from "@/components/AuthPanel";
 import { OnboardingForm } from "./OnboardingForm";
 
 export const metadata: Metadata = { title: "Claim your page" };
@@ -17,9 +17,9 @@ export default async function OnboardingPage() {
   const siteHost = siteUrl ? new URL(siteUrl).host : "sheetfolio";
 
   return (
-    <SheetPanel sheet="A-02" title="Claim your page">
+    <AuthPanel title="Claim your page">
       <p>Pick the address clients will visit, then tell us who you are. You fill in projects and photos next.</p>
       <OnboardingForm siteHost={siteHost} />
-    </SheetPanel>
+    </AuthPanel>
   );
 }

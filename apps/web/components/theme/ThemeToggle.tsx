@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { readPref, resolveTheme, setPref, subscribePref, systemPrefersDark, type Theme } from "@/lib/theme";
 
-/** Sun/moon switch between the light (sheet) and dark (blueprint) themes. */
+/** Sun/moon switch between the light and dark themes. */
 export function ThemeToggle({ fallback, className }: { fallback?: Theme; className?: string }) {
   const pref = useSyncExternalStore(subscribePref, readPref, () => null);
   const systemDark = useSyncExternalStore(subscribePref, systemPrefersDark, () => false);

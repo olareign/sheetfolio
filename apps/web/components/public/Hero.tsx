@@ -3,7 +3,7 @@ import { Button } from "@/components/sp/Button";
 import { DimensionLine } from "@/components/sp/DimensionLine";
 import { Stamp } from "@/components/sp/Stamp";
 import { TitleBlock, type TitleBlockCell } from "@/components/sp/TitleBlock";
-import { currentRole, heroFigures, revision, scopeOfWork, visiblePrivate } from "@/content/derive";
+import { currentRole, heroFigures, scopeOfWork, visiblePrivate } from "@/content/derive";
 import { offeredCvTemplates } from "@/content/cv-templates";
 import { CvDownload } from "./CvDownload";
 import { whatsappHref, type PageContext } from "./view-model";
@@ -12,13 +12,12 @@ export function Hero({ site, slug }: PageContext) {
   const { profile } = site;
   const current = currentRole(site);
   const cells: TitleBlockCell[] = [
-    { label: "Engineer", value: profile.name },
-    { label: "Discipline", value: profile.headline },
-    { label: "Base", value: profile.location },
+    { label: "Name", value: profile.name },
+    { label: "Role", value: profile.headline },
+    { label: "Based in", value: profile.location },
     { label: "Qualification", value: site.education[0]?.qualification ?? "" },
-    { label: "Rev.", value: site.publishedAt ? revision(site.publishedAt) : "Draft", mono: true },
     ...visiblePrivate(site).map((p) => ({ ...p, wide: true })),
-    { label: "Scope of work", value: scopeOfWork(site), wide: true },
+    { label: "What I do", value: scopeOfWork(site), wide: true },
     { label: "Current", value: current ? `${current.role}, ${current.company}` : "", wide: true },
   ];
   const labelParts = [profile.headline, profile.location, profile.availability].filter(Boolean);

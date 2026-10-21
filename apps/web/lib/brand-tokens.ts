@@ -1,22 +1,22 @@
 /**
- * Sheet-theme colours for places that can't read CSS variables: the CV PDF, the OG image and emails.
+ * Light-theme colours for places that can't read CSS variables: the CV PDF, the OG image and emails.
  * `brand-tokens.test.ts` fails if these drift from styles/tokens.css.
  */
 export const BRAND_TOKENS = {
-  paper: "#fbfaf6", // --paper-raised: a CV prints on white-ish paper
-  ink: "#18212c",
-  inkMuted: "#4f5966",
-  rule: "#8f887a",
-  hairline: "#d8d2c4",
-  blueprint: "#1d4f7c",
-  hivisInk: "#a8400a",
-  cured: "#2b6242",
-  page: "#f3f0e8", // --paper: the ground behind panels (email body)
-  paperSunken: "#e9e5da",
+  paper: "#ffffff", // --paper-raised: a CV prints on white-ish paper
+  ink: "#0f172a",
+  inkMuted: "#475569",
+  rule: "#cbd5e1",
+  hairline: "#e2e8f0",
+  blueprint: "#0f766e",
+  hivisInk: "#b42318",
+  cured: "#15803d",
+  page: "#f8fafc", // --paper: the ground behind panels (email body)
+  paperSunken: "#f1f5f9",
   onBlueprint: "#ffffff",
 } as const;
 
-/** Token each mirror entry must equal, in the sheet theme. */
+/** Token each mirror entry must equal, in the light ("sheet") theme. */
 export const BRAND_TOKEN_SOURCE: Record<keyof typeof BRAND_TOKENS, string> = {
   paper: "--paper-raised",
   ink: "--ink",

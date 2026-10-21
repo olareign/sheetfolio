@@ -51,7 +51,7 @@ describe("enquiryEmail", () => {
     expect(mail.html).toContain("https://sheetfolio.app/dashboard/leads");
     expect(mail.html).toContain("https://sheetfolio.app/idris-rasaq");
     expect(mail.html).toContain("mailto:ada@example.com?subject=Re%3A%20your%20enquiry");
-    expect(mail.html).toContain("Drawn on Sheetfolio");
+    expect(mail.html).toContain("Made with Sheetfolio");
   });
 
   it("has a plain-text version with the full message and details", () => {

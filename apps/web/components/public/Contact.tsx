@@ -6,7 +6,7 @@ import { offeredCvTemplates } from "@/content/cv-templates";
 import { CvDownload } from "./CvDownload";
 import { whatsappHref, type PageContext } from "./view-model";
 
-/** Contact (PRD §3.1.7): always in the Blueprint theme, on the drafting grid. */
+/** Contact (PRD §3.1.7): always in the dark theme. */
 export function Contact({ site, slug, preview }: PageContext) {
   const { profile } = site;
   const referees = visibleReferees(site);
@@ -20,7 +20,7 @@ export function Contact({ site, slug, preview }: PageContext) {
       <div className="pp-wrap pp-contact-grid">
         <div className="pp-contact-intro">
           <div>
-            <span className="sp-label">Issued for enquiry</span>
+            <span className="sp-label">Get in touch</span>
             <h2 id="contact-title" className="sp-heading">
               Discuss your project with {profile.firstName}
             </h2>

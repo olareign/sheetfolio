@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { usesConsoleMail } from "@/lib/env";
-import { SheetPanel } from "@/components/SheetPanel";
+import { AuthPanel } from "@/components/AuthPanel";
 import { LoginForm, PasswordForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   if (sent) {
     return (
-      <SheetPanel sheet="A-01" title="Check your email">
+      <AuthPanel title="Check your email">
         <p>We sent you a sign-in link. It works once and expires in one hour.</p>
         {devConsoleMail && (
           <p className="sp-note">
@@ -39,12 +39,12 @@ export default async function LoginPage({ searchParams }: Props) {
         <p className="sp-annot">
           Wrong address? <Link href="/login">Use a different email</Link>
         </p>
-      </SheetPanel>
+      </AuthPanel>
     );
   }
 
   return (
-    <SheetPanel sheet="A-01" title="Sign in">
+    <AuthPanel title="Sign in">
       <p className="sp-lead">Manage your Sheetfolio page.</p>
       {reset && (
         <p className="sp-note" role="status">
@@ -68,6 +68,6 @@ export default async function LoginPage({ searchParams }: Props) {
           </>
         )}
       </p>
-    </SheetPanel>
+    </AuthPanel>
   );
 }

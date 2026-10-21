@@ -45,7 +45,7 @@ export function ProjectSchedule({ projects, basePath }: { projects: ProjectCardD
       </div>
       {!showAll && matching.length > INITIAL && (
         <div className="pp-more">
-          <Button onClick={() => setShowAll(true)}>View all {matching.length} sheets</Button>
+          <Button onClick={() => setShowAll(true)}>View all {matching.length} projects</Button>
         </div>
       )}
     </>

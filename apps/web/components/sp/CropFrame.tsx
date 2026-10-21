@@ -7,7 +7,7 @@ export function CropFrame({
   wide,
 }: {
   children: ReactNode;
-  /** Shows "PHOTOS PENDING" over a placeholder. */
+  /** Shows "Photos coming soon" over a placeholder. */
   pending?: boolean;
   /** 16:10 instead of 4:3 (project detail main image). */
   wide?: boolean;
@@ -16,7 +16,7 @@ export function CropFrame({
     <div className={wide ? "sp-crop sp-crop--wide" : "sp-crop"}>
       <span className="sp-crop-b" />
       {children}
-      {pending && <span className="sp-crop-pending">PHOTOS PENDING</span>}
+      {pending && <span className="sp-crop-pending">Photos coming soon</span>}
     </div>
   );
 }

@@ -63,7 +63,7 @@ export function ProjectPage({ project, ...ctx }: PageContext & { project: Projec
             <div className="pp-side">
               {project.scope && (
                 <div>
-                  <h2>Scope of work</h2>
+                  <h2>What was done</h2>
                   <p>{project.scope}</p>
                 </div>
               )}

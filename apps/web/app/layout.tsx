@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { publicSiteUrl } from "@/lib/env";
 import { ROOT_THEME_SCRIPT } from "@/lib/theme";
-import { archivo, plexMono, plexSans } from "./fonts";
+import { inter } from "./fonts";
 import "@/styles/tokens.css";
 import "@/styles/sp.css";
 import "@/styles/app.css";
@@ -9,7 +9,7 @@ import "@/styles/app.css";
 export const metadata: Metadata = {
   metadataBase: publicSiteUrl(),
   title: { default: "Sheetfolio", template: "%s · Sheetfolio" },
-  description: "Portfolio pages for civil engineers, drawn like a construction drawing set.",
+  description: "A clean portfolio page for your projects, credentials and CV.",
   openGraph: { siteName: "Sheetfolio", type: "website" },
   twitter: { card: "summary_large_image" },
 };
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     // without JS the :root tokens give the light "sheet" theme.
     <html
       lang="en"
-      className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={inter.variable}
       suppressHydrationWarning
     >
       <head>

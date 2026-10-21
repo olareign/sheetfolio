@@ -1,43 +1,46 @@
-/* styles/tokens.css */
+/* styles/tokens.css — clean SaaS palette. Token names are historical; the theme ids "sheet" (light) and
+   "blueprint" (dark) are stored in saved settings, so they stay. */
 :root,
 [data-theme="sheet"] {
-  --paper:        #f3f0e8; /* page ground: drafting paper */
-  --paper-raised: #fbfaf6; /* cards, title blocks, panels */
-  --paper-sunken: #e9e5da; /* image wells, placeholders, table headers */
-  --ink:          #18212c; /* body + headings (≥11:1) */
-  --ink-muted:    #4f5966; /* metadata, captions (≥6.2:1) */
-  --rule:         #8f887a; /* meaningful borders (≥3:1) */
-  --hairline:     #d8d2c4; /* decorative dividers only */
-  --grid:         #e4dfd3; /* drafting grid lines */
-  --blueprint:    #1d4f7c; /* brand: primary buttons, links, dimension lines */
+  --paper:        #f8fafc; /* page ground */
+  --paper-raised: #ffffff; /* cards, panels, inputs */
+  --paper-sunken: #f1f5f9; /* image wells, placeholders, table headers */
+  --ink:          #0f172a; /* body + headings */
+  --ink-muted:    #475569; /* metadata, captions (≥7:1) */
+  --rule:         #cbd5e1; /* input and control borders */
+  --hairline:     #e2e8f0; /* dividers */
+  --grid:         #e2e8f0;
+  --blueprint:    #0f766e; /* brand accent: primary buttons, links */
   --on-blueprint: #ffffff;
-  --hivis:        #e8610f; /* safety orange: CTA fill, focus ring, ongoing */
-  --on-hivis:     #0f141a; /* text on hivis — never white */
-  --hivis-ink:    #a8400a; /* orange as text: stamps, required marks */
-  --cured:        #2b6242; /* completed status */
-  --concrete:     #9aa0a4; /* placeholder line drawings */
-  --focus-ring:   var(--hivis);
-  --shadow-lift:  4px 4px 0 #18212c;
+  --hivis:        #0f766e; /* kept equal to the accent: one brand colour */
+  --on-hivis:     #ffffff;
+  --hivis-ink:    #b42318; /* errors and required marks */
+  --cured:        #15803d; /* completed status */
+  --concrete:     #94a3b8; /* placeholder drawings */
+  --focus-ring:   #0f766e;
+  --shadow-lift:  0 10px 30px -12px rgba(15, 23, 42, .25);
+  --shadow-soft:  0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .08);
 }
 
 [data-theme="blueprint"] {
-  --paper:        #0e2740;
-  --paper-raised: #14344f;
-  --paper-sunken: #0a1f34;
-  --ink:          #e9eff6;
-  --ink-muted:    #a8bbd1;
-  --rule:         #5d7ea3;
-  --hairline:     #224667;
-  --grid:         #16395a;
-  --blueprint:    #8cc3ff;
-  --on-blueprint: #0b1e33;
-  --hivis:        #ff8c42;
-  --on-hivis:     #1a0e05;
-  --hivis-ink:    #ffa368;
-  --cured:        #7fd1a3;
-  --concrete:     #6d8299;
-  --focus-ring:   var(--hivis);
-  --shadow-lift:  4px 4px 0 #8cc3ff;
+  --paper:        #0b1220;
+  --paper-raised: #111a2e;
+  --paper-sunken: #0d1526;
+  --ink:          #e8eef7;
+  --ink-muted:    #a3b1c6;
+  --rule:         #33435e;
+  --hairline:     #1f2c44;
+  --grid:         #1f2c44;
+  --blueprint:    #2dd4bf;
+  --on-blueprint: #052e2b;
+  --hivis:        #2dd4bf;
+  --on-hivis:     #052e2b;
+  --hivis-ink:    #fda29b;
+  --cured:        #6ee7a0;
+  --concrete:     #64748b;
+  --focus-ring:   #2dd4bf;
+  --shadow-lift:  0 10px 30px -12px rgba(0, 0, 0, .6);
+  --shadow-soft:  0 1px 2px rgba(0, 0, 0, .4);
 }
 
 :root {
@@ -46,12 +49,13 @@
   --space-6: 24px;  --space-8: 32px;  --space-12: 48px; --space-16: 64px;
 
   /* radius */
-  --radius-0: 0px;      /* default: cards, buttons, images */
-  --radius-sm: 2px;     /* inputs, tags */
-  --radius-round: 50%;  /* stamps, markers */
+  --radius-0: 10px;     /* buttons */
+  --radius-card: 16px;  /* cards, panels, images */
+  --radius-sm: 8px;     /* inputs */
+  --radius-round: 999px; /* pills, markers */
 
   /* fonts (set by next/font variables, with fallbacks) */
-  --font-display: var(--font-archivo, "Archivo"), "Arial Narrow", sans-serif;
-  --font-sans:    var(--font-plex-sans, "IBM Plex Sans"), system-ui, sans-serif;
-  --font-mono:    var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, monospace;
+  --font-display: var(--font-inter, "Inter"), system-ui, sans-serif;
+  --font-sans:    var(--font-inter, "Inter"), system-ui, sans-serif;
+  --font-mono:    var(--font-inter, "Inter"), system-ui, sans-serif;
 }

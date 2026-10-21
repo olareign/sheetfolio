@@ -15,7 +15,7 @@ const HINTS: Record<string, string> = {
   whatsappMessage: "Pre-filled when a visitor taps WhatsApp.",
   publicEmail: "Enquiries from your page are sent here.",
 };
-const THEME_LABELS: Record<string, string> = { sheet: "Drawing sheet (light)", blueprint: "Blueprint (dark)" };
+const THEME_LABELS: Record<string, string> = { sheet: "Light", blueprint: "Dark" };
 
 export function SettingsForm({ defaultValues, slug }: { defaultValues: FieldValues; slug: string }) {
   const fields = useMemo(

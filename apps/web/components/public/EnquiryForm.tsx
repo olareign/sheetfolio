@@ -12,7 +12,7 @@ export function EnquiryForm({ slug, firstName, disabled }: { slug: string; first
   if (state.status === "sent") {
     return (
       <div className="pp-form" role="status">
-        <span className="sp-label">Enquiry issued</span>
+        <span className="sp-label">Message sent</span>
         <h3 className="sp-body-strong">Thanks. {firstName} has your message.</h3>
         <p className="sp-annot">Expect a reply by email. For anything urgent, use WhatsApp.</p>
       </div>

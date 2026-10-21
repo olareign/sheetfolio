@@ -3,7 +3,7 @@ import { yearRange } from "@/content/cms";
 import { chainageRange, isServiceRole } from "@/content/derive";
 import type { PageContext } from "./view-model";
 
-/** Experience as a chainage timeline (PRD §3.1.4). The current role gets the safety-orange station. */
+/** Experience as a timeline (PRD §3.1.4). The current role gets the filled marker. */
 export function Experience({ site, basePath }: PageContext) {
   if (site.experiences.length === 0) return null;
   const range = chainageRange(site);
@@ -13,7 +13,7 @@ export function Experience({ site, basePath }: PageContext) {
         <div className="pp-section-head pp-section-head--stack">
           {range && (
             <span className="sp-label">
-              Chainage · {range.from} → {range.to}
+              {range.from} – {range.to}
             </span>
           )}
           <h2 id="experience-title" className="sp-heading">
