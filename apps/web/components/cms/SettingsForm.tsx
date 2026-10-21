@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { useForm, type FieldValues, type Resolver } from "react-hook-form";
 import { saveSettingsAction } from "@/app/(admin)/dashboard/actions";
 import { describeFields } from "@/content/form-spec";
-import { CV_TEMPLATES } from "@/content/cv-templates";
 import { SettingsInput } from "@/content/schemas";
 import { FieldRenderer } from "./FieldRenderer";
 import { applyServerErrors } from "./form-result";
@@ -15,21 +14,17 @@ const HINTS: Record<string, string> = {
   whatsapp: "Digits only, with country code and no +, e.g. 2347033435818",
   whatsappMessage: "Pre-filled when a visitor taps WhatsApp.",
   publicEmail: "Enquiries from your page are sent here.",
-  cvTemplate: "Visitors can still choose any layout when they download your CV.",
 };
 const THEME_LABELS: Record<string, string> = { sheet: "Drawing sheet (light)", blueprint: "Blueprint (dark)" };
-const OPTION_LABELS: Record<string, Record<string, string>> = {
-  theme: THEME_LABELS,
-  cvTemplate: Object.fromEntries(Object.entries(CV_TEMPLATES).map(([id, t]) => [id, t.label])),
-};
 
 export function SettingsForm({ defaultValues, slug }: { defaultValues: FieldValues; slug: string }) {
   const fields = useMemo(
     () =>
-      describeFields(SettingsInput).map((f) => {
-        const labels = OPTION_LABELS[f.name];
-        return labels ? { ...f, options: f.options?.map((o) => ({ ...o, label: labels[o.value] ?? o.label })) } : f;
-      }),
+      describeFields(SettingsInput).map((f) =>
+        f.name === "theme"
+          ? { ...f, options: f.options?.map((o) => ({ ...o, label: THEME_LABELS[o.value] ?? o.label })) }
+          : f,
+      ),
     [],
   );
   const form = useForm<FieldValues>({

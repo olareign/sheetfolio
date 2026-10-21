@@ -268,7 +268,11 @@ export type Profile = z.infer<typeof Profile>;
 export const SiteSettings = z.object({
   theme: z.enum(["sheet", "blueprint"]).default("sheet"),
   status: z.enum(["draft", "published", "suspended"]).default("draft"),
-  /** Which CV layout the page's "Download CV" button offers first; visitors can pick any. */
+  /** The CV layouts the page offers for download (the owner's choice), and which one comes first. */
+  cvTemplates: z
+    .array(z.enum(CV_TEMPLATE_IDS))
+    .min(1)
+    .default([...CV_TEMPLATE_IDS]),
   cvTemplate: z.enum(CV_TEMPLATE_IDS).default(DEFAULT_CV_TEMPLATE),
 });
 
@@ -430,10 +434,21 @@ export const ProfileEditorInput = z.object({
 });
 export type ProfileEditorInput = z.input<typeof ProfileEditorInput>;
 
+/** Settings → CV layouts: which layouts visitors can download, and which is the default (it must be one of them). */
+export const CvLayoutsInput = z
+  .object({
+    cvTemplates: z.array(z.enum(CV_TEMPLATE_IDS)).min(1, "Offer at least one CV layout"),
+    cvTemplate: z.enum(CV_TEMPLATE_IDS),
+  })
+  .refine((v) => v.cvTemplates.includes(v.cvTemplate), {
+    path: ["cvTemplate"],
+    message: "Choose a default from the layouts you offer",
+  });
+export type CvLayoutsInput = z.input<typeof CvLayoutsInput>;
+
 /** Settings screen: contact channels and theme. Slug changes are not supported yet. */
 export const SettingsInput = z.object({
   theme: SiteSettings.shape.theme.describe("Default theme"),
-  cvTemplate: SiteSettings.shape.cvTemplate.describe("Default CV template"),
   whatsapp: Profile.shape.whatsapp,
   whatsappMessage: Profile.shape.whatsappMessage,
   publicEmail: Profile.shape.publicEmail,

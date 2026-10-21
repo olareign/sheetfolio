@@ -32,3 +32,17 @@ export const CV_TEMPLATES: Record<CvTemplateId, { label: string; description: st
 export function parseCvTemplate(value: unknown): CvTemplateId | null {
   return CV_TEMPLATE_IDS.find((id) => id === value) ?? null;
 }
+
+/**
+ * The layouts a page offers, with the effective default first and the rest in the usual order. Total on purpose: it
+ * never returns an empty list, even for an empty or inconsistent setting, so a bad document cannot take the download away.
+ */
+export function offeredCvTemplates(settings: {
+  cvTemplate: CvTemplateId;
+  cvTemplates: readonly CvTemplateId[];
+}): CvTemplateId[] {
+  const chosen = CV_TEMPLATE_IDS.filter((id) => settings.cvTemplates.includes(id));
+  const offered = chosen.length > 0 ? chosen : [settings.cvTemplate];
+  const lead = offered.includes(settings.cvTemplate) ? settings.cvTemplate : (offered[0] ?? settings.cvTemplate);
+  return [lead, ...offered.filter((id) => id !== lead)];
+}

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { issuesToFieldErrors } from "@/content/form-spec";
 import { CollectionNameSchema } from "@/content/schemas";
 import { signOut } from "@/lib/auth";
-import { deleteItem, reorderItems, saveProfile, saveSettings, upsertItem } from "@/lib/collections";
+import { deleteItem, reorderItems, saveCvLayouts, saveProfile, saveSettings, upsertItem } from "@/lib/collections";
 import { requireAccount } from "@/lib/session";
 import { markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
@@ -71,6 +71,10 @@ export async function saveProfileAction(data: unknown): Promise<ActionResult> {
 
 export async function saveSettingsAction(data: unknown): Promise<ActionResult> {
   return run((slug) => saveSettings(slug, data));
+}
+
+export async function saveCvLayoutsAction(data: unknown): Promise<ActionResult> {
+  return run((slug) => saveCvLayouts(slug, data));
 }
 
 export async function publishAction(): Promise<ActionResult> {

@@ -1,9 +1,11 @@
 import "server-only";
 import { z } from "zod";
+import { CV_TEMPLATE_IDS } from "@/content/cv-templates";
 import {
   collections,
   ProfileEditorInput,
   SettingsInput,
+  CvLayoutsInput,
   type CollectionName,
   type Site,
   type SiteInput,
@@ -138,14 +140,23 @@ export async function saveProfile(slug: string, data: unknown, now: Date = new D
 export async function saveSettings(slug: string, data: unknown, now: Date = new Date()): Promise<void> {
   const parsed = SettingsInput.safeParse(data);
   if (!parsed.success) throw new SiteError("INVALID", "Invalid settings", parsed.error.issues);
-  const { theme, cvTemplate, ...contact } = parsed.data;
+  const { theme, ...contact } = parsed.data;
   await mutateDraft(
     slug,
-    (draft) => ({
-      ...draft,
-      profile: { ...draft.profile, ...contact },
-      settings: { ...draft.settings, theme, cvTemplate },
-    }),
+    (draft) => ({ ...draft, profile: { ...draft.profile, ...contact }, settings: { ...draft.settings, theme } }),
+    now,
+  );
+}
+
+/** Settings → CV layouts. The set is stored in the usual order with no repeats; the default is checked against it. */
+export async function saveCvLayouts(slug: string, data: unknown, now: Date = new Date()): Promise<void> {
+  const parsed = CvLayoutsInput.safeParse(data);
+  if (!parsed.success) throw new SiteError("INVALID", "Invalid CV layouts", parsed.error.issues);
+  const { cvTemplates, cvTemplate } = parsed.data;
+  const offered = CV_TEMPLATE_IDS.filter((id) => cvTemplates.includes(id));
+  await mutateDraft(
+    slug,
+    (draft) => ({ ...draft, settings: { ...draft.settings, cvTemplates: offered, cvTemplate } }),
     now,
   );
 }

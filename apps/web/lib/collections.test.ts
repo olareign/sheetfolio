@@ -9,7 +9,8 @@ vi.mock("@/lib/redis", async (importOriginal) => {
 });
 vi.mock("next/cache", () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn, revalidateTag: vi.fn() }));
 
-const { deleteItem, reorderItems, saveProfile, saveSettings, upsertItem } = await import("./collections");
+const { deleteItem, reorderItems, saveCvLayouts, saveProfile, saveSettings, upsertItem } =
+  await import("./collections");
 const { getDraft } = await import("./site");
 
 const SLUG = "idris-rasaq";
@@ -265,5 +266,35 @@ describe("saveSettings", () => {
     await expect(
       saveSettings(SLUG, { theme: "sheet", whatsapp: "+234 703", whatsappMessage: "", publicEmail: "r@example.com" }),
     ).rejects.toMatchObject({ issues: [expect.objectContaining({ path: ["whatsapp"] })] });
+  });
+});
+
+describe("saveCvLayouts", () => {
+  it("stores the offered layouts in the usual order with the chosen default, leaving other settings alone", async () => {
+    await saveSettings(SLUG, {
+      theme: "blueprint",
+      whatsapp: "2347033435818",
+      whatsappMessage: "",
+      publicEmail: "r@example.com",
+    });
+    await saveCvLayouts(SLUG, { cvTemplates: ["minimal", "classic", "classic"], cvTemplate: "minimal" });
+
+    const d = await draft();
+    expect(d.settings.cvTemplates).toEqual(["classic", "minimal"]);
+    expect(d.settings.cvTemplate).toBe("minimal");
+    expect(d.settings.theme).toBe("blueprint");
+  });
+
+  it("rejects an empty choice and leaves the draft untouched", async () => {
+    await expect(saveCvLayouts(SLUG, { cvTemplates: [], cvTemplate: "classic" })).rejects.toMatchObject({
+      code: "INVALID",
+    });
+    expect((await draft()).settings.cvTemplates).toEqual(["classic", "modern", "projects", "minimal"]);
+  });
+
+  it("rejects a default that is not among the offered layouts", async () => {
+    await expect(saveCvLayouts(SLUG, { cvTemplates: ["classic"], cvTemplate: "modern" })).rejects.toMatchObject({
+      issues: [expect.objectContaining({ path: ["cvTemplate"] })],
+    });
   });
 });

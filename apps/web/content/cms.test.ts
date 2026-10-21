@@ -31,11 +31,16 @@ describe("yearRange", () => {
 describe("publishState", () => {
   const draft = {
     updatedAt: "2026-09-28T10:00:00.000Z",
-    settings: { theme: "sheet" as const, status: "draft" as const, cvTemplate: "modern" as const },
+    settings: {
+      theme: "sheet" as const,
+      status: "draft" as const,
+      cvTemplate: "modern" as const,
+      cvTemplates: ["modern" as const],
+    },
   };
   const pub = (publishedAt: string, status: "published" | "suspended" = "published") => ({
     publishedAt,
-    settings: { theme: "sheet" as const, status, cvTemplate: "modern" as const },
+    settings: { theme: "sheet" as const, status, cvTemplate: "modern" as const, cvTemplates: ["modern" as const] },
   });
   it("is unpublished without a published doc", () => expect(publishState(draft, null)).toBe("unpublished"));
   it("is live when the draft is not newer", () => {

@@ -86,8 +86,8 @@ Production deploys come from pushes to `main`. `vercel` from the CLI creates a P
 
 ## CV templates
 
-The "Download CV" button on a public page opens a list of four layouts. Each one is the same content, drawn
-differently, as a PDF generated on request from the published page (`/api/cv/{slug}?template=…`).
+A page can offer its visitors up to four CV layouts. Each is the same content, drawn differently, as a PDF generated on
+request from the published page (`/api/cv/{slug}?template=…`).
 
 | Template       | Look                                     | Best for                                |
 | -------------- | ---------------------------------------- | --------------------------------------- |
@@ -96,8 +96,11 @@ differently, as a PDF generated on request from the published page (`/api/cv/{sl
 | Projects first | Sans-serif, projects ahead of experience | Engineers, freelancers, career changers |
 | Minimal        | Sans-serif, no lines or colour at all    | Maximum compatibility                   |
 
-The owner picks which one is offered first in **Settings → Default CV template**; visitors can still choose any.
-The default is Modern. An unknown or missing `?template=` serves the page's default.
+**The owner chooses which layouts their page offers**, and which is the default, in the dashboard under
+**Settings → CV layouts** (every layout is on by default; Modern is the default). The choice is part of the draft, so it
+reaches the public page on **Publish**. On the page, one offered layout is a plain "Download CV" button; several open a
+list with the default first. The route only serves offered layouts: a missing, unknown or not-offered `?template=` gets the
+page's default.
 
 All four follow the same ATS rules: one column; real, selectable text; standard section names (Summary, Experience,
 Projects, Skills, Education); contact details in the body, not a header or footer; plain bullets; no photos, icons,

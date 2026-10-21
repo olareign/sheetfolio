@@ -39,22 +39,33 @@ describe("GET /api/cv/[slug]", () => {
     );
   }, 60_000);
 
-  it("uses the layout asked for in ?template=", async () => {
+  it("uses the layout asked for in ?template= when the owner offers it", async () => {
     const projectsFirst = await textOf(await get("?template=projects"));
     expect(projectsFirst).toContain("SELECTED PROJECTS");
     const classic = await textOf(await get("?template=classic"));
     expect(classic).not.toContain("SELECTED PROJECTS");
   }, 60_000);
 
-  it("falls back to the page's own default when no template is given", async () => {
+  it("serves the owner's default when no template is given", async () => {
     state.site = site({ cvTemplate: "projects" });
     expect(await textOf(await get())).toContain("SELECTED PROJECTS");
     state.site = site({ cvTemplate: "classic" });
     expect(await textOf(await get())).not.toContain("SELECTED PROJECTS");
   }, 60_000);
 
+  it("never serves a layout the owner did not choose to offer, falling back to their default", async () => {
+    state.site = site({ cvTemplates: ["classic", "minimal"], cvTemplate: "classic" });
+    const res = await get("?template=projects");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Disposition")).toContain("-CV-Classic.pdf");
+    expect(await textOf(res)).not.toContain("SELECTED PROJECTS");
+
+    // ...while one they do offer is still served.
+    expect((await get("?template=minimal")).headers.get("Content-Disposition")).toContain("-CV-Minimal.pdf");
+  }, 60_000);
+
   it.each(["fancy", "", "CLASSIC", "../../etc/passwd"])(
-    "treats the unknown template %j as the page default",
+    "treats the unknown template %j as the owner's default",
     async (bad) => {
       const res = await get(`?template=${encodeURIComponent(bad)}`);
       expect(res.status).toBe(200);

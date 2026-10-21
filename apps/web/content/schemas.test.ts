@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  CvLayoutsInput,
   createEmptySite,
   NewPassword,
   Project,
@@ -39,7 +40,12 @@ describe("createEmptySite", () => {
     expect(Site.safeParse(site).success).toBe(true);
     expect(site.projects).toEqual([]);
     expect(site.experiences).toEqual([]);
-    expect(site.settings).toEqual({ theme: "sheet", status: "draft", cvTemplate: "modern" });
+    expect(site.settings).toEqual({
+      theme: "sheet",
+      status: "draft",
+      cvTemplate: "modern",
+      cvTemplates: ["classic", "modern", "projects", "minimal"],
+    });
     expect(site.updatedAt).toBe(now.toISOString());
     expect(site.publishedAt).toBeUndefined();
   });
@@ -169,6 +175,41 @@ describe("project categories", () => {
 
   it("accepts a software category on a project", () => {
     expect(Project.safeParse(project({ category: "fintech" })).success).toBe(true);
+  });
+});
+
+describe("settings.cvTemplates", () => {
+  it("offers all four layouts by default, so existing pages keep every option until the owner narrows it", () => {
+    const settings = Site.parse(empty()).settings;
+    expect(settings.cvTemplates).toEqual(["classic", "modern", "projects", "minimal"]);
+    expect(settings.cvTemplate).toBe("modern");
+  });
+
+  it("refuses an empty set of layouts", () => {
+    expect(Site.safeParse({ ...empty(), settings: { cvTemplates: [] } }).success).toBe(false);
+  });
+});
+
+describe("CvLayoutsInput", () => {
+  it("accepts a chosen set whose default is among them", () => {
+    expect(CvLayoutsInput.safeParse({ cvTemplates: ["classic", "minimal"], cvTemplate: "minimal" }).success).toBe(true);
+  });
+
+  it("rejects an empty set with a plain message", () => {
+    const r = CvLayoutsInput.safeParse({ cvTemplates: [], cvTemplate: "classic" });
+    expect(r.error?.issues[0]?.message).toBe("Offer at least one CV layout");
+  });
+
+  it("rejects a default that is not offered, pointing at the default field", () => {
+    const r = CvLayoutsInput.safeParse({ cvTemplates: ["classic"], cvTemplate: "modern" });
+    expect(r.error?.issues[0]).toMatchObject({
+      path: ["cvTemplate"],
+      message: "Choose a default from the layouts you offer",
+    });
+  });
+
+  it("rejects an unknown layout", () => {
+    expect(CvLayoutsInput.safeParse({ cvTemplates: ["fancy"], cvTemplate: "fancy" }).success).toBe(false);
   });
 });
 

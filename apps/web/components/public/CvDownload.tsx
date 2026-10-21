@@ -1,36 +1,47 @@
 import { ChevronDown, Download } from "lucide-react";
-import { buttonClass } from "@/components/sp/Button";
-import { CV_TEMPLATE_IDS, CV_TEMPLATES, type CvTemplateId } from "@/content/cv-templates";
+import { Button, buttonClass } from "@/components/sp/Button";
+import { CV_TEMPLATES, type CvTemplateId } from "@/content/cv-templates";
 import { cvHref } from "./view-model";
 
 /**
- * "Download CV" with a choice of layout. A native <details>, so it works without JavaScript and by keyboard:
- * the summary toggles the list, and each layout is a plain download link. The page owner's default comes first.
+ * "Download CV" for the layouts the page owner chose to offer (`templates`, default first; see offeredCvTemplates).
+ * One layout is a plain download button. Several open a list: a native <details>, so it works without JavaScript and
+ * by keyboard, with each layout a plain download link.
  */
 export function CvDownload({
   slug,
   publishedAt,
-  defaultTemplate,
+  templates,
 }: {
   slug: string;
   publishedAt?: string;
-  defaultTemplate: CvTemplateId;
+  templates: CvTemplateId[];
 }) {
-  const ordered = [defaultTemplate, ...CV_TEMPLATE_IDS.filter((id) => id !== defaultTemplate)];
+  const [only, ...others] = templates;
+  if (!only) return null;
+  const icon = <Download size={18} strokeWidth={1.5} aria-hidden="true" />;
+
+  if (others.length === 0) {
+    return (
+      <Button href={cvHref(slug, publishedAt, only)} native icon={icon}>
+        Download CV
+      </Button>
+    );
+  }
   return (
     <details className="pp-cv">
       <summary className={buttonClass()}>
-        <Download size={18} strokeWidth={1.5} aria-hidden="true" />
+        {icon}
         Download CV
         <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" />
       </summary>
       <ul className="pp-cv-menu" aria-label="Choose a CV layout">
-        {ordered.map((id) => (
+        {templates.map((id, index) => (
           <li key={id}>
             <a className="pp-cv-option" href={cvHref(slug, publishedAt, id)} download>
               <span className="pp-cv-name">
                 {CV_TEMPLATES[id].label}
-                {id === defaultTemplate && <span className="pp-cv-default">Default</span>}
+                {index === 0 && <span className="pp-cv-default">Default</span>}
               </span>
               <span className="pp-cv-desc">{CV_TEMPLATES[id].description}</span>
             </a>

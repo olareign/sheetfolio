@@ -1,5 +1,7 @@
+import { CvLayoutsForm } from "@/components/cms/CvLayoutsForm";
 import { PasswordForm } from "@/components/cms/PasswordForm";
 import { SettingsForm } from "@/components/cms/SettingsForm";
+import { offeredCvTemplates } from "@/content/cv-templates";
 import { getCmsContext } from "@/lib/cms-data";
 import { getCredentials } from "@/lib/credentials";
 
@@ -15,14 +17,14 @@ export default async function SettingsPage({ searchParams }: Props) {
   return (
     <main className="cms-content">
       <SettingsForm
-        defaultValues={{
-          theme: draft.settings.theme,
-          cvTemplate: draft.settings.cvTemplate,
-          whatsapp,
-          whatsappMessage,
-          publicEmail,
-        }}
+        defaultValues={{ theme: draft.settings.theme, whatsapp, whatsappMessage, publicEmail }}
         slug={account.slug}
+      />
+      <CvLayoutsForm
+        initial={{
+          cvTemplates: draft.settings.cvTemplates,
+          cvTemplate: offeredCvTemplates(draft.settings)[0] ?? draft.settings.cvTemplate,
+        }}
       />
       <PasswordForm username={credentials ? (credentials.username ?? email) : null} changed={changed === "password"} />
     </main>
