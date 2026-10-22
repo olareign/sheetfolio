@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useForm, useWatch, type FieldValues, type Resolver } from "react-hook-form";
@@ -81,6 +82,10 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
 
   return (
     <form className="cms-form" onSubmit={onSubmit} noValidate>
+      <Link href={`/dashboard/${collection}`} className="cms-back">
+        <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />
+        All {collections[collection].label.toLowerCase()}
+      </Link>
       <div className="cms-form-head">
         <h1 className="cms-title">{isNew ? `New ${config.singular}` : title || `Edit ${config.singular}`}</h1>
       </div>

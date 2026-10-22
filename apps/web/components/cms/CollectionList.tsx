@@ -124,7 +124,7 @@ export function CollectionList({ collection, label, singular, rows }: Props) {
   }
 
   return (
-    <section className="cms-list" aria-label={label}>
+    <section className="cms-list" aria-label={label} data-selected={selectedId ? "true" : "false"}>
       <div className="cms-list-head">
         <label htmlFor="cms-search" className="sp-visually-hidden">
           Search {label.toLowerCase()}
