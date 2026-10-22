@@ -1,10 +1,15 @@
 import { z } from "zod";
-import { recordView } from "@/lib/site";
+import { recordCvDownload, recordView } from "@/lib/site";
 
 // PRD §6 asked for the Edge runtime; Next 16 deprecates it, so this runs on the default Node runtime.
 // It only increments counters; the public pages themselves stay cached.
 
-const Beacon = z.object({ slug: z.string().max(64), projectId: z.string().max(64).optional() });
+const Beacon = z.object({
+  slug: z.string().max(64),
+  projectId: z.string().max(64).optional(),
+  /** "cv": a Download CV click instead of a page view. */
+  kind: z.enum(["view", "cv"]).default("view"),
+});
 
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;
@@ -16,6 +21,7 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = Beacon.safeParse(body);
   if (!parsed.success) return new Response(null, { status: 400 });
   // Unknown or malformed slugs are ignored inside recordView; always 204 so the beacon reveals nothing.
-  await recordView(parsed.data.slug, parsed.data.projectId);
+  if (parsed.data.kind === "cv") await recordCvDownload(parsed.data.slug);
+  else await recordView(parsed.data.slug, parsed.data.projectId);
   return new Response(null, { status: 204 });
 }

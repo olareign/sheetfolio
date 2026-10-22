@@ -25,6 +25,8 @@ export const keys = {
   firstPublished: (slug: string) => `site:${slug}:first-published`,
   viewsDay: (slug: string, day: string) => `views:${slug}:${day}`,
   viewsProject: (slug: string, projectId: string) => `views:${slug}:p:${projectId}`,
+  /** All-time count of "Download CV" clicks on the public page. */
+  cvDownloads: (slug: string) => `cv:${slug}:downloads`,
   leads: (slug: string) => `leads:${slug}`,
   leadsUnread: (slug: string) => `leads:${slug}:unread`,
   /** Ids of leads the engineer has read (kept apart so marking read never rewrites the list). */

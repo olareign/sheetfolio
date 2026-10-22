@@ -7,7 +7,7 @@ import { currentRole, heroFigures, scopeOfWork, visiblePrivate } from "@/content
 import { CvDownload } from "./CvDownload";
 import { whatsappHref, type PageContext } from "./view-model";
 
-export function Hero({ site, slug }: PageContext) {
+export function Hero({ site, slug, preview }: PageContext) {
   const { profile } = site;
   const current = currentRole(site);
   const cells: TitleBlockCell[] = [
@@ -46,7 +46,7 @@ export function Hero({ site, slug }: PageContext) {
             <Button href="#contact" variant="primary" icon={<Mail size={18} strokeWidth={1.5} aria-hidden="true" />}>
               Send an email
             </Button>
-            <CvDownload slug={slug} publishedAt={site.publishedAt} />
+            <CvDownload slug={slug} publishedAt={site.publishedAt} preview={preview} />
           </div>
           <div className="pp-figures">
             {heroFigures(site).map((f) => (

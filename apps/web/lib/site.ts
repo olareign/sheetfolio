@@ -173,6 +173,21 @@ export async function recordView(slug: string, projectId?: string, now: Date = n
   }
   const key = keys.viewsDay(valid.data, now.toISOString().slice(0, 10));
   const p = redis().pipeline();
+/**
+ * Counts one "Download CV" click. Counted from the button rather than inside the PDF route because that route is
+ * cached at the CDN, so the server never sees most downloads. Unknown slugs are ignored.
+ */
+export async function recordCvDownload(slug: string): Promise<void> {
+  const valid = Slug.safeParse(slug);
+  if (!valid.success) return;
+  if (!(await redis().sismember(keys.sites(), valid.data))) return;
+  await redis().incr(keys.cvDownloads(valid.data));
+}
+
+export async function getCvDownloads(slug: string): Promise<number> {
+  return Number((await redis().get<number>(keys.cvDownloads(assertSlug(slug)))) ?? 0);
+}
+
   p.incr(key);
   p.expire(key, VIEW_TTL_SECONDS);
   await p.exec();

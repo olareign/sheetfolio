@@ -38,7 +38,7 @@ export function Contact({ site, slug, preview }: PageContext) {
                 WhatsApp {profile.firstName}
               </Button>
             )}
-            <CvDownload slug={slug} publishedAt={site.publishedAt} />
+            <CvDownload slug={slug} publishedAt={site.publishedAt} preview={preview} />
           </div>
           {referees.length > 0 ? (
             <div>

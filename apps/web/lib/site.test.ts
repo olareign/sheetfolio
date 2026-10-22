@@ -17,6 +17,7 @@ vi.mock("next/cache", () => ({
 const {
   addLead,
   claimSlug,
+  getCvDownloads,
   getDraft,
   getProjectViews,
   getPublished,
@@ -26,6 +27,7 @@ const {
   markAllLeadsRead,
   markLeadRead,
   publish,
+  recordCvDownload,
   recordView,
   saveDraft,
   SiteError,
@@ -306,5 +308,22 @@ describe("view counters", () => {
     await recordView(SLUG, "p-1", t0);
     expect(await getProjectViews(SLUG, ["p-1", "p-2"])).toEqual({ "p-1": 2, "p-2": 0 });
     expect(await getProjectViews(SLUG, [])).toEqual({});
+  });
+});
+
+describe("CV download counter", () => {
+  it("counts downloads per page and reads zero before the first", async () => {
+    seedDraft();
+    expect(await getCvDownloads(SLUG)).toBe(0);
+    await recordCvDownload(SLUG);
+    await recordCvDownload(SLUG);
+    expect(await getCvDownloads(SLUG)).toBe(2);
+    expect(fake.strings.get(`cv:${SLUG}:downloads`)).toBe("2");
+  });
+
+  it("ignores unknown or malformed slugs", async () => {
+    await recordCvDownload("nobody-here");
+    await recordCvDownload("../x");
+    expect(fake.strings.size).toBe(0);
   });
 });
