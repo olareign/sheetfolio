@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RESERVED_SLUGS } from "./schemas";
-import { EXAMPLES, marketingImagePaths, NAV, PEOPLE, PROOF_FACES, QUOTES, STORIES } from "./marketing";
+import { marketingImagePaths, NAV, PEOPLE, PROOF_FACES, QUOTES, STORIES } from "./marketing";
 
 describe("marketing content", () => {
   it("only points at pictures that exist in /public", () => {
@@ -12,10 +12,6 @@ describe("marketing content", () => {
 
   it("marks every story and quote as a sample until it is replaced with a real one", () => {
     expect([...STORIES, ...QUOTES].filter((x) => !x.sample)).toEqual([]);
-  });
-
-  it("links the only non-sample example to a real page", () => {
-    for (const e of EXAMPLES) expect(Boolean(e.href)).toBe(!e.sample);
   });
 
   it("shows eight Black users to two white users in the testimonials, and in the early-user row", () => {

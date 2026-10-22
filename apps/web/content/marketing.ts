@@ -10,7 +10,7 @@ export type Sample = { /** Shown with a "Sample" badge until it is a real person
 export const NAV = [
   { href: "/", label: "Home" },
   { href: "/product", label: "Product" },
-  { href: "/examples", label: "Examples" },
+  { href: "/featured", label: "Featured" },
   { href: "/stories", label: "Stories" },
   { href: "/pricing", label: "Pricing" },
 ] as const;
@@ -208,36 +208,10 @@ export const FAQS = [
   { q: "Do I need photos for my projects?", a: "No. Add a website link and we read its picture, title and description. Otherwise upload a photo, or we show a stock photo for the category until you do." },
 ] as const;
 
-export type ExampleCard = {
-  /** A real, live Sheetfolio page. Everything else is a sample. */
-  href?: string;
-  sample: boolean;
-  name: string;
-  role: string;
-  group: "Work" | "Study" | "Freelance" | "Creative" | "Community";
-  photo: string;
-  alt: string;
-  person: PersonKey;
-  tags: readonly string[];
-};
-
-export const EXAMPLES: readonly ExampleCard[] = [
-  { href: "/idris-rasaq", sample: false, name: "Rasaq Idris Olawale", role: "Site Engineer, Akure", group: "Work", photo: "/stock/projects/healthcare.jpg", alt: "A health screening room", person: "emeka", tags: ["Projects", "CV"] },
-  { sample: true, name: "Ruth Adeyemi", role: "Nurse educator, Ibadan", group: "Work", photo: "/stock/projects/education.jpg", alt: "Pupils in a classroom", person: "ruth", tags: ["Credentials", "CV"] },
-  { sample: true, name: "Tobi Sanusi", role: "Architect, Lagos", group: "Work", photo: "/stock/projects/institutional.jpg", alt: "A white building with a clock tower", person: "tobi", tags: ["Projects", "Leads"] },
-  { sample: true, name: "Chidi Nwosu", role: "Accountant, Abuja", group: "Freelance", photo: "/stock/projects/commerce.jpg", alt: "A market stall piled with tomatoes", person: "chidi", tags: ["Clients", "CV"] },
-  { sample: true, name: "Sola Adebayo", role: "Teacher, Ondo", group: "Study", photo: "/stock/landing/classroom.jpg", alt: "A girl reading in a crowded classroom", person: "sola", tags: ["Credentials"] },
-  { sample: true, name: "Kemi Balogun", role: "Photographer, Abeokuta", group: "Creative", photo: "/stock/landing/crafts-market.jpg", alt: "A crafts market stall", person: "kemi", tags: ["Projects", "Leads"] },
-  { sample: true, name: "Bisi Lawal", role: "Brand writer, Lagos", group: "Creative", photo: "/stock/landing/fabrics.jpg", alt: "Folded wax-print fabrics", person: "bisi", tags: ["Writing", "CV"] },
-  { sample: true, name: "Ngozi Eze", role: "Volunteer coordinator, Port Harcourt", group: "Community", photo: "/stock/projects/community.jpg", alt: "Children sitting outside a community building", person: "ngozi", tags: ["Impact", "CV"] },
-];
-
-export const EXAMPLE_GROUPS = ["All", "Work", "Study", "Freelance", "Creative", "Community"] as const;
-
 export const FOOTER_COLUMNS = [
   { title: "Product", links: [{ label: "Features", href: "/product" }, { label: "CV layouts", href: "/product" }, { label: "Enquiries", href: "/product" }, { label: "Insights", href: "/product" }, { label: "Pricing", href: "/pricing" }] },
-  { title: "Made for everyone", links: [{ label: "Job seekers", href: "/examples" }, { label: "Freelancers", href: "/examples" }, { label: "Students", href: "/examples" }, { label: "Small businesses", href: "/examples" }, { label: "Anyone with work to show", href: "/examples" }] },
-  { title: "Explore", links: [{ label: "Examples", href: "/examples" }, { label: "Success stories", href: "/stories" }, { label: "How it works", href: "/examples#how-it-works" }, { label: "Questions", href: "/pricing#questions" }] },
+  { title: "Made for everyone", links: [{ label: "Job seekers", href: "/featured" }, { label: "Freelancers", href: "/featured" }, { label: "Students", href: "/featured" }, { label: "Small businesses", href: "/featured" }, { label: "Anyone with work to show", href: "/featured" }] },
+  { title: "Explore", links: [{ label: "Featured users", href: "/featured" }, { label: "Success stories", href: "/stories" }, { label: "How it works", href: "/featured#how-it-works" }, { label: "Questions", href: "/pricing#questions" }] },
   { title: "Account", links: [{ label: "Sign in", href: "/login" }, { label: "Create your page", href: "/login" }, { label: "Dashboard", href: "/dashboard" }, { label: "Reset password", href: "/forgot-password" }] },
 ] as const;
 
@@ -247,6 +221,5 @@ export function marketingImagePaths(): string[] {
   for (const k of Object.keys(PEOPLE) as PersonKey[]) paths.add(personSrc(k));
   for (const l of Object.values(LANDING)) paths.add(l.src);
   for (const s of STORIES) paths.add(s.photo);
-  for (const e of EXAMPLES) paths.add(e.photo);
   return [...paths];
 }

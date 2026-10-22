@@ -44,6 +44,7 @@ describe("createEmptySite", () => {
       status: "draft",
       cvTemplate: "modern",
       cvTemplates: ["classic", "modern", "projects", "minimal"],
+      showInShowcase: true,
     });
     expect(site.updatedAt).toBe(now.toISOString());
     expect(site.publishedAt).toBeUndefined();

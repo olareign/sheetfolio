@@ -262,17 +262,20 @@ export async function markAllLeadsRead(slug: string): Promise<void> {
 
 export type DayViews = { date: string; views: number };
 
-/** Page views for the 7 UTC days ending today, oldest first. */
-export async function getWeekViews(slug: string, now: Date = new Date()): Promise<DayViews[]> {
+/** Page views for the last `days` UTC days ending today, oldest first. */
+export async function getDayViews(slug: string, days: number, now: Date = new Date()): Promise<DayViews[]> {
   const s = assertSlug(slug);
-  const dates = Array.from({ length: 7 }, (_, i) => {
+  const dates = Array.from({ length: days }, (_, i) => {
     const d = new Date(now);
-    d.setUTCDate(d.getUTCDate() - (6 - i));
+    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
     return d.toISOString().slice(0, 10);
   });
   const counts = await redis().mget<(number | null)[]>(...dates.map((d) => keys.viewsDay(s, d)));
   return dates.map((date, i) => ({ date, views: Number(counts[i] ?? 0) }));
 }
+
+/** Page views for the 7 UTC days ending today, oldest first. */
+export const getWeekViews = (slug: string, now: Date = new Date()): Promise<DayViews[]> => getDayViews(slug, 7, now);
 
 /** All-time views per project id. */
 export async function getProjectViews(slug: string, projectIds: readonly string[]): Promise<Record<string, number>> {

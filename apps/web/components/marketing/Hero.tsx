@@ -70,8 +70,8 @@ export function Hero() {
             Build a portfolio page for any profession. Choose which CV layouts people can download, and see who is looking.
           </p>
           <div className="mk-hero-actions mk-up" style={{ animationDelay: ".45s" }}>
-            <MarketingButton href="/examples" variant="ghost">
-              See an example
+            <MarketingButton href="/featured" variant="ghost">
+              See featured pages
             </MarketingButton>
             <MarketingButton href="/login">Create your page</MarketingButton>
           </div>

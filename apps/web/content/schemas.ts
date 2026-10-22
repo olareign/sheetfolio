@@ -100,6 +100,7 @@ export const RESERVED_SLUGS = new Set([
   "help",
   "about",
   "pricing",
+  "featured",
   "product",
   "examples",
   "stories",
@@ -293,6 +294,8 @@ export const SiteSettings = z.object({
     .min(1)
     .default([...CV_TEMPLATE_IDS]),
   cvTemplate: z.enum(CV_TEMPLATE_IDS).default(DEFAULT_CV_TEMPLATE),
+  /** List the published page on the Featured page of the marketing site, ranked by views. On unless the owner opts out. */
+  showInShowcase: z.boolean().default(true),
 });
 
 export const Site = z.object({
@@ -468,6 +471,7 @@ export type CvLayoutsInput = z.input<typeof CvLayoutsInput>;
 /** Settings screen: contact channels and theme. Slug changes are not supported yet. */
 export const SettingsInput = z.object({
   theme: SiteSettings.shape.theme.describe("Default theme"),
+  showInShowcase: SiteSettings.shape.showInShowcase.describe("Show my page on the Featured page"),
   whatsapp: Profile.shape.whatsapp,
   whatsappMessage: Profile.shape.whatsappMessage,
   publicEmail: Profile.shape.publicEmail,

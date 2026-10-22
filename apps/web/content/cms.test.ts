@@ -28,11 +28,12 @@ describe("publishState", () => {
       status: "draft" as const,
       cvTemplate: "modern" as const,
       cvTemplates: ["modern" as const],
+      showInShowcase: true,
     },
   };
   const pub = (publishedAt: string, status: "published" | "suspended" = "published") => ({
     publishedAt,
-    settings: { theme: "sheet" as const, status, cvTemplate: "modern" as const, cvTemplates: ["modern" as const] },
+    settings: { theme: "sheet" as const, status, cvTemplate: "modern" as const, cvTemplates: ["modern" as const], showInShowcase: true },
   });
   it("is unpublished without a published doc", () => expect(publishState(draft, null)).toBe("unpublished"));
   it("is live when the draft is not newer", () => {

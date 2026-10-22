@@ -14,6 +14,7 @@ const HINTS: Record<string, string> = {
   whatsapp: "Digits only, with country code and no +, e.g. 2347033435818",
   whatsappMessage: "Pre-filled when a visitor taps WhatsApp.",
   publicEmail: "Enquiries from your page are sent here.",
+  showInShowcase: "Published pages with the most views in the last 30 days appear on the public Featured page. Applies the next time you publish.",
 };
 const THEME_LABELS: Record<string, string> = { sheet: "Light", blueprint: "Dark" };
 
