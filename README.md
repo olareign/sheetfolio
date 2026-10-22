@@ -31,7 +31,8 @@ pnpm dev                                       # http://localhost:3000
 | `AUTH_RESEND_KEY`, `RESEND_FROM`                     | Magic-link email. Optional in development: without a key the link is printed to the dev server. |
 | `NEXT_PUBLIC_SITE_URL`                               | Absolute links (e.g. `http://localhost:3000`).                                                  |
 | `ADMIN_EMAILS`                                       | Comma-separated emails that get the `admin` role at onboarding.                                 |
-| `BLOB_READ_WRITE_TOKEN`                              | Image uploads (Day 2).                                                                          |
+| `BLOB_READ_WRITE_TOKEN`                              | Image uploads, and the copies of project website pictures (see Project previews).               |
+| `SCREENSHOT_URL_TEMPLATE`                            | Optional. Screenshot service for project previews; `{url}` is replaced by the link. Default: Microlink. |
 
 The web app validates these on first use (`apps/web/lib/env.ts`) and fails with a list of what's missing.
 
@@ -113,6 +114,26 @@ tables, text boxes or coloured backgrounds; words never split by hyphenation. No
 - Fonts are embedded (`lib/fonts`, see its README) so Yoruba letters (Ọ, ẹ, ṣ), ₦ and curly quotes print correctly.
   Emoji and scripts the fonts lack (for example CJK) are removed from the CV rather than printed as junk.
 - Tests read each PDF back as text, the way an ATS would (`test/pdf-text.ts`).
+
+## Project previews and covers
+
+A project's picture comes from, in order: a photo the owner uploaded, the picture read from the project's website, a stock photo for
+its category (`public/stock/projects`, labelled "Stock photo" on the card).
+
+- Saving a project with a **Project website** link reads that site (`lib/site-preview.ts`): its Open Graph or Twitter picture,
+  title and description. A site with no picture gets a screenshot of its first screen instead. An empty "What was done" is filled
+  from the site's description. The result is stored on the project as `preview` (written by the server, never by the form).
+- The picture is copied into Blob storage when `BLOB_READ_WRITE_TOKEN` is set, so a page never depends on someone else's server.
+  Without Blob (local runs) the site's own https picture is linked and screenshots are skipped.
+- Requests are made on a user-supplied URL, so each redirect hop is checked against private networks, with a 4 s timeout, a size
+  cap, and HTML or raster images only. If a site can't be read, the project still saves and the dashboard says what to do.
+- The screenshot service sees only the project's public URL. Swap it with `SCREENSHOT_URL_TEMPLATE`.
+- Stock photos are credited in `apps/web/public/stock/CREDITS.md`.
+
+## Marketing pages
+
+`/`, `/product`, `/examples`, `/stories` and `/pricing` live in `app/(marketing)` and read their copy from `content/marketing.ts`.
+Stories and quotes there are **samples** (marked as such on screen) until real ones replace them; set `sample: false` for a real one.
 
 ## Sign-in and accounts
 
