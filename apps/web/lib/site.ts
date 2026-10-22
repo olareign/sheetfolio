@@ -34,6 +34,9 @@ export class SiteError extends Error {
 /** Cache tag shared by every public page of one site. Prefixed so it can't collide with other tags. */
 export const siteTag = (slug: string) => `site:${slug}`;
 
+/** Tag on the Featured ranking: dropped whenever a page goes live, changes or is suspended, so the list follows. */
+export const FEATURED_TAG = "featured";
+
 function parseSite(raw: unknown, key: string): Site {
   const parsed = Site.safeParse(raw);
   if (!parsed.success) {
@@ -95,9 +98,13 @@ export async function getPublishedFresh(slug: string): Promise<Site | null> {
   return raw === null ? null : parseSite(raw, key);
 }
 
+/** Thrown inside the cached read so a missing page is never stored: `unstable_cache` keeps return values, not errors. */
+class NotLive extends Error {}
+
 /**
- * Public read. Cached per slug and tagged, so public pages cost zero Redis reads until the next publish.
- * Suspended sites resolve to null so the public gets a 404 (PRD §8.1).
+ * Public read. A live page is cached per slug and tagged, so it costs zero Redis reads until the next publish.
+ * Suspended sites resolve to null so the public gets a 404 (PRD §8.1). A miss is deliberately not cached: if it were,
+ * a visit before the first publish would keep returning 404 for as long as the stored "nothing here" stayed fresh.
  */
 export async function getPublished(slug: string): Promise<Site | null> {
   const valid = Slug.safeParse(slug);
@@ -105,12 +112,19 @@ export async function getPublished(slug: string): Promise<Site | null> {
   const read = unstable_cache(
     async () => {
       const site = await getPublishedFresh(valid.data);
-      return site && site.settings.status !== "suspended" ? site : null;
+      if (!site || site.settings.status === "suspended") throw new NotLive();
+      return site;
     },
     ["site-published", valid.data],
     { tags: [siteTag(valid.data)] },
   );
-  const cached = await read();
+  let cached: Site | null;
+  try {
+    cached = await read();
+  } catch (err) {
+    if (err instanceof NotLive) return null;
+    throw err;
+  }
   // The data cache outlives deployments, so an entry written before a schema change lacks any field added since
   // (it once crashed a page on a new setting). Parsing again fills in the defaults.
   return cached ? Site.parse(cached) : null;
@@ -138,6 +152,7 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
   await tx.exec();
   // Expire immediately (not stale-while-revalidate): the engineer expects to see the change at once.
   revalidateTag(siteTag(slug), { expire: 0 });
+  revalidateTag(FEATURED_TAG, { expire: 0 });
   return published;
 }
 
@@ -158,21 +173,6 @@ export async function claimSlug(slug: string, userId: string): Promise<boolean> 
 
 const ProjectId = z.string().min(1).max(64);
 
-/** Counts a page view (daily bucket, 90-day TTL) or a project view. Unknown slugs are ignored. */
-export async function recordView(slug: string, projectId?: string, now: Date = new Date()): Promise<void> {
-  const valid = Slug.safeParse(slug);
-  if (!valid.success) return;
-  if (projectId !== undefined && !ProjectId.safeParse(projectId).success) return;
-  // Don't let anonymous beacons create counters for sites that don't exist.
-  const exists = await redis().sismember(keys.sites(), valid.data);
-  if (!exists) return;
-
-  if (projectId !== undefined) {
-    await redis().incr(keys.viewsProject(valid.data, projectId));
-    return;
-  }
-  const key = keys.viewsDay(valid.data, now.toISOString().slice(0, 10));
-  const p = redis().pipeline();
 /**
  * Counts one "Download CV" click. Counted from the button rather than inside the PDF route because that route is
  * cached at the CDN, so the server never sees most downloads. Unknown slugs are ignored.
@@ -188,6 +188,21 @@ export async function getCvDownloads(slug: string): Promise<number> {
   return Number((await redis().get<number>(keys.cvDownloads(assertSlug(slug)))) ?? 0);
 }
 
+/** Counts a page view (daily bucket, 90-day TTL) or a project view. Unknown slugs are ignored. */
+export async function recordView(slug: string, projectId?: string, now: Date = new Date()): Promise<void> {
+  const valid = Slug.safeParse(slug);
+  if (!valid.success) return;
+  if (projectId !== undefined && !ProjectId.safeParse(projectId).success) return;
+  // Don't let anonymous beacons create counters for sites that don't exist.
+  const exists = await redis().sismember(keys.sites(), valid.data);
+  if (!exists) return;
+
+  if (projectId !== undefined) {
+    await redis().incr(keys.viewsProject(valid.data, projectId));
+    return;
+  }
+  const key = keys.viewsDay(valid.data, now.toISOString().slice(0, 10));
+  const p = redis().pipeline();
   p.incr(key);
   p.expire(key, VIEW_TTL_SECONDS);
   await p.exec();

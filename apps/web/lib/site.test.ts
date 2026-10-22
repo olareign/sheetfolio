@@ -142,6 +142,8 @@ describe("publish / getPublished", () => {
     expect(published.publishedAt).toBe(t1.toISOString());
     expect(published.settings.status).toBe("published");
     expect(revalidateTag).toHaveBeenCalledWith(`site:${SLUG}`, { expire: 0 });
+    // Going live also drops the Featured ranking, so the page can appear on the list at once.
+    expect(revalidateTag).toHaveBeenCalledWith("featured", { expire: 0 });
     expect((await getPublished(SLUG))?.profile.summary).toBe(ready.summary);
     // The draft itself is unchanged.
     expect((await getDraft(SLUG))?.publishedAt).toBeUndefined();

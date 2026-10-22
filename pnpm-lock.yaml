@@ -23,9 +23,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@auth/upstash-redis-adapter':
-        specifier: ^2.11.3
-        version: 2.11.3(@upstash/redis@1.39.0)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -118,11 +115,6 @@ packages:
         optional: true
       nodemailer:
         optional: true
-
-  '@auth/upstash-redis-adapter@2.11.3':
-    resolution: {integrity: sha512-mpyCVEO/ETO9iROZ8wb/l+YfpU9ebcKi1sXoCbbjArAgQwYpiWkPdP++S2i3/BCmpQPU3z+yNghdQAa9fz1x+Q==}
-    peerDependencies:
-      '@upstash/redis': ^1.0.1
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -2932,15 +2924,6 @@ snapshots:
       oauth4webapi: 3.8.8
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
-
-  '@auth/upstash-redis-adapter@2.11.3(@upstash/redis@1.39.0)':
-    dependencies:
-      '@auth/core': 0.41.3
-      '@upstash/redis': 1.39.0
-    transitivePeerDependencies:
-      - '@simplewebauthn/browser'
-      - '@simplewebauthn/server'
-      - nodemailer
 
   '@babel/code-frame@7.29.7':
     dependencies:

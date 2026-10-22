@@ -230,7 +230,7 @@ export function Hero() {
             <MarketingButton href="/featured" variant="ghost">
               See featured pages
             </MarketingButton>
-            <MarketingButton href="/login">Create your page</MarketingButton>
+            <MarketingButton href="/signup">Create your page</MarketingButton>
           </div>
           <div className="mk-proof mk-up" style={{ animationDelay: ".55s" }}>
             <span className="mk-proof-faces">

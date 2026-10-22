@@ -13,7 +13,7 @@ export function MarketingFooter() {
             <h2>Your work deserves a proper page</h2>
             <p>Create yours in a few minutes. It is free while we test, and no card is needed.</p>
           </div>
-          <MarketingButton href="/login">Create your page</MarketingButton>
+          <MarketingButton href="/signup">Create your page</MarketingButton>
         </div>
         <div className="mk-footer-grid">
           <div className="mk-footer-brand">

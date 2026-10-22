@@ -30,15 +30,7 @@ function button(href: string, text: string): string {
 }
 
 /** Frame shared by every email: header strip, body, footer. */
-function layout({
-  preheader,
-  body,
-  footer,
-}: {
-  preheader: string;
-  body: string;
-  footer: string;
-}) {
+function layout({ preheader, body, footer }: { preheader: string; body: string; footer: string }) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Sheetfolio</title></head>
 <body style="margin:0;padding:0;background:${T.page};">
@@ -57,48 +49,6 @@ function layout({
 const h1 = (text: string) =>
   `<h1 style="margin:0 0 16px;font-family:${SANS};font-size:28px;line-height:1.15;font-weight:bold;color:${T.ink};">${escapeHtml(text)}</h1>`;
 const p = (html: string, extra = "") => `<p style="margin:0 0 16px;${extra}">${html}</p>`;
-
-// ── Sign-in (magic link) ────────────────────────────────────────────────────
-
-export function signInEmail({
-  url,
-  email,
-  expiresInMinutes,
-}: {
-  url: string;
-  email: string;
-  expiresInMinutes: number;
-}): EmailContent {
-  const expiry =
-    expiresInMinutes % 60 === 0
-      ? `${expiresInMinutes / 60} hour${expiresInMinutes === 60 ? "" : "s"}`
-      : `${expiresInMinutes} minutes`;
-  const subject = "Your Sheetfolio sign-in link";
-  const html = layout({
-    preheader: `Sign in to Sheetfolio. The link expires in ${expiry}.`,
-    body: [
-      h1("Sign in to Sheetfolio"),
-      p(
-        `Use the button below to sign in as <strong>${escapeHtml(email)}</strong>. The link works once and expires in ${expiry}.`,
-      ),
-      `<div style="margin:24px 0;">${button(url, "Sign in to Sheetfolio")}</div>`,
-      p(
-        `If the button doesn't work, copy this link into your browser:<br><a href="${escapeHtml(url)}" style="color:${T.blueprint};word-break:break-all;font-family:${MONO};font-size:13px;">${escapeHtml(url)}</a>`,
-        `font-size:14px;color:${T.inkMuted};`,
-      ),
-    ].join(""),
-    footer: `Didn't ask to sign in? Ignore this email. Nothing changes until the link is used.`,
-  });
-  const text = [
-    "Sign in to Sheetfolio",
-    "",
-    `Use this link to sign in as ${email}. It works once and expires in ${expiry}:`,
-    url,
-    "",
-    "Didn't ask to sign in? Ignore this email. Nothing changes until the link is used.",
-  ].join("\n");
-  return { subject, html, text };
-}
 
 // ── Password reset ──────────────────────────────────────────────────────────
 

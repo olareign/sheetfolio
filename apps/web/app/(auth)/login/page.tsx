@@ -2,46 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { usesConsoleMail } from "@/lib/env";
 import { AuthPanel } from "@/components/AuthPanel";
-import { LoginForm, PasswordForm } from "./LoginForm";
+import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-// Auth.js error codes → plain-language messages. Anything unknown gets the generic one.
+// Auth.js redirects here with an error code when something fails before the form's own handling.
 const ERROR_MESSAGES: Record<string, string> = {
-  Verification: "That sign-in link has expired or was already used. Request a new one.",
-  AccessDenied: "Access denied for this email address.",
-  // Auth.js also reports a failed email send as "Configuration".
-  Configuration:
-    "We couldn't send your sign-in email. Try again in a few minutes, or contact support if it keeps happening.",
+  AccessDenied: "Access denied for this account.",
 };
 
-type Props = { searchParams: Promise<{ sent?: string; error?: string; mode?: string; reset?: string }> };
+type Props = { searchParams: Promise<{ error?: string; reset?: string }> };
 
 export default async function LoginPage({ searchParams }: Props) {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const { sent, error, mode, reset } = await searchParams;
-  const byLink = mode === "link";
-  const devConsoleMail = usesConsoleMail();
-
-  if (sent) {
-    return (
-      <AuthPanel title="Check your email">
-        <p>We sent you a sign-in link. It works once and expires in one hour.</p>
-        {devConsoleMail && (
-          <p className="sp-note">
-            Development mode: no Resend key is set, so the link was printed to the server console.
-          </p>
-        )}
-        <p className="sp-annot">
-          Wrong address? <Link href="/login">Use a different email</Link>
-        </p>
-      </AuthPanel>
-    );
-  }
+  const { error, reset } = await searchParams;
 
   return (
     <AuthPanel title="Sign in">
@@ -53,20 +30,14 @@ export default async function LoginPage({ searchParams }: Props) {
       )}
       {error && (
         <p className="sp-alert" role="alert">
-          {ERROR_MESSAGES[error] ?? "Sign-in failed. Request a new link."}
+          {ERROR_MESSAGES[error] ?? "Sign-in failed. Check your details and try again."}
         </p>
       )}
-      {byLink ? <LoginForm /> : <PasswordForm />}
+      <LoginForm />
       <p className="sp-annot">
-        {byLink ? (
-          <Link href="/login">Sign in with a password instead</Link>
-        ) : (
-          <>
-            <Link href="/forgot-password">Forgot your password?</Link>
-            {" · "}
-            <Link href="/login?mode=link">Email me a sign-in link</Link>
-          </>
-        )}
+        <Link href="/forgot-password">Forgot your password?</Link>
+        {" · "}
+        <Link href="/signup">Create your page</Link>
       </p>
     </AuthPanel>
   );

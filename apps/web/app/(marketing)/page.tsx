@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { FeaturedCard } from "@/components/marketing/FeaturedCard";
 import { Hero } from "@/components/marketing/Hero";
 import { FeatureRow } from "@/components/marketing/FeatureRow";
 import { CvPreviewMock, DashboardPreview } from "@/components/marketing/Mocks";
@@ -16,6 +17,7 @@ import {
   StoryGrid,
 } from "@/components/marketing/Sections";
 import { LANDING, QUOTES } from "@/content/marketing";
+import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
 
 export const metadata: Metadata = {
   title: { absolute: "Sheetfolio · Your work, your CV and your enquiries on one page" },
@@ -23,7 +25,21 @@ export const metadata: Metadata = {
     "Build a portfolio page for any profession. Pick the CV layout people download, and see who is looking. Free while we test.",
 };
 
-export default function HomePage() {
+// The featured strip follows the live ranking; a page going live drops it at once, views refresh it every minute.
+export const revalidate = 60;
+
+/** The landing page must still load if the ranking cannot be read. */
+async function topFeatured(): Promise<FeaturedUser[]> {
+  try {
+    return await getFeaturedUsersCached(3);
+  } catch (err) {
+    console.error("[featured] ranking unavailable:", err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const featured = await topFeatured();
   return (
     <>
       <Hero />
@@ -31,7 +47,12 @@ export default function HomePage() {
       <AboutTiles />
       <FeatureCards />
       <Section deco={["dots"]} labelledBy="dash-title">
-        <SectionHead eyebrow="Your dashboard" id="dash-title" title="See what your page is doing" lead="Views, enquiries and downloads, in one view you can read in a glance." />
+        <SectionHead
+          eyebrow="Your dashboard"
+          id="dash-title"
+          title="See what your page is doing"
+          lead="Views, enquiries and downloads, in one view you can read in a glance."
+        />
         <DashboardPreview />
       </Section>
       <Section>
@@ -39,7 +60,11 @@ export default function HomePage() {
           eyebrow="CV layouts"
           title="Visitors download your CV in the layout you pick"
           text="Preview each layout inside your dashboard, then pick the one your page hands out. Every visitor gets that PDF."
-          points={["Classic, Modern, Projects and Minimal layouts", "Built from the details already on your page", "Plain text a recruiter system can read"]}
+          points={[
+            "Classic, Modern, Projects and Minimal layouts",
+            "Built from the details already on your page",
+            "Plain text a recruiter system can read",
+          ]}
         >
           <CvPreviewMock />
         </FeatureRow>
@@ -49,8 +74,35 @@ export default function HomePage() {
           </MarketingButton>
         </div>
       </Section>
+      {featured.length > 0 && (
+        <Section labelledBy="home-featured">
+          <SectionHead
+            eyebrow="Featured"
+            id="home-featured"
+            title="Pages people are visiting right now"
+            lead="Real pages, most viewed first. New pages join this list the moment they are published."
+          />
+          <ul className="mk-cards mk-cards--fill">
+            {featured.map((u, i) => (
+              <li key={u.slug}>
+                <FeaturedCard user={u} rank={i + 1} />
+              </li>
+            ))}
+          </ul>
+          <div className="mk-center-cta">
+            <MarketingButton href="/featured" variant="ghost">
+              See all featured pages
+            </MarketingButton>
+          </div>
+        </Section>
+      )}
       <Section tint deco={["blob", "waves"]} labelledBy="home-stories">
-        <SectionHead eyebrow="Success stories" id="home-stories" title="Real work, found by the right people" lead="Short stories from early users, shown here as samples." />
+        <SectionHead
+          eyebrow="Success stories"
+          id="home-stories"
+          title="Real work, found by the right people"
+          lead="Short stories from early users, shown here as samples."
+        />
         <StoryGrid />
         <div className="mk-center-cta">
           <MarketingButton href="/stories" variant="ghost">

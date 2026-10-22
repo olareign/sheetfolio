@@ -1,18 +1,12 @@
 import "server-only";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import Resend from "next-auth/providers/resend";
-import { UpstashRedisAdapter } from "@auth/upstash-redis-adapter";
 import { z } from "zod";
 import { getUserRecord } from "./accounts";
 import { authenticate, getSessionEpoch, isSessionCurrent } from "./credentials";
-import { sendEmail } from "./email";
-import { signInEmail } from "./email-templates";
 import { env } from "./env";
 import { allowLoginAttempt, clientIp } from "./ratelimit";
-import { redis } from "./redis";
 
-const MAGIC_LINK_MINUTES = 60;
 const SESSION_DAYS = 30;
 
 /** Thrown from `authorize` so the login action can tell "slow down" apart from "wrong password". */
@@ -34,8 +28,6 @@ export const {
   const e = env();
 
   return {
-    // Adapter keys live under `auth:` so they never mix with the app's own `user:{email}` records.
-    adapter: UpstashRedisAdapter(redis(), { baseKeyPrefix: "auth:" }),
     secret: e.AUTH_SECRET,
     logger: {
       // A wrong password is expected traffic, and Auth.js would print a stack trace for each one.
@@ -44,8 +36,7 @@ export const {
         console.error(`[auth][error] ${error.name}: ${error.message}`);
       },
     },
-    // Password sign-in only works with JWT sessions. The adapter still stores users and the
-    // one-time email-link tokens; the session itself is a signed cookie.
+    // Password sign-in only works with JWT sessions: the session is a signed cookie, nothing is stored per session.
     session: { strategy: "jwt", maxAge: SESSION_DAYS * 24 * 60 * 60 },
     providers: [
       Credentials({
@@ -62,21 +53,9 @@ export const {
           return { id: account?.id ?? `cred:${found.email}`, email: found.email, name: account?.name };
         },
       }),
-      Resend({
-        apiKey: e.AUTH_RESEND_KEY,
-        from: e.RESEND_FROM,
-        maxAge: MAGIC_LINK_MINUTES * 60,
-        // Branded template instead of Auth.js's generic one. `sendEmail` prints to the dev server log
-        // when no Resend key is set outside production (production refuses to boot without one).
-        async sendVerificationRequest({ identifier, url }: { identifier: string; url: string }) {
-          const content = signInEmail({ url, email: identifier, expiresInMinutes: MAGIC_LINK_MINUTES });
-          await sendEmail({ to: identifier, ...content });
-        },
-      }),
     ],
     pages: {
       signIn: "/login",
-      verifyRequest: "/login?sent=1",
       error: "/login",
     },
     callbacks: {

@@ -80,6 +80,24 @@ export async function allowResetRequest(identifier: string, ip: string): Promise
   }
 }
 
+let signupByIp: Ratelimit | undefined;
+
+/** Sign-ups: 10 per IP per hour, enough for a shared office network but not for filling the directory with junk. */
+export async function allowSignup(ip: string): Promise<boolean> {
+  signupByIp ??= new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    prefix: "ratelimit:signup:ip",
+    analytics: false,
+  });
+  try {
+    return (await signupByIp.limit(ip)).success;
+  } catch (err) {
+    console.error("[auth] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return true;
+  }
+}
+
 /** Best-effort client IP from proxy headers (Vercel sets x-forwarded-for). */
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();

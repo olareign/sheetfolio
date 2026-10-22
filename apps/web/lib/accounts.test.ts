@@ -10,7 +10,8 @@ vi.mock("@/lib/redis", async (importOriginal) => {
 });
 vi.mock("next/cache", () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn, revalidateTag: vi.fn() }));
 
-const { getUserRecord, onboard } = await import("./accounts");
+const { getUserRecord, onboard, registerAccount } = await import("./accounts");
+const { authenticate } = await import("./credentials");
 const { getDraft } = await import("./site");
 
 const now = new Date("2026-09-28T10:00:00.000Z");
@@ -89,5 +90,67 @@ describe("onboard", () => {
     await expect(
       onboard({ userId: "u1", email: "a@example.com", role: "engineer", input: { ...input, slug: "admin" }, now }),
     ).rejects.toThrow();
+  });
+});
+
+describe("registerAccount", () => {
+  const signup = {
+    email: "Ada@Example.com",
+    password: "a-long-enough-password",
+    role: "engineer" as const,
+    input,
+    now,
+  };
+
+  it("creates the page and a password that works with the email or the page address", async () => {
+    const r = await registerAccount(signup);
+    expect(r).toMatchObject({ ok: true, record: { slug: "idris-rasaq", role: "engineer" } });
+    expect(await getUserRecord("ada@example.com")).toMatchObject({ slug: "idris-rasaq" });
+    expect(fake.sets.get("sites")?.has("idris-rasaq")).toBe(true);
+
+    expect(await authenticate("ada@example.com", signup.password)).toEqual({ email: "ada@example.com" });
+    expect(await authenticate("idris-rasaq", signup.password)).toEqual({ email: "ada@example.com" });
+    expect(await authenticate("ada@example.com", "not-the-password")).toBeNull();
+  });
+
+  it("refuses an email that already has an account, and leaves its password alone", async () => {
+    await registerAccount(signup);
+    const again = await registerAccount({
+      ...signup,
+      password: "another-long-password",
+      input: { ...input, slug: "second" },
+    });
+    expect(again).toEqual({ ok: false, reason: "EMAIL_TAKEN" });
+    expect(fake.strings.has("slug:second")).toBe(false);
+    expect(await authenticate("ada@example.com", signup.password)).not.toBeNull();
+    expect(await authenticate("ada@example.com", "another-long-password")).toBeNull();
+  });
+
+  it("will not let a sign-up set a password on an existing account that has none", async () => {
+    await onboard({ userId: "u1", email: "ada@example.com", role: "engineer", input, now });
+    const r = await registerAccount({ ...signup, input: { ...input, slug: "second" } });
+    expect(r).toEqual({ ok: false, reason: "EMAIL_TAKEN" });
+    expect(await authenticate("ada@example.com", signup.password)).toBeNull();
+  });
+
+  it("reports a taken address without creating credentials", async () => {
+    await registerAccount(signup);
+    const r = await registerAccount({ ...signup, email: "b@example.com" });
+    expect(r).toEqual({ ok: false, reason: "SLUG_TAKEN" });
+    expect(await getUserRecord("b@example.com")).toBeNull();
+    expect(await authenticate("b@example.com", signup.password)).toBeNull();
+  });
+
+  it("still creates the account when the page address is already someone's username", async () => {
+    fake.strings.set("username:idris-rasaq", JSON.stringify("other@example.com"));
+    const r = await registerAccount(signup);
+    expect(r.ok).toBe(true);
+    expect(await authenticate("ada@example.com", signup.password)).not.toBeNull();
+    expect(await authenticate("idris-rasaq", signup.password)).toBeNull();
+  });
+
+  it("rejects a short password before touching anything", async () => {
+    await expect(registerAccount({ ...signup, password: "short" })).rejects.toThrow();
+    expect(fake.strings.size).toBe(0);
   });
 });

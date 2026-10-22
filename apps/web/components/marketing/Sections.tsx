@@ -147,7 +147,7 @@ export function FeatureCards() {
         lead="Four tools, one dashboard. Nothing to design or host."
       />
       <div className="mk-center-cta">
-        <MarketingButton href="/login">Create your page</MarketingButton>
+        <MarketingButton href="/signup">Create your page</MarketingButton>
       </div>
       <ul className="mk-cards mk-cards--4 mk-cards--swipe">
         {FEATURES.map((f) => (
@@ -339,7 +339,7 @@ export function PlanCard({ plan }: { plan: Plan }) {
           </li>
         ))}
       </ul>
-      <Link href="/login" className="mk-btn mk-btn--block">
+      <Link href="/signup" className="mk-btn mk-btn--block">
         Create your page
       </Link>
     </article>
@@ -378,7 +378,7 @@ export function CtaBand() {
         <div className="mk-cta-inner">
           <h2 id="cta-title">Put your work in front of the people who matter</h2>
           <p>Create your page in a few minutes. It is free while we test.</p>
-          <MarketingButton href="/login" onDark>
+          <MarketingButton href="/signup" onDark>
             Create your page
           </MarketingButton>
         </div>

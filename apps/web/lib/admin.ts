@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 import { publishState, type PublishState } from "@/content/cms";
 import { Site, UserRecord } from "@/content/schemas";
 import { keys, redis } from "./redis";
-import { getDraft, getPublishedFresh, siteTag, SiteError } from "./site";
+import { FEATURED_TAG, getDraft, getPublishedFresh, siteTag, SiteError } from "./site";
 
 export type Signup = UserRecord & { email: string };
 
@@ -97,4 +97,5 @@ export async function setSuspended(slug: string, suspended: boolean): Promise<vo
   }
   await tx.exec();
   revalidateTag(siteTag(slug), { expire: 0 });
+  revalidateTag(FEATURED_TAG, { expire: 0 });
 }

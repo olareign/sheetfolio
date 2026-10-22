@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enquiryEmail, escapeHtml, passwordChangedEmail, passwordResetEmail, signInEmail } from "./email-templates";
+import { enquiryEmail, escapeHtml, passwordChangedEmail, passwordResetEmail } from "./email-templates";
 
 const lead = {
   name: 'Ada <script>alert("x")</script>',
@@ -8,32 +8,6 @@ const lead = {
   message: "Line one\nLine <b>two</b>",
   createdAt: "2026-09-29T07:30:00.000Z",
 };
-
-describe("signInEmail", () => {
-  const mail = signInEmail({
-    url: "https://sheetfolio.app/api/auth/callback/resend?token=abc&email=a%40b.com",
-    email: "idris@example.com",
-    expiresInMinutes: 60,
-  });
-
-  it("is branded and names the account and expiry", () => {
-    expect(mail.subject).toBe("Your Sheetfolio sign-in link");
-    expect(mail.html).toContain("Sign in to Sheetfolio");
-    expect(mail.html).toContain("idris@example.com");
-    expect(mail.html).toContain("expires in 1 hour");
-    expect(mail.text).toContain("expires in 1 hour");
-  });
-
-  it("puts the link in the button and in plain text, with & escaped in HTML only", () => {
-    expect(mail.html).toContain('href="https://sheetfolio.app/api/auth/callback/resend?token=abc&amp;email=a%40b.com"');
-    expect(mail.text).toContain("https://sheetfolio.app/api/auth/callback/resend?token=abc&email=a%40b.com");
-  });
-
-  it("formats other expiries", () => {
-    expect(signInEmail({ url: "https://x", email: "a@b.c", expiresInMinutes: 30 }).text).toContain("30 minutes");
-    expect(signInEmail({ url: "https://x", email: "a@b.c", expiresInMinutes: 120 }).text).toContain("2 hours");
-  });
-});
 
 describe("enquiryEmail", () => {
   const mail = enquiryEmail({ lead, firstName: "Idris", slug: "idris-rasaq", origin: "https://sheetfolio.app/" });

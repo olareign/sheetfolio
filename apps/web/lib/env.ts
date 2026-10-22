@@ -25,7 +25,7 @@ const EnvSchema = z
     ),
   })
   .superRefine((env, ctx) => {
-    // Outside production the magic link is printed to the server console instead of emailed,
+    // Outside production password-reset emails are printed to the server console instead of sent,
     // so local runs work without a Resend account. Production must be able to send mail.
     if (env.NODE_ENV === "production" && !env.AUTH_RESEND_KEY) {
       ctx.addIssue({ code: "custom", path: ["AUTH_RESEND_KEY"], message: "Required in production" });
@@ -61,7 +61,7 @@ export function isAdminEmail(email: string): boolean {
   return env().ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
-/** Local development without a Resend key: magic links are printed to the server console. */
+/** Local development without a Resend key: reset emails are printed to the server console. */
 export function usesConsoleMail(): boolean {
   const e = env();
   return e.NODE_ENV !== "production" && !e.AUTH_RESEND_KEY;

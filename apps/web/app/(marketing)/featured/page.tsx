@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FeaturedCard } from "@/components/marketing/FeaturedCard";
 import { MarketingButton } from "@/components/marketing/MarketingButton";
 import { CtaBand, PageHead, Section, SectionHead, Steps } from "@/components/marketing/Sections";
-import { getFeaturedUsers } from "@/lib/showcase";
+import { getFeaturedUsersCached } from "@/lib/showcase";
 
 export const metadata: Metadata = {
   title: "Featured",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function FeaturedPage() {
-  const users = await getFeaturedUsers();
+  const users = await getFeaturedUsersCached(12);
   return (
     <>
       <PageHead
@@ -34,7 +34,7 @@ export default async function FeaturedPage() {
           <div className="mk-empty">
             <h2>Be the first featured page</h2>
             <p>Pages appear here once they are published. The most viewed come first.</p>
-            <MarketingButton href="/login">Create your page</MarketingButton>
+            <MarketingButton href="/signup">Create your page</MarketingButton>
           </div>
         )}
       </Section>

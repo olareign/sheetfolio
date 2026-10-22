@@ -20,7 +20,7 @@ export function MarketingHeader() {
           <Link href="/login" className="mk-signin">
             Sign in
           </Link>
-          <Link href="/login" className="mk-btn mk-btn--primary mk-btn--sm mk-header-cta">
+          <Link href="/signup" className="mk-btn mk-btn--primary mk-btn--sm mk-header-cta">
             Create your page
           </Link>
           <MobileMenu
@@ -28,7 +28,7 @@ export function MarketingHeader() {
             links={NAV}
             footer={
               <>
-                <Link href="/login" className="mk-btn mk-btn--primary">
+                <Link href="/signup" className="mk-btn mk-btn--primary">
                   Create your page
                 </Link>
                 <Link href="/login" className="mk-btn mk-btn--ghost">

@@ -1,5 +1,6 @@
 import "server-only";
-import { createEmptySite, OnboardingInput, UserRecord } from "@/content/schemas";
+import { createEmptySite, NewPassword, OnboardingInput, UserRecord } from "@/content/schemas";
+import { getCredentials, setPassword } from "./credentials";
 import { keys, redis } from "./redis";
 import { claimSlug, SiteError } from "./site";
 
@@ -72,4 +73,33 @@ export async function onboard(args: {
   }
 
   return { ok: true, record };
+}
+
+export type RegisterResult = { ok: true; record: UserRecord } | { ok: false; reason: "EMAIL_TAKEN" | "SLUG_TAKEN" };
+
+/**
+ * Self-service sign-up: one step creates the account (page address, empty draft, listing) and its password.
+ * The page address doubles as the username, so the person can sign in with either it or the email; if that name is
+ * already someone's username the account simply has none. An email that already has an account or a password is
+ * refused, never overwritten, so nobody can set a password on an account that is not theirs.
+ */
+export async function registerAccount(args: {
+  email: string;
+  password: string;
+  role: UserRecord["role"];
+  input: OnboardingInput;
+  now?: Date;
+}): Promise<RegisterResult> {
+  const email = args.email.trim().toLowerCase();
+  const password = NewPassword.parse(args.password);
+  const input = OnboardingInput.parse(args.input);
+
+  if ((await getUserRecord(email)) || (await getCredentials(email))) return { ok: false, reason: "EMAIL_TAKEN" };
+
+  const result = await onboard({ userId: crypto.randomUUID(), email, role: args.role, input, now: args.now });
+  if (!result.ok) return { ok: false, reason: result.reason === "SLUG_TAKEN" ? "SLUG_TAKEN" : "EMAIL_TAKEN" };
+
+  const saved = await setPassword({ email, password, username: input.slug, now: args.now });
+  if (!saved.ok) await setPassword({ email, password, now: args.now });
+  return { ok: true, record: result.record };
 }

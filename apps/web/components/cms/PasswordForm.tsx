@@ -21,7 +21,7 @@ export function PasswordForm({ username, changed = false }: { username: string |
               Sign in with your username <code className="sp-annot">{username}</code> or your email.
             </>
           ) : (
-            "Set a username and password to sign in without waiting for an email link."
+            "Set a username and password to sign in with."
           )}
         </p>
         {state.error && (
