@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { Insights } from "@/components/cms/Insights";
 import { LocalTime } from "@/components/cms/LocalTime";
-import { issueHref, publishState } from "@/content/cms";
+import { publishState } from "@/content/cms";
 import { projectCover } from "@/content/covers";
 import { CV_TEMPLATES, publicCvTemplate } from "@/content/cv-templates";
 import { ago, changeLabel, monthChange, weeklyViews } from "@/content/insights";
-import { CATEGORY_LABELS, collections, PublishableSite, type CollectionName } from "@/content/schemas";
+import { CATEGORY_LABELS } from "@/content/schemas";
 import { getCmsContext } from "@/lib/cms-data";
 import { countLeads, getCvDownloads, getDayViews, getProjectViews, listLeads } from "@/lib/site";
 
@@ -46,16 +45,8 @@ export default async function OverviewPage() {
       cover: projectCover(p),
     }));
   const state = publishState(draft, published);
-  const readiness = PublishableSite.safeParse(draft);
-  const todo = readiness.success
-    ? []
-    : readiness.error.issues.map((i) => ({ href: issueHref(i.path.join(".")), message: i.message }));
-  const empty = (Object.keys(collections) as CollectionName[]).filter(
-    (n) => draft[n].length === 0 && n !== "testimonials" && n !== "referees",
-  );
-
   return (
-    <main className="cms-content">
+    <main className="cms-content cms-content--wide">
       <h1 className="cms-title">Overview</h1>
       <Insights
         data={{
@@ -88,23 +79,6 @@ export default async function OverviewPage() {
         Last published {published?.publishedAt ? <LocalTime iso={published.publishedAt} format="datetime" /> : "never"}.
         Page views count the last 30 days; CV downloads count clicks on your Download CV button.
       </p>
-      {(todo.length > 0 || empty.length > 0) && (
-        <section className="cms-section" aria-labelledby="todo-title">
-          <h2 id="todo-title">{todo.length ? "Before you can publish" : "To make your page complete"}</h2>
-          <ul className="cms-todo">
-            {todo.map((t) => (
-              <li key={t.message}>
-                <Link href={t.href}>{t.message}</Link>
-              </li>
-            ))}
-            {empty.map((n) => (
-              <li key={n}>
-                <Link href={`/dashboard/${n}/new`}>Add {collections[n].label.toLowerCase()}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }

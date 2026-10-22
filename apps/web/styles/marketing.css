@@ -279,6 +279,8 @@
 .mk-story { display: flex; flex-direction: column; height: 100%; overflow: hidden; border: 1px solid var(--hairline); border-radius: 24px; background: var(--paper-raised); }
 .mk-story-photo, .mk-example-photo { position: relative; aspect-ratio: 4 / 3; flex: none; overflow: hidden; }
 .mk-story-photo img, .mk-example-photo img, .mk-split-media img, .mk-photoband-item img, .mk-mock-photo img, .mk-top-thumb img { object-fit: cover; }
+/* A portrait keeps the face in frame inside the landscape box. */
+.mk-example-photo--person img { object-position: center 20%; }
 .mk-story-badge { position: absolute; left: 14px; top: 14px; z-index: 1; }
 .mk-sample { display: inline-block; padding: 3px 10px; border-radius: var(--radius-round); background: color-mix(in srgb, var(--paper-raised) 92%, transparent); border: 1px solid var(--hairline); color: var(--ink); font-size: 12px; font-weight: 600; }
 .mk-sample--live { background: var(--blueprint); border-color: var(--blueprint); color: var(--on-blueprint); }

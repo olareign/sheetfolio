@@ -16,8 +16,10 @@ export type FeaturedUser = {
   name: string;
   headline: string;
   location: string;
-  /** Picture of their most-opened project. */
+  /** Their own photo when they uploaded one, else the picture of their most-opened project. */
   cover: Cover;
+  /** True when `cover` is the person's photo, so the card can frame it for a face. */
+  isPerson: boolean;
   coverTitle?: string;
   views: number;
   projectViews: number;
@@ -57,14 +59,18 @@ export async function getFeaturedUsers(limit = 12, now: Date = new Date()): Prom
         ),
       ]);
       const lead = leadProject(site, perProject);
+      const avatar = site.profile.avatar;
       return {
         slug,
         name: site.profile.name,
         headline: site.profile.headline,
         location: site.profile.location,
-        cover: lead
-          ? projectCover(lead)
-          : { url: "/stock/landing/lagos-skyline.jpg", alt: "The Lagos skyline", kind: "stock" },
+        cover: avatar
+          ? { url: avatar, alt: `Photo of ${site.profile.name}`, kind: "upload" }
+          : lead
+            ? projectCover(lead)
+            : { url: "/stock/landing/lagos-skyline.jpg", alt: "The Lagos skyline", kind: "stock" },
+        isPerson: Boolean(avatar),
         coverTitle: lead?.title,
         views: days.reduce((n, d) => n + d.views, 0),
         projectViews: Object.values(perProject).reduce((n, v) => n + v, 0),

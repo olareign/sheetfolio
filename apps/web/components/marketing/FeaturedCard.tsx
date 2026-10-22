@@ -9,7 +9,7 @@ const number = new Intl.NumberFormat("en");
 export function FeaturedCard({ user, rank }: { user: FeaturedUser; rank: number }) {
   return (
     <Link href={`/${user.slug}`} className="mk-example mk-lift">
-      <div className="mk-example-photo">
+      <div className={user.isPerson ? "mk-example-photo mk-example-photo--person" : "mk-example-photo"}>
         <CoverImage cover={user.cover} sizes="(max-width: 700px) 100vw, 360px" />
         <span className="mk-story-badge">
           <span className={rank === 1 ? "mk-sample mk-sample--live" : "mk-sample"}>

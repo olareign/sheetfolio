@@ -1204,3 +1204,17 @@
     transform: none;
   }
 }
+
+/* Overview fills the content area: full width, and tall enough that the cards reach the bottom. */
+.cms-content--wide {
+  max-width: none;
+  min-height: calc(100dvh - 64px);
+  grid-template-rows: auto 1fr auto;
+  align-content: stretch;
+}
+.cms-content--wide .ins { grid-template-rows: auto auto 1fr; }
+.cms-content--wide .ins-grid { align-items: stretch; }
+.ins-who > div { display: grid; gap: 2px; min-width: 0; }
+.ins-photo-cta { font-size: 13px; font-weight: 600; color: var(--blueprint); text-decoration: none; }
+.ins-photo-cta:hover { text-decoration: underline; }
+.cms-content--wide .ins-foot { margin: 0; }

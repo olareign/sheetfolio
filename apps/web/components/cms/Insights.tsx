@@ -85,6 +85,11 @@ export function Insights({ data }: { data: InsightsData }) {
             <Link href={`/${data.slug}`} target="_blank" className="ins-url">
               /{data.slug} <ExternalLink size={13} strokeWidth={1.75} aria-hidden="true" />
             </Link>
+            {!data.avatar && (
+              <Link href="/dashboard/profile" className="ins-photo-cta">
+                Add your photo: it is the picture people see on Featured
+              </Link>
+            )}
           </div>
         </div>
         <span className={`ins-state ins-state--${data.state.tone}`}>{data.state.label}</span>

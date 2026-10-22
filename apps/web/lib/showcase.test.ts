@@ -14,8 +14,23 @@ const { getFeaturedUsers, leadProject, rankFeatured } = await import("./showcase
 const now = new Date("2026-10-22T12:00:00.000Z");
 let fake: FakeRedis;
 
-function addSite(slug: string, name: string, over: { publishedAt?: string; showInShowcase?: boolean; status?: "published" | "suspended"; projects?: Site["projects"] } = {}) {
-  const base = createEmptySite({ name, firstName: name.split(" ")[0] ?? name, headline: "Engineer", publicEmail: "a@b.test", now });
+function addSite(
+  slug: string,
+  name: string,
+  over: {
+    publishedAt?: string;
+    showInShowcase?: boolean;
+    status?: "published" | "suspended";
+    projects?: Site["projects"];
+  } = {},
+) {
+  const base = createEmptySite({
+    name,
+    firstName: name.split(" ")[0] ?? name,
+    headline: "Engineer",
+    publicEmail: "a@b.test",
+    now,
+  });
   const site: Site = {
     ...base,
     projects: over.projects ?? [],
@@ -30,9 +45,14 @@ const day = (daysAgo: number) => {
   d.setUTCDate(d.getUTCDate() - daysAgo);
   return d.toISOString().slice(0, 10);
 };
-const views = (slug: string, daysAgo: number, n: number) => fake.strings.set(`views:${slug}:${day(daysAgo)}`, String(n));
+const views = (slug: string, daysAgo: number, n: number) =>
+  fake.strings.set(`views:${slug}:${day(daysAgo)}`, String(n));
 
-const project = (id: string, title: string, category: Site["projects"][number]["category"] = "building"): Site["projects"][number] => ({
+const project = (
+  id: string,
+  title: string,
+  category: Site["projects"][number]["category"] = "building",
+): Site["projects"][number] => ({
   id,
   title,
   location: "Lagos",
@@ -51,9 +71,20 @@ beforeEach(() => {
 });
 
 describe("rankFeatured", () => {
-  const u = (name: string, views: number, projectViews = 0, publishedAt = "2026-10-01T00:00:00.000Z") => ({ name, views, projectViews, publishedAt });
+  const u = (name: string, views: number, projectViews = 0, publishedAt = "2026-10-01T00:00:00.000Z") => ({
+    name,
+    views,
+    projectViews,
+    publishedAt,
+  });
   it("puts the most viewed first, then project opens, then the newest publish, then the name", () => {
-    const ranked = rankFeatured([u("Zed", 5), u("Amy", 9), u("Bob", 5, 3), u("Cat", 5, 3, "2026-10-10T00:00:00.000Z"), u("Dan", 5, 3, "2026-10-10T00:00:00.000Z")]);
+    const ranked = rankFeatured([
+      u("Zed", 5),
+      u("Amy", 9),
+      u("Bob", 5, 3),
+      u("Cat", 5, 3, "2026-10-10T00:00:00.000Z"),
+      u("Dan", 5, 3, "2026-10-10T00:00:00.000Z"),
+    ]);
     expect(ranked.map((r) => r.name)).toEqual(["Amy", "Cat", "Dan", "Bob", "Zed"]);
   });
   it("does not change its input", () => {
@@ -106,6 +137,25 @@ describe("getFeaturedUsers", () => {
     const [u] = await getFeaturedUsers(12, now);
     expect(u).toMatchObject({ coverTitle: "Road", projectViews: 9, projects: 2 });
     expect(u?.cover).toMatchObject({ kind: "stock", url: "/stock/projects/road.jpg" });
+  });
+
+  it("shows the person's own photo when they uploaded one, over any project picture", async () => {
+    addSite("ada-obi", "Ada Obi", { projects: [project("p1", "Clinic", "healthcare")] });
+    const key = "site:ada-obi:published";
+    const stored = JSON.parse(String(fake.strings.get(key)));
+    stored.profile.avatar = "https://abc.public.blob.vercel-storage.com/ada.jpg";
+    fake.strings.set(key, JSON.stringify(stored));
+    const [u] = await getFeaturedUsers(12, now);
+    expect(u).toMatchObject({
+      isPerson: true,
+      cover: { kind: "upload", url: "https://abc.public.blob.vercel-storage.com/ada.jpg" },
+    });
+    expect(u?.coverTitle).toBe("Clinic");
+  });
+
+  it("marks a card that shows a project picture as not a person", async () => {
+    addSite("no-photo", "No Photo", { projects: [project("p1", "Clinic", "healthcare")] });
+    expect((await getFeaturedUsers(12, now))[0]?.isPerson).toBe(false);
   });
 
   it("respects the limit", async () => {
