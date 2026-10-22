@@ -18,6 +18,11 @@
   --cured:        #15803d; /* completed status */
   --concrete:     #94a3b8; /* placeholder drawings */
   --focus-ring:   #4338ca;
+  --accent-soft:  #e0e7ff; /* chips and icon tiles on the page ground */
+  --accent-ink:   #312e81; /* text on --accent-soft */
+  --card-dark:    #0f172a; /* always-dark cards and footer */
+  --cta-1:        #4338ca; /* call-to-action band: deep accent, white text in both themes */
+  --cta-2:        #312e81;
   --shadow-lift:  0 10px 30px -12px rgba(15, 23, 42, .25);
   --shadow-soft:  0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .08);
 }
@@ -39,6 +44,11 @@
   --cured:        #6ee7a0; /* completed status */
   --concrete:     #767ca6; /* placeholder drawings */
   --focus-ring:   #818cf8;
+  --accent-soft:  #1e2150;
+  --accent-ink:   #c7d2fe;
+  --card-dark:    #1b1f3a;
+  --cta-1:        #4338ca;
+  --cta-2:        #312e81;
   --shadow-lift:  0 10px 30px -12px rgba(0, 0, 0, .6);
   --shadow-soft:  0 1px 2px rgba(0, 0, 0, .4);
 }

@@ -8,7 +8,14 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = publicSiteUrl();
   const url = (path: string) => new URL(path, base).toString();
-  const entries: MetadataRoute.Sitemap = [{ url: url("/"), changeFrequency: "monthly", priority: 0.5 }];
+  const entries: MetadataRoute.Sitemap = [
+    { url: url("/"), changeFrequency: "monthly", priority: 0.8 },
+    ...["/product", "/examples", "/stories", "/pricing"].map((path) => ({
+      url: url(path),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
   for (const slug of await listSiteSlugs()) {
     const site = await getPublished(slug); // null for unpublished and suspended sites
     if (!site) continue;
