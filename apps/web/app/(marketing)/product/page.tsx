@@ -5,7 +5,7 @@ import { CtaBand, PageHead, Section } from "@/components/marketing/Sections";
 
 export const metadata: Metadata = {
   title: "Product",
-  description: "A finished page, CV layouts you choose, enquiries in your inbox and insights. Four parts that work together.",
+  description: "A finished page, the CV layout you choose, enquiries in your inbox and insights. Four parts that work together.",
 };
 
 export default function ProductPage() {
@@ -25,9 +25,9 @@ export default function ProductPage() {
           <FeatureRow
             flip
             eyebrow="CV layouts"
-            title="Choose the CVs visitors can download"
-            text="Preview every layout inside your dashboard, then decide which ones appear on your page."
-            points={["Four ATS-friendly layouts", "Your details filled in for you", "One default, the rest a click away"]}
+            title="Choose the CV visitors download"
+            text="Preview every layout inside your dashboard, then pick the one your page hands out. Visitors get a single Download CV button."
+            points={["Four ATS-friendly layouts to choose from", "Your details filled in for you", "You choose the layout, never the visitor"]}
           >
             <CvMock />
           </FeatureRow>

@@ -23,7 +23,10 @@ export function MarketingFooter() {
               </span>
               Sheetfolio
             </Link>
-            <p>One link for your projects, your CV and your enquiries. Built for anyone whose work deserves a proper page.</p>
+            <p>
+              One link for your projects, your CV and your enquiries. Built for anyone whose work deserves a proper
+              page.
+            </p>
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <nav key={col.title} aria-label={col.title} className="mk-footer-col">

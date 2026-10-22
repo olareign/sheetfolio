@@ -34,6 +34,14 @@ export function parseCvTemplate(value: unknown): CvTemplateId | null {
 }
 
 /**
+ * The one layout visitors download from a page: the owner's choice. Visitors never pick; the owner does, in
+ * Dashboard → CV. Tolerates documents saved before the setting existed.
+ */
+export function publicCvTemplate(settings: { cvTemplate?: CvTemplateId; cvTemplates?: readonly CvTemplateId[] }): CvTemplateId {
+  return offeredCvTemplates(settings)[0] ?? DEFAULT_CV_TEMPLATE;
+}
+
+/**
  * The layouts a page offers, with the effective default first and the rest in the usual order. Total on purpose: it
  * never returns an empty list, and a missing setting (a document saved before the setting existed) means "all of
  * them, with the usual default", so a stale document can never take the download away or crash a page.

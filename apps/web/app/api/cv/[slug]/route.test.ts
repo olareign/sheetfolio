@@ -30,20 +30,14 @@ beforeEach(() => {
 });
 
 describe("GET /api/cv/[slug]", () => {
-  it("serves a PDF download named for the person and the layout", async () => {
-    const res = await get("?template=classic");
+  it("serves a PDF download named for the person and the owner's layout", async () => {
+    state.site = site({ cvTemplates: ["classic"], cvTemplate: "classic" });
+    const res = await get();
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("application/pdf");
     expect(res.headers.get("Content-Disposition")).toBe(
       'attachment; filename="Abdulrasaq-Taofeeq-Olarewaju-CV-Classic.pdf"',
     );
-  }, 60_000);
-
-  it("uses the layout asked for in ?template= when the owner offers it", async () => {
-    const projectsFirst = await textOf(await get("?template=projects"));
-    expect(projectsFirst).toContain("SELECTED PROJECTS");
-    const classic = await textOf(await get("?template=classic"));
-    expect(classic).not.toContain("SELECTED PROJECTS");
   }, 60_000);
 
   it("serves the owner's default when no template is given", async () => {
@@ -53,15 +47,14 @@ describe("GET /api/cv/[slug]", () => {
     expect(await textOf(await get())).not.toContain("SELECTED PROJECTS");
   }, 60_000);
 
-  it("never serves a layout the owner did not choose to offer, falling back to their default", async () => {
-    state.site = site({ cvTemplates: ["classic", "minimal"], cvTemplate: "classic" });
-    const res = await get("?template=projects");
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Content-Disposition")).toContain("-CV-Classic.pdf");
-    expect(await textOf(res)).not.toContain("SELECTED PROJECTS");
-
-    // ...while one they do offer is still served.
-    expect((await get("?template=minimal")).headers.get("Content-Disposition")).toContain("-CV-Minimal.pdf");
+  it("ignores any layout a visitor asks for and always serves the owner's choice", async () => {
+    state.site = site({ cvTemplates: ["classic"], cvTemplate: "classic" });
+    for (const asked of ["projects", "minimal", "modern"]) {
+      const res = await get(`?template=${asked}`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Content-Disposition")).toContain("-CV-Classic.pdf");
+    }
+    expect(await textOf(await get("?template=projects"))).not.toContain("SELECTED PROJECTS");
   }, 60_000);
 
   it.each(["fancy", "", "CLASSIC", "../../etc/passwd"])(

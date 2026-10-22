@@ -92,3 +92,33 @@ textarea.sp-input { height: auto; min-height: 96px; padding: 10px var(--space-3)
 .sp-station--service::before { border-color: var(--rule); }
 
 @media (prefers-reduced-motion: reduce) { .sp-btn, .sp-card { transition: none; } }
+
+/* Mobile menu (components/MobileMenu.tsx). Hidden unless a header shows it below its breakpoint. */
+.sp-menu { display: none; }
+.sp-menu-button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--paper-raised); color: var(--ink); cursor: pointer; }
+.sp-menu-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.sp-menu[data-open="true"] .sp-menu-button { background: var(--accent-soft); color: var(--accent-ink); border-color: transparent; }
+.sp-menu-backdrop { position: fixed; inset: var(--sp-menu-top, 64px) 0 0 0; z-index: 40; background: rgba(15, 23, 42, .45); backdrop-filter: blur(2px); animation: sp-menu-fade .2s ease both; }
+.sp-menu-panel {
+  position: fixed; left: 0; right: 0; top: var(--sp-menu-top, 64px); z-index: 41;
+  max-height: calc(100dvh - var(--sp-menu-top, 64px)); overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--space-4) max(16px, env(safe-area-inset-right, 0px)) calc(var(--space-6) + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: var(--paper-raised); border-bottom: 1px solid var(--hairline); box-shadow: var(--shadow-lift);
+  border-radius: 0 0 20px 20px; animation: sp-menu-drop .26s cubic-bezier(.2, .7, .2, 1) both;
+}
+.sp-menu-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.sp-menu-links li { animation: sp-menu-item .3s cubic-bezier(.2, .7, .2, 1) both; }
+.sp-menu-links a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 var(--space-4); border-radius: 12px; color: var(--ink); font: 600 17px/1.2 var(--font-sans); text-decoration: none; }
+.sp-menu-links a::after { content: "→"; color: var(--ink-muted); font-weight: 400; transition: transform .2s; }
+.sp-menu-links a:hover, .sp-menu-links a:focus-visible { background: var(--paper-sunken); outline: none; }
+.sp-menu-links a:hover::after { transform: translateX(3px); }
+.sp-menu-links a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); }
+.sp-menu-links a[aria-current="page"]::after { content: "•"; color: var(--blueprint); }
+.sp-menu-footer { display: grid; gap: var(--space-2); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--hairline); }
+.sp-menu-footer > * { width: 100%; justify-content: center; }
+@keyframes sp-menu-drop { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes sp-menu-item { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes sp-menu-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sp-menu-panel, .sp-menu-links li, .sp-menu-backdrop { animation: none; } }
+.sp-menu-layer { color: var(--ink); font-family: var(--font-sans); }
+.sp-menu-footer a { text-decoration: none; }

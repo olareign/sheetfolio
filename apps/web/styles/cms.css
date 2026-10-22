@@ -732,8 +732,11 @@
 
 /* Settings → CV layouts (components/cms/CvLayoutsForm.tsx) */
 .cms-cv-grid {
+  min-width: 0;
+  padding: 0;
+  border: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
   gap: var(--space-4);
   margin: var(--space-4) 0;
 }
@@ -880,4 +883,11 @@
   .cms-back {
     display: none;
   }
+}
+
+@media (max-width: 640px) {
+  .cms-cv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .cms-cv-card { padding: var(--space-2); }
+  .cms-cv-thumb { max-width: 84px; }
+  .cms-cv-card .sp-field-hint { font-size: 11.5px; }
 }

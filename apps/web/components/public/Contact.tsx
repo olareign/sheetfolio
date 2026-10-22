@@ -2,7 +2,6 @@ import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/sp/Button";
 import { visibleReferees } from "@/content/derive";
 import { EnquiryForm } from "./EnquiryForm";
-import { offeredCvTemplates } from "@/content/cv-templates";
 import { CvDownload } from "./CvDownload";
 import { whatsappHref, type PageContext } from "./view-model";
 
@@ -39,7 +38,7 @@ export function Contact({ site, slug, preview }: PageContext) {
                 WhatsApp {profile.firstName}
               </Button>
             )}
-            <CvDownload slug={slug} publishedAt={site.publishedAt} templates={offeredCvTemplates(site.settings)} />
+            <CvDownload slug={slug} publishedAt={site.publishedAt} />
           </div>
           {referees.length > 0 ? (
             <div>

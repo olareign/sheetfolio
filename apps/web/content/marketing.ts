@@ -60,7 +60,7 @@ export const AUDIENCE = [
 ] as const;
 
 export const TILES = [
-  { tone: "accent", big: "4", text: "CV layouts, chosen by you, ready to download" },
+  { tone: "accent", big: "4", text: "CV layouts to pick from. Visitors download the one you choose." },
   { tone: "plain", label: "Pages you can publish", big: "1 link", text: "Projects, credentials, CV and contact in one place." },
   { tone: "soft", label: "While we test", big: "Free", text: "No card. Publish and update whenever you like." },
   { tone: "dark", label: "Who can use it", big: "Anyone", text: "Any profession with work to show." },
@@ -68,7 +68,7 @@ export const TILES = [
 
 export const FEATURES = [
   { icon: "grid", title: "A page that looks finished", text: "Add projects, experience and credentials. Your page is laid out for you, in light or dark." },
-  { icon: "doc", title: "CV layouts you choose", text: "Pick which of four ATS-friendly layouts visitors can download. Preview each one before you publish." },
+  { icon: "doc", title: "The CV layout you choose", text: "Pick one of four ATS-friendly layouts for your Download CV button. Preview each before you publish." },
   { icon: "mail", title: "Enquiries in your inbox", text: "Visitors message you from the page. Every lead is saved and emailed to you." },
   { icon: "eye", title: "See who is looking", text: "Page views and enquiries in one place, so you know what is working." },
 ] as const;
@@ -102,7 +102,7 @@ export const STORIES: readonly Story[] = [
     quote: "I used to attach the same heavy PDF to every bid. Now I send my link, and clients open the projects that matter to them.",
     outcomes: [
       { figure: "3", label: "enquiries in the first week" },
-      { figure: "4", label: "CV layouts offered" },
+      { figure: "1", label: "CV, in the layout she chose" },
       { figure: "1", label: "link on every bid" },
     ],
   },
@@ -151,7 +151,7 @@ export type Quote = Sample & { person: PersonKey; role: string; text: string };
 /** Ten quotes: eight from Black users and two from white users, the mix the product is built around. */
 export const QUOTES: readonly Quote[] = [
   { sample: true, person: "tobi", role: "Architect, Lagos", text: "The projects page does the talking. I stopped re-making portfolio decks for every pitch." },
-  { sample: true, person: "emeka", role: "Civil engineer, Enugu", text: "Choosing which CV layouts visitors can download was the feature that sold me." },
+  { sample: true, person: "emeka", role: "Civil engineer, Enugu", text: "I choose the CV layout, and every visitor gets that exact PDF. That was the feature that sold me." },
   { sample: true, person: "kemi", role: "Photographer, Abeokuta", text: "Enquiries arrive in my inbox with the project they were looking at. That context saves me hours." },
   { sample: true, person: "sola", role: "Secondary school teacher, Ondo", text: "I am not a designer. The page looked finished after one evening of filling it in." },
   { sample: true, person: "ngozi", role: "Pharmacist, Port Harcourt", text: "It works on a phone, which is where most people open the link." },
@@ -180,7 +180,7 @@ export const PLANS: readonly Plan[] = [
     blurb: "Everything below is free during testing.",
     tag: "Available now",
     featured: true,
-    points: ["One published page", "Four CV layouts, your choice", "Enquiry form and WhatsApp button", "Basic page views"],
+    points: ["One published page", "Your CV in the layout you choose", "Enquiry form and WhatsApp button", "Basic page views"],
   },
   {
     name: "Pro",

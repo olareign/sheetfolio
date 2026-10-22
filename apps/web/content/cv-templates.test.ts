@@ -4,6 +4,7 @@ import {
   CV_TEMPLATES,
   DEFAULT_CV_TEMPLATE,
   offeredCvTemplates,
+  publicCvTemplate,
   parseCvTemplate,
 } from "./cv-templates";
 
@@ -58,5 +59,16 @@ describe("offeredCvTemplates", () => {
   it("repeats nothing and never returns an empty list, even for an empty setting", () => {
     expect(offered("classic", ["classic", "classic", "minimal"])).toEqual(["classic", "minimal"]);
     expect(offered("classic", [])).toEqual(["classic"]);
+  });
+});
+
+describe("publicCvTemplate", () => {
+  it("is the owner's chosen layout", () => {
+    expect(publicCvTemplate({ cvTemplate: "classic", cvTemplates: ["classic"] })).toBe("classic");
+    expect(publicCvTemplate({ cvTemplate: "minimal", cvTemplates: ["classic", "minimal"] })).toBe("minimal");
+  });
+  it("falls back sensibly for documents saved before the setting existed", () => {
+    expect(publicCvTemplate({})).toBe("modern");
+    expect(publicCvTemplate({ cvTemplates: ["projects"] })).toBe("projects");
   });
 });

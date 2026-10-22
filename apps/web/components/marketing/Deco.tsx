@@ -15,7 +15,15 @@ export function Deco({ kinds, tone = "accent" }: { kinds: readonly DecoKind[]; t
           key={kind}
           className={`mk-deco mk-deco--${tone}`}
           viewBox="0 0 1280 700"
-          preserveAspectRatio={kind === "waves" ? "xMidYMax slice" : kind === "arcs" ? "xMaxYMin slice" : kind === "dots" ? "xMinYMin slice" : "xMidYMid slice"}
+          preserveAspectRatio={
+            kind === "waves"
+              ? "xMidYMax slice"
+              : kind === "arcs"
+                ? "xMaxYMin slice"
+                : kind === "dots"
+                  ? "xMinYMin slice"
+                  : "xMidYMid slice"
+          }
           aria-hidden="true"
           focusable="false"
         >
@@ -76,13 +84,37 @@ export function Deco({ kinds, tone = "accent" }: { kinds: readonly DecoKind[]; t
                   <feGaussianBlur stdDeviation="60" />
                 </filter>
               </defs>
-              <ellipse className="mk-drift" cx="1080" cy="520" rx="220" ry="150" style={{ fill: "var(--accent-soft)" }} opacity=".8" filter={`url(#${uid}b)`} />
-              <ellipse className="mk-drift mk-drift--slow" cx="160" cy="180" rx="200" ry="130" style={{ fill: "var(--accent-soft)" }} opacity=".6" filter={`url(#${uid}b)`} />
+              <ellipse
+                className="mk-drift"
+                cx="1080"
+                cy="520"
+                rx="220"
+                ry="150"
+                style={{ fill: "var(--accent-soft)" }}
+                opacity=".8"
+                filter={`url(#${uid}b)`}
+              />
+              <ellipse
+                className="mk-drift mk-drift--slow"
+                cx="160"
+                cy="180"
+                rx="200"
+                ry="130"
+                style={{ fill: "var(--accent-soft)" }}
+                opacity=".6"
+                filter={`url(#${uid}b)`}
+              />
             </>
           )}
           {kind === "lines" &&
             Array.from({ length: 14 }, (_, i) => -100 + i * 110).map((x) => (
-              <path key={x} d={`M${x} -10 L${x + 220} 710`} stroke="currentColor" strokeOpacity=".08" strokeWidth="1.5" />
+              <path
+                key={x}
+                d={`M${x} -10 L${x + 220} 710`}
+                stroke="currentColor"
+                strokeOpacity=".08"
+                strokeWidth="1.5"
+              />
             ))}
         </svg>
       ))}

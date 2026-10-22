@@ -36,7 +36,12 @@ export function PortfolioMock() {
         </div>
       </div>
       <div className="mk-mock-photo">
-        <Image src="/stock/projects/building.jpg" alt="A tall building under construction with a crane" fill sizes="320px" />
+        <Image
+          src="/stock/projects/building.jpg"
+          alt="A tall building under construction with a crane"
+          fill
+          sizes="320px"
+        />
       </div>
       <div className="mk-hc-chips">
         <span className="mk-chip mk-chip--on">Building</span>
@@ -47,18 +52,24 @@ export function PortfolioMock() {
   );
 }
 
-/** The dashboard's CV layout switches. */
+/** The dashboard's CV picker: the owner chooses one layout; visitors get that one. */
 export function CvMock() {
-  const layouts: [string, boolean][] = [["Classic", true], ["Modern", true], ["Projects", false], ["Minimal", true]];
+  const layouts = ["Classic", "Modern", "Projects first", "Minimal"];
+  const chosen = "Modern";
   return (
     <div className="mk-mock">
-      <b>Layouts on your page</b>
-      {layouts.map(([name, on]) => (
-        <div key={name} className="mk-switch-row">
+      <b>CV on your page</b>
+      {layouts.map((name) => (
+        <div key={name} className={name === chosen ? "mk-switch-row mk-switch-row--on" : "mk-switch-row"}>
           <span>{name}</span>
-          <span className={on ? "mk-switch mk-switch--on" : "mk-switch"} aria-label={on ? "On" : "Off"} role="img" />
+          <span
+            className={name === chosen ? "mk-radio mk-radio--on" : "mk-radio"}
+            role="img"
+            aria-label={name === chosen ? "Chosen" : "Not chosen"}
+          />
         </div>
       ))}
+      <span className="mk-muted">Visitors download the Modern layout</span>
     </div>
   );
 }
@@ -102,7 +113,7 @@ export function DashboardPreview() {
   const kpis = [
     ["Page views", "1,284", "+18% this month"],
     ["Enquiries", "23", "5 unread"],
-    ["CV downloads", "86", "Modern is most used"],
+    ["CV downloads", "86", "Modern layout"],
     ["Projects", "9", "3 with photos"],
   ];
   const top = [
@@ -138,7 +149,7 @@ export function DashboardPreview() {
               </div>
             ))}
           </div>
-          <div className="mk-dash-grid">
+          <div className="mk-dash-grid mk-cards--swipe">
             <div className="mk-dash-card">
               <b>Views by week</b>
               <Bars values={WEEKS.map((w) => Math.round((w / 104) * 100))} height={130} />

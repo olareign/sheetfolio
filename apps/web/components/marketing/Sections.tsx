@@ -41,7 +41,19 @@ export function Section({
   );
 }
 
-export function SectionHead({ eyebrow, title, lead, id, center = true }: { eyebrow: string; title: ReactNode; lead?: string; id?: string; center?: boolean }) {
+export function SectionHead({
+  eyebrow,
+  title,
+  lead,
+  id,
+  center = true,
+}: {
+  eyebrow: string;
+  title: ReactNode;
+  lead?: string;
+  id?: string;
+  center?: boolean;
+}) {
   return (
     <div className={center ? "mk-head mk-head--center" : "mk-head"}>
       <span className="mk-eyebrow">
@@ -103,7 +115,11 @@ export function AboutTiles() {
           <i aria-hidden="true" /> Why Sheetfolio
         </span>
         <h2 id="about-title" className="mk-statement">
-          A portfolio for anyone whose work is worth showing, <span className="mk-inline-icon"><Icon name="user" size={20} /></span> not only designers and developers.
+          A portfolio for anyone whose work is worth showing,{" "}
+          <span className="mk-inline-icon">
+            <Icon name="user" size={20} />
+          </span>{" "}
+          not only designers and developers.
         </h2>
       </div>
       <div className="mk-tiles">
@@ -124,11 +140,16 @@ export function AboutTiles() {
 export function FeatureCards() {
   return (
     <Section tint deco={["dots", "waves"]} labelledBy="features-title">
-      <SectionHead eyebrow="What you get" id="features-title" title="Everything people need to hire or contact you" lead="Four tools, one dashboard. Nothing to design or host." />
+      <SectionHead
+        eyebrow="What you get"
+        id="features-title"
+        title="Everything people need to hire or contact you"
+        lead="Four tools, one dashboard. Nothing to design or host."
+      />
       <div className="mk-center-cta">
         <MarketingButton href="/login">Create your page</MarketingButton>
       </div>
-      <ul className="mk-cards mk-cards--4">
+      <ul className="mk-cards mk-cards--4 mk-cards--swipe">
         {FEATURES.map((f) => (
           <li key={f.title} className="mk-card mk-lift">
             <span className="mk-icon-tile">
@@ -139,7 +160,17 @@ export function FeatureCards() {
           </li>
         ))}
       </ul>
+      <SwipeHint />
     </Section>
+  );
+}
+
+/** Shown under swipeable card rows on phones only. */
+export function SwipeHint() {
+  return (
+    <p className="mk-swipe-hint" aria-hidden="true">
+      <span /> Swipe for more
+    </p>
   );
 }
 
@@ -172,13 +203,16 @@ export function StoryCard({ story }: { story: Story }) {
 
 export function StoryGrid({ stories = STORIES.slice(0, 3) }: { stories?: readonly Story[] }) {
   return (
-    <ul className="mk-cards mk-cards--3 mk-cards--stories">
-      {stories.map((s) => (
-        <li key={s.title}>
-          <StoryCard story={s} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mk-cards mk-cards--3 mk-cards--stories mk-cards--swipe">
+        {stories.map((s) => (
+          <li key={s.title}>
+            <StoryCard story={s} />
+          </li>
+        ))}
+      </ul>
+      {stories.length > 1 && <SwipeHint />}
+    </>
   );
 }
 
@@ -226,7 +260,11 @@ export function QuoteCard({ quote }: { quote: Quote }) {
     <figure className="mk-quote mk-lift">
       <div className="mk-quote-top">
         <svg width="30" height="22" viewBox="0 0 30 22" aria-hidden="true">
-          <path d="M0 22V11C0 4 4 0 11 0v5C8 5 6 7 6 11h5v11zM17 22V11c0-7 4-11 11-11v5c-3 0-5 2-5 6h5v11z" fill="currentColor" opacity=".25" />
+          <path
+            d="M0 22V11C0 4 4 0 11 0v5C8 5 6 7 6 11h5v11zM17 22V11c0-7 4-11 11-11v5c-3 0-5 2-5 6h5v11z"
+            fill="currentColor"
+            opacity=".25"
+          />
         </svg>
         {quote.sample && <SampleBadge>Sample quote</SampleBadge>}
       </div>
@@ -244,18 +282,26 @@ export function QuoteCard({ quote }: { quote: Quote }) {
 
 export function QuoteGrid({ quotes }: { quotes: readonly Quote[] }) {
   return (
-    <ul className="mk-cards mk-cards--3">
-      {quotes.map((q) => (
-        <li key={q.text}>
-          <QuoteCard quote={q} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mk-cards mk-cards--3 mk-cards--swipe">
+        {quotes.map((q) => (
+          <li key={q.text}>
+            <QuoteCard quote={q} />
+          </li>
+        ))}
+      </ul>
+      {quotes.length > 1 && <SwipeHint />}
+    </>
   );
 }
 
 export function SampleNote() {
-  return <p className="mk-note">Names, quotes and figures are sample content. Photos are free stock images from Unsplash, standing in for real users and projects until launch.</p>;
+  return (
+    <p className="mk-note">
+      Names, quotes and figures are sample content. Photos are free stock images from Unsplash, standing in for real
+      users and projects until launch.
+    </p>
+  );
 }
 
 export function Steps() {

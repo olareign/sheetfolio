@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { MobileMenu } from "@/components/MobileMenu";
 import { Button } from "@/components/sp/Button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { initials } from "@/content/derive";
@@ -34,6 +35,29 @@ export function SiteHeader({ site, basePath }: PageContext) {
           )}
         </nav>
         <ThemeToggle fallback={site.settings.theme} />
+        <MobileMenu
+          className="pp-menu"
+          label="Page sections"
+          links={[
+            { href: `${basePath}#projects`, label: "Projects" },
+            { href: `${basePath}#experience`, label: "Experience" },
+            { href: `${basePath}#credentials`, label: "Credentials" },
+            { href: `${basePath}#contact`, label: "Contact" },
+          ]}
+          footer={
+            hasWhatsApp ? (
+              <Button
+                href={whatsappHref(site)}
+                variant="primary"
+                target="_blank"
+                rel="noopener"
+                icon={<MessageCircle size={18} strokeWidth={1.5} aria-hidden="true" />}
+              >
+                WhatsApp {site.profile.firstName}
+              </Button>
+            ) : undefined
+          }
+        />
       </div>
     </header>
   );

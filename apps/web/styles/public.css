@@ -708,6 +708,12 @@
   .pp-header-inner > .sp-theme-toggle {
     margin-left: auto;
   }
+  .pp-menu {
+    display: block;
+  }
+  .pp-header-inner {
+    gap: var(--space-2);
+  }
 }
 
 /* Tablets: the hero title block needs ~420px for its three columns, so stack the hero below 1024px.
@@ -725,58 +731,3 @@
   overflow-wrap: anywhere;
 }
 
-/* Download CV: a button that opens the list of CV layouts (components/public/CvDownload.tsx) */
-.pp-cv {
-  position: relative;
-  display: inline-block;
-}
-.pp-cv > summary {
-  list-style: none;
-  cursor: pointer;
-}
-.pp-cv > summary::-webkit-details-marker {
-  display: none;
-}
-.pp-cv-menu {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
-  width: min(320px, 86vw);
-  margin: 0;
-  padding: var(--space-1);
-  list-style: none;
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
-}
-.pp-cv-option {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-2) var(--space-3);
-  color: var(--ink);
-  text-decoration: none;
-  border-radius: var(--radius-sm);
-}
-.pp-cv-option:hover,
-.pp-cv-option:focus-visible {
-  background: var(--paper-sunken);
-}
-.pp-cv-option:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
-}
-.pp-cv-name {
-  font: 600 14px/1.3 var(--font-sans);
-}
-.pp-cv-default {
-  margin-left: var(--space-2);
-  font: 400 11px/1 var(--font-mono);
-  letter-spacing: 0.01em;
-  color: var(--ink-muted);
-}
-.pp-cv-desc {
-  font: 400 12px/1.4 var(--font-mono);
-  color: var(--ink-muted);
-}

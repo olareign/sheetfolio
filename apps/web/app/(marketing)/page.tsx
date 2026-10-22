@@ -20,7 +20,7 @@ import { LANDING, QUOTES } from "@/content/marketing";
 export const metadata: Metadata = {
   title: { absolute: "Sheetfolio · Your work, your CV and your enquiries on one page" },
   description:
-    "Build a portfolio page for any profession. Choose which CV layouts people can download, and see who is looking. Free while we test.",
+    "Build a portfolio page for any profession. Pick the CV layout people download, and see who is looking. Free while we test.",
 };
 
 export default function HomePage() {
@@ -37,8 +37,8 @@ export default function HomePage() {
       <Section>
         <FeatureRow
           eyebrow="CV layouts"
-          title="Let visitors download your CV in the layout you pick"
-          text="Preview each layout inside your dashboard, then choose which ones appear on your page."
+          title="Visitors download your CV in the layout you pick"
+          text="Preview each layout inside your dashboard, then pick the one your page hands out. Every visitor gets that PDF."
           points={["Classic, Modern, Projects and Minimal layouts", "Built from the details already on your page", "Plain text a recruiter system can read"]}
         >
           <CvPreviewMock />

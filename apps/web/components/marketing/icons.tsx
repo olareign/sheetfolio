@@ -17,4 +17,6 @@ export function Icon({ name, size = 20 }: { name: FeatureIcon; size?: number }) 
   return <Glyph size={size} strokeWidth={1.8} aria-hidden="true" />;
 }
 
-export const Arrow = ({ size = 14 }: { size?: number }) => <ArrowUpRight size={size} strokeWidth={2} aria-hidden="true" />;
+export const Arrow = ({ size = 14 }: { size?: number }) => (
+  <ArrowUpRight size={size} strokeWidth={2} aria-hidden="true" />
+);

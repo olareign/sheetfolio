@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { MobileMenu } from "@/components/MobileMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { NAV } from "@/content/marketing";
 import { MarketingNav } from "./MarketingNav";
 
 export function MarketingHeader() {
@@ -18,9 +20,23 @@ export function MarketingHeader() {
           <Link href="/login" className="mk-signin">
             Sign in
           </Link>
-          <Link href="/login" className="mk-btn mk-btn--primary mk-btn--sm">
+          <Link href="/login" className="mk-btn mk-btn--primary mk-btn--sm mk-header-cta">
             Create your page
           </Link>
+          <MobileMenu
+            className="mk-menu"
+            links={NAV}
+            footer={
+              <>
+                <Link href="/login" className="mk-btn mk-btn--primary">
+                  Create your page
+                </Link>
+                <Link href="/login" className="mk-btn mk-btn--ghost">
+                  Sign in
+                </Link>
+              </>
+            }
+          />
         </div>
       </div>
     </header>

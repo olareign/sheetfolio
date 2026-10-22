@@ -1,53 +1,16 @@
-import { ChevronDown, Download } from "lucide-react";
-import { Button, buttonClass } from "@/components/sp/Button";
-import { CV_TEMPLATES, type CvTemplateId } from "@/content/cv-templates";
+import { Download } from "lucide-react";
+import { Button } from "@/components/sp/Button";
 import { cvHref } from "./view-model";
 
 /**
- * "Download CV" for the layouts the page owner chose to offer (`templates`, default first; see offeredCvTemplates).
- * One layout is a plain download button. Several open a list: a native <details>, so it works without JavaScript and
- * by keyboard, with each layout a plain download link.
+ * "Download CV": one button, one PDF, in the layout the page owner chose in Dashboard → CV. Visitors don't choose a
+ * layout; the owner decides what their page hands out (the download route ignores any layout a visitor asks for).
+ * The link carries the publish time, so a new layout choice reaches visitors as a new URL on the next Publish.
  */
-export function CvDownload({
-  slug,
-  publishedAt,
-  templates,
-}: {
-  slug: string;
-  publishedAt?: string;
-  templates: CvTemplateId[];
-}) {
-  const [only, ...others] = templates;
-  if (!only) return null;
-  const icon = <Download size={18} strokeWidth={1.5} aria-hidden="true" />;
-
-  if (others.length === 0) {
-    return (
-      <Button href={cvHref(slug, publishedAt, only)} native icon={icon}>
-        Download CV
-      </Button>
-    );
-  }
+export function CvDownload({ slug, publishedAt }: { slug: string; publishedAt?: string }) {
   return (
-    <details className="pp-cv">
-      <summary className={buttonClass()}>
-        {icon}
-        Download CV
-        <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" />
-      </summary>
-      <ul className="pp-cv-menu" aria-label="Choose a CV layout">
-        {templates.map((id, index) => (
-          <li key={id}>
-            <a className="pp-cv-option" href={cvHref(slug, publishedAt, id)} download>
-              <span className="pp-cv-name">
-                {CV_TEMPLATES[id].label}
-                {index === 0 && <span className="pp-cv-default">Default</span>}
-              </span>
-              <span className="pp-cv-desc">{CV_TEMPLATES[id].description}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </details>
+    <Button href={cvHref(slug, publishedAt)} native download icon={<Download size={18} strokeWidth={1.5} aria-hidden="true" />}>
+      Download CV
+    </Button>
   );
 }

@@ -7,49 +7,39 @@ import { CV_TEMPLATE_IDS, CV_TEMPLATES, type CvTemplateId } from "@/content/cv-t
 import { CvThumb } from "./CvThumb";
 import { SaveBar } from "./SaveBar";
 
-type Choice = { cvTemplates: CvTemplateId[]; cvTemplate: CvTemplateId };
-
-const same = (a: Choice, b: Choice) =>
-  a.cvTemplate === b.cvTemplate &&
-  a.cvTemplates.length === b.cvTemplates.length &&
-  a.cvTemplates.every((id) => b.cvTemplates.includes(id));
-
 /**
- * Dashboard → CV. Left: which layouts the page offers for download, and the default. Right: your saved draft drawn in
- * the layout you pick, as the real PDF a visitor would get. The choice applies to the public page on Publish.
+ * Dashboard → CV. The owner picks the ONE layout their page hands out; visitors get a single "Download CV" button and
+ * never choose. Right: the saved draft drawn in the layout being looked at, as the real PDF a visitor would get.
+ * The choice reaches the public page on Publish.
  */
-export function CvLayoutsForm({ initial, draftVersion }: { initial: Choice; draftVersion: string }) {
-  const [choice, setChoice] = useState<Choice>(initial);
-  const [baseline, setBaseline] = useState<Choice>(initial);
+export function CvLayoutsForm({ initial, draftVersion }: { initial: CvTemplateId; draftVersion: string }) {
+  const [chosen, setChosen] = useState<CvTemplateId>(initial);
+  const [baseline, setBaseline] = useState<CvTemplateId>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [previewing, setPreviewing] = useState<CvTemplateId>(initial.cvTemplate);
+  const [previewing, setPreviewing] = useState<CvTemplateId>(initial);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
 
   // The version changes whenever the draft is saved, so the preview redraws after edits made elsewhere.
   const src = `/api/cv/preview?template=${previewing}&v=${encodeURIComponent(draftVersion)}`;
 
-  const toggle = (id: CvTemplateId) => {
+  const choose = (id: CvTemplateId) => {
     setMessage(null);
-    const on = choice.cvTemplates.includes(id);
-    if (on && choice.cvTemplates.length === 1) return setMessage("Offer at least one CV layout.");
-    const cvTemplates = CV_TEMPLATE_IDS.filter((t) => (t === id ? !on : choice.cvTemplates.includes(t)));
-    const cvTemplate = cvTemplates.includes(choice.cvTemplate)
-      ? choice.cvTemplate
-      : (cvTemplates[0] ?? choice.cvTemplate);
-    setChoice({ cvTemplates, cvTemplate });
+    setChosen(id);
+    setPreviewing(id);
   };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
     setMessage(null);
-    const result = await saveCvLayoutsAction(choice);
+    // Stored as "offer exactly this one", which is what the public page and download link read.
+    const result = await saveCvLayoutsAction({ cvTemplates: [chosen], cvTemplate: chosen });
     setSubmitting(false);
     if (!result.ok)
       return setMessage(result.formError ?? Object.values(result.fieldErrors)[0] ?? "Couldn't save. Try again.");
-    setBaseline(choice);
+    setBaseline(chosen);
     setSavedAt(result.at);
   };
 
@@ -57,19 +47,20 @@ export function CvLayoutsForm({ initial, draftVersion }: { initial: Choice; draf
     <div className="cms-cv">
       <form onSubmit={onSubmit} noValidate className="cms-cv-pick">
         <section className="cms-section" aria-labelledby="sec-cv">
-          <h2 id="sec-cv">Layouts on your page</h2>
+          <h2 id="sec-cv">CV on your page</h2>
           <p>
-            Choose the layouts visitors can download, and which one comes first. Changes reach your public page when you
-            publish.
+            Pick the layout visitors download from your page. They get one &ldquo;Download CV&rdquo; button in this layout and can&rsquo;t
+            switch it. Changes reach your public page when you publish.
           </p>
           {message && (
             <p className="sp-alert" role="alert">
               {message}
             </p>
           )}
-          <div className="cms-cv-grid">
+          <fieldset className="cms-cv-grid">
+            <legend className="sp-visually-hidden">Layout visitors download</legend>
             {CV_TEMPLATE_IDS.map((id) => {
-              const on = choice.cvTemplates.includes(id);
+              const on = chosen === id;
               return (
                 <div key={id} className="cms-cv-card" data-on={on} data-previewing={previewing === id}>
                   <button
@@ -84,24 +75,14 @@ export function CvLayoutsForm({ initial, draftVersion }: { initial: Choice; draf
                   <strong className="cms-cv-name">{CV_TEMPLATES[id].label}</strong>
                   <span className="sp-field-hint">{CV_TEMPLATES[id].description}</span>
                   <label className="cms-cv-choice">
-                    <input type="checkbox" checked={on} onChange={() => toggle(id)} />
-                    Offer on my page
-                  </label>
-                  <label className="cms-cv-choice">
-                    <input
-                      type="radio"
-                      name="cvTemplate"
-                      checked={choice.cvTemplate === id}
-                      disabled={!on}
-                      onChange={() => setChoice({ ...choice, cvTemplate: id })}
-                    />
-                    Default
+                    <input type="radio" name="cvTemplate" value={id} checked={on} onChange={() => choose(id)} />
+                    {on ? "Visitors download this" : "Use this layout"}
                   </label>
                 </div>
               );
             })}
-          </div>
-          <SaveBar submitting={submitting} dirty={!same(choice, baseline)} savedAt={savedAt} />
+          </fieldset>
+          <SaveBar submitting={submitting} dirty={chosen !== baseline} savedAt={savedAt} />
         </section>
       </form>
 

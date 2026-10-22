@@ -91,9 +91,12 @@
 .mk-signin { padding: 10px 8px; font-size: 15px; color: var(--ink-muted); }
 .mk-signin:hover { color: var(--ink); }
 @media (max-width: 860px) {
-  .mk-header-inner { gap: var(--space-3); }
-  .mk-nav { order: 3; width: 100%; gap: var(--space-4); overflow-x: auto; }
-  .mk-signin { display: none; }
+  .mk-header-inner { flex-wrap: nowrap; gap: var(--space-3); padding-block: 10px; }
+  .mk-header .mk-nav, .mk-header .mk-signin { display: none; }
+  .mk-menu { display: block; }
+}
+@media (max-width: 520px) {
+  .mk-header .mk-header-cta { display: none; }
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -173,7 +176,9 @@
 .mk-avatar { display: block; flex: none; border-radius: 50%; object-fit: cover; background: var(--paper-sunken); }
 
 .mk-hero-cards { position: relative; margin-top: 56px; padding: 12px 24px 56px; overflow: hidden; }
+.mk-hcards-track { display: flex; justify-content: center; }
 .mk-hcards { display: flex; justify-content: center; align-items: center; gap: 16px; list-style: none; margin: 0; padding: 0; }
+.mk-hcards--clone { display: none; }
 .mk-hcards > li { flex: none; }
 .mk-hcard {
   display: flex;
@@ -192,6 +197,7 @@
   font-size: 11px;
   line-height: 1.4;
   box-shadow: var(--shadow-lift);
+  transform: perspective(900px) rotateY(var(--rot, 0deg)) translateY(var(--lift, 0px));
 }
 .mk-hcard header { display: flex; gap: 8px; align-items: center; }
 .mk-hcard header b { font-size: 13px; letter-spacing: -0.01em; }
@@ -220,12 +226,10 @@
 .mk-hc-theme--light { background: #fafafd; }
 .mk-hc-theme--dark { background: #0c0e1d; }
 .mk-hero-note { text-align: center; margin: 30px 0 0; font-size: 14px; color: var(--ink-muted); }
-@media (max-width: 1100px) { .mk-hcards { justify-content: flex-start; padding-bottom: var(--space-4); } }
 @media (max-width: 760px) {
   .mk-hero h1 { font-size: 42px; }
   .mk-pagehead h1 { font-size: 38px; }
   .mk-head h2, .mk-split-text h2, .mk-statement { font-size: 30px !important; }
-  .mk-hero-cards { overflow-x: auto; }
   .mk-section { padding: 64px 0; }
 }
 
@@ -418,3 +422,100 @@
 .mk-empty h2 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
 .mk-empty p { margin: 0; color: var(--ink-muted); }
 .mk-featured-slug { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--blueprint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Hero cards below 1220px: the fan is wider than the screen, so the cards glide past as a loop instead. */
+@keyframes mk-hcards-glide { to { transform: translateX(-50%); } }
+@media (min-width: 1220px) and (max-width: 1459px) {
+  /* Laptops: the full fan is ~1330px wide, so it is scaled down to fit instead of being clipped at the edges. */
+  .mk-hcards-track { transform: scale(0.86); transform-origin: center top; margin-bottom: -34px; }
+}
+@media (max-width: 1219px) {
+  .mk-hero-cards { padding-inline: 0; }
+  .mk-hcards-window {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    padding-block: 18px;
+  }
+  .mk-hcards-track { justify-content: flex-start; width: max-content; animation: mk-hcards-glide 46s linear infinite; }
+  .mk-hcards, .mk-hcards--clone { display: flex; justify-content: flex-start; padding-right: 16px; }
+  .mk-hcard { transform: rotate(var(--tilt, 0deg)); transition: transform 0.3s ease; }
+  .mk-hcards-window:hover .mk-hcards-track, .mk-hcards-window:active .mk-hcards-track { animation-play-state: paused; }
+  .mk-hcards-window:hover .mk-hcard { transform: rotate(0deg); }
+}
+@media (max-width: 1219px) and (prefers-reduced-motion: reduce) {
+  .mk-hcards-window { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-mask-image: none; mask-image: none; }
+  .mk-hcards-window::-webkit-scrollbar { display: none; }
+  .mk-hcards-track { animation: none; padding-inline: 16px; }
+  .mk-hcards--clone { display: none; }
+  .mk-hcards > li { scroll-snap-align: center; }
+}
+.mk-strip-window { -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+@media (max-width: 760px) {
+  .mk-strip { flex-direction: column; align-items: stretch; gap: var(--space-3); padding: 22px 0; }
+  .mk-strip-label { padding-left: 0; text-align: center; }
+  .mk-strip-row { font-size: 16px; }
+}
+.mk-switch-row--on { border-color: var(--blueprint); background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+.mk-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--rule); box-sizing: border-box; }
+.mk-radio--on { border: 5px solid var(--blueprint); background: var(--paper-raised); }
+
+/* ── Phones: compact tiles and swipeable card rows ──────────────────────── */
+.mk-swipe-hint { display: none; }
+@media (max-width: 760px) {
+  .mk-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: var(--space-8); }
+  .mk-tile { min-height: 168px; padding: 18px; border-radius: 20px; }
+  .mk-tile b { font-size: 32px; }
+  .mk-tile p { font-size: 13.5px; line-height: 1.45; }
+  .mk-tile > span { font-size: 12.5px; }
+
+  .mk-cards--swipe {
+    display: flex;
+    gap: 14px;
+    margin-inline: -24px;
+    padding: 6px 24px 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 24px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .mk-cards--swipe::-webkit-scrollbar { display: none; }
+  .mk-cards--swipe > li { flex: 0 0 84%; scroll-snap-align: start; }
+  .mk-cards--swipe .mk-lift:hover { transform: none; }
+  .mk-cards--swipe .mk-card h3, .mk-cards--swipe .mk-story-body h3 { min-height: 0; }
+  .mk-cards--swipe .mk-quote blockquote { min-height: 0; }
+
+  .mk-swipe-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: var(--space-3) 0 0; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+  .mk-swipe-hint span { position: relative; width: 40px; height: 4px; border-radius: 4px; background: var(--hairline); overflow: hidden; }
+  .mk-swipe-hint span::after { content: ""; position: absolute; inset: 0; width: 40%; border-radius: 4px; background: var(--blueprint); animation: mk-swipe 1.8s ease-in-out infinite; }
+}
+@keyframes mk-swipe { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .mk-swipe-hint span::after { animation: none; transform: translateX(60%); } }
+@media (max-width: 760px) {
+  .mk-dash { padding: 8px; border-radius: 22px; }
+  .mk-dash-inner { padding: 14px; gap: 14px; border-radius: 16px; }
+  .mk-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .mk-kpi { padding: 12px 14px; border-radius: 12px; }
+  .mk-kpi b { font-size: 24px; }
+  .mk-dash-grid.mk-cards--swipe { margin-inline: -14px; padding-inline: 14px; scroll-padding-inline: 14px; align-items: stretch; }
+  .mk-dash-grid.mk-cards--swipe > .mk-dash-card { flex: 0 0 88%; scroll-snap-align: start; }
+}
+/* The chart grows to fill its card, so equal-height dashboard cards never end in a blank band. */
+.mk-dash-card > .mk-bars { flex: 1 1 auto; min-height: 130px; height: auto !important; }
+@media (max-width: 760px) {
+  /* Stacked, the picture no longer sits beside text, so it sizes to its mock instead of a fixed ratio. */
+  .mk-split-media--mock { aspect-ratio: auto; min-height: 280px; padding: 28px 16px; }
+  .mk-mock, .mk-mock--wide { width: 100%; }
+}
+@media (max-width: 760px) {
+  .mk-photoband { display: flex; gap: 12px; margin-inline: -24px; padding-inline: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 24px; scrollbar-width: none; }
+  .mk-photoband::-webkit-scrollbar { display: none; }
+  .mk-photoband-item { flex: 0 0 78%; scroll-snap-align: start; border-radius: 20px; }
+  .mk-footer-top { padding: 52px 0 36px; }
+  .mk-footer-top h2 { font-size: 24px; }
+  .mk-footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 20px; padding: 40px 0; }
+  .mk-footer-brand { grid-column: 1 / -1; max-width: none; }
+  .mk-cta { padding: 64px 20px; border-radius: 22px; }
+  .mk-cta p { font-size: 16px; }
+}

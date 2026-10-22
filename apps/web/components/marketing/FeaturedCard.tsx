@@ -12,13 +12,17 @@ export function FeaturedCard({ user, rank }: { user: FeaturedUser; rank: number 
       <div className="mk-example-photo">
         <CoverImage cover={user.cover} sizes="(max-width: 700px) 100vw, 360px" />
         <span className="mk-story-badge">
-          <span className={rank === 1 ? "mk-sample mk-sample--live" : "mk-sample"}>{rank === 1 ? "#1 most visited" : `#${rank}`}</span>
+          <span className={rank === 1 ? "mk-sample mk-sample--live" : "mk-sample"}>
+            {rank === 1 ? "#1 most visited" : `#${rank}`}
+          </span>
         </span>
       </div>
       <div className="mk-example-body">
         <div>
           <b className="mk-featured-name">{user.name}</b>
-          <span className="mk-muted mk-featured-role">{[user.headline, user.location].filter(Boolean).join(" · ")}</span>
+          <span className="mk-muted mk-featured-role">
+            {[user.headline, user.location].filter(Boolean).join(" · ")}
+          </span>
           <span className="mk-featured-slug">/{user.slug}</span>
         </div>
         <div className="mk-featured-stats">
