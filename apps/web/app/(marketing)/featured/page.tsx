@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   description: "Real Sheetfolio pages, ranked by how many people viewed them in the last 30 days.",
 };
 
-// Ranked from live view counters; refreshed every few minutes rather than on every request.
-export const revalidate = 300;
+// Ranked from live view counters; refreshed every minute rather than on every request.
+export const revalidate = 60;
 
 export default async function FeaturedPage() {
   const users = await getFeaturedUsers();

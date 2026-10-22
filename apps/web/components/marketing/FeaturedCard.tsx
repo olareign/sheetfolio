@@ -19,6 +19,7 @@ export function FeaturedCard({ user, rank }: { user: FeaturedUser; rank: number 
         <div>
           <b className="mk-featured-name">{user.name}</b>
           <span className="mk-muted mk-featured-role">{[user.headline, user.location].filter(Boolean).join(" · ")}</span>
+          <span className="mk-featured-slug">/{user.slug}</span>
         </div>
         <div className="mk-featured-stats">
           <span>

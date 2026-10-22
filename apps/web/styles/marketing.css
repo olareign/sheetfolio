@@ -417,3 +417,4 @@
 .mk-empty { display: grid; gap: 14px; justify-items: center; max-width: 520px; margin: 0 auto; padding: 56px 24px; text-align: center; border: 1px dashed var(--rule); border-radius: 24px; }
 .mk-empty h2 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
 .mk-empty p { margin: 0; color: var(--ink-muted); }
+.mk-featured-slug { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--blueprint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
