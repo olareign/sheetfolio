@@ -9,12 +9,14 @@ import { SettingsInput } from "@/content/schemas";
 import { FieldRenderer } from "./FieldRenderer";
 import { applyServerErrors } from "./form-result";
 import { SaveBar } from "./SaveBar";
+import { hasEdits, saveForm, useUnsavedChanges } from "./UnsavedChanges";
 
 const HINTS: Record<string, string> = {
   whatsapp: "Digits only, with country code and no +, e.g. 2347033435818",
   whatsappMessage: "Pre-filled when a visitor taps WhatsApp.",
   publicEmail: "Enquiries from your page are sent here.",
-  showInShowcase: "Published pages with the most views in the last 30 days appear on the public Featured page. Applies the next time you publish.",
+  showInShowcase:
+    "Published pages with the most views in the last 30 days appear on the public Featured page. Applies the next time you publish.",
 };
 const THEME_LABELS: Record<string, string> = { sheet: "Light", blueprint: "Dark" };
 
@@ -36,13 +38,19 @@ export function SettingsForm({ defaultValues, slug }: { defaultValues: FieldValu
   const [formError, setFormError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const persist = async (values: FieldValues): Promise<boolean> => {
     setFormError(null);
     const result = await saveSettingsAction(values);
-    if (!result.ok) return setFormError(applyServerErrors(form, result));
+    if (!result.ok) {
+      setFormError(applyServerErrors(form, result));
+      return false;
+    }
     form.reset(form.getValues());
     setSavedAt(result.at);
-  });
+    return true;
+  };
+  const onSubmit = form.handleSubmit(async (values) => void (await persist(values)));
+  useUnsavedChanges(hasEdits(form.formState), () => saveForm(form, persist));
 
   return (
     <form className="cms-form" onSubmit={onSubmit} noValidate>
@@ -69,7 +77,7 @@ export function SettingsForm({ defaultValues, slug }: { defaultValues: FieldValu
           ))}
         </div>
       </section>
-      <SaveBar submitting={form.formState.isSubmitting} dirty={form.formState.isDirty} savedAt={savedAt} />
+      <SaveBar submitting={form.formState.isSubmitting} dirty={hasEdits(form.formState)} savedAt={savedAt} />
     </form>
   );
 }

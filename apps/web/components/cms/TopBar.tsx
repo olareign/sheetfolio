@@ -8,6 +8,8 @@ import { issueHref, type PublishState } from "@/content/cms";
 import { Button } from "@/components/sp/Button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LocalTime } from "./LocalTime";
+import { UnsavedDialog } from "./UnsavedDialog";
+import { useUnsavedForms } from "./UnsavedChanges";
 
 const STATUS: Record<PublishState, { label: string; className: string }> = {
   live: { label: "Live", className: "sp-tag sp-tag--done" },
@@ -37,17 +39,46 @@ export function TopBar({
   const [pending, startTransition] = useTransition();
   const [problems, setProblems] = useState<{ href: string; message: string }[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const unsavedForms = useUnsavedForms();
   const status = STATUS[state];
+
+  /** Publishes the saved draft and shows what is missing when it is not ready. */
+  async function publishDraft() {
+    const result = await publishAction();
+    if (result.ok) return;
+    const list = Object.entries(result.fieldErrors).map(([path, message]) => ({ href: issueHref(path), message }));
+    if (list.length) setProblems(list);
+    else setError(result.formError ?? "Publishing failed. Try again.");
+  }
 
   function onPublish() {
     setProblems(null);
     setError(null);
+    // Edits typed into a form but not saved are not in the draft, so ask before publishing without them.
+    if (unsavedForms().length > 0) return setAsking(true);
+    startTransition(publishDraft);
+  }
+
+  function publishSavedOnly() {
+    setAsking(false);
+    startTransition(publishDraft);
+  }
+
+  function saveAndPublish() {
     startTransition(async () => {
-      const result = await publishAction();
-      if (result.ok) return;
-      const list = Object.entries(result.fieldErrors).map(([path, message]) => ({ href: issueHref(path), message }));
-      if (list.length) setProblems(list);
-      else setError(result.formError ?? "Publishing failed. Try again.");
+      for (const form of unsavedForms()) {
+        if (!(await form.save())) {
+          // The form shows its own field errors; nothing is published with a half-saved page.
+          setAsking(false);
+          setError(
+            "Your changes could not be saved, so nothing was published. Fix the highlighted fields and try again.",
+          );
+          return;
+        }
+      }
+      setAsking(false);
+      await publishDraft();
     });
   }
 
@@ -75,6 +106,13 @@ export function TopBar({
           {pending ? "Publishing…" : "Publish"}
         </Button>
       </div>
+      <UnsavedDialog
+        open={asking}
+        pending={pending}
+        onSaveAndPublish={saveAndPublish}
+        onPublishSaved={publishSavedOnly}
+        onCancel={() => setAsking(false)}
+      />
       {(problems || error) && (
         <div className="cms-publish-errors" role="alert">
           <span className="sp-label">Not published</span>

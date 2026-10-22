@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Sidebar, type NavItem } from "@/components/cms/Sidebar";
 import { TopBar } from "@/components/cms/TopBar";
+import { UnsavedChangesProvider } from "@/components/cms/UnsavedChanges";
 import { ViewsChart } from "@/components/cms/ViewsChart";
 import { publishState } from "@/content/cms";
 import { collections, type CollectionName } from "@/content/schemas";
@@ -42,12 +43,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   ]);
 
   return (
-    <div className="cms">
-      <Sidebar slug={account.slug} items={items} live={Boolean(published)} chart={<ViewsChart days={weekViews} />} />
-      <div className="cms-main">
-        <TopBar state={publishState(draft, published)} updatedAt={draft.updatedAt} labels={labels} />
-        {children}
+    <UnsavedChangesProvider>
+      <div className="cms">
+        <Sidebar slug={account.slug} items={items} live={Boolean(published)} chart={<ViewsChart days={weekViews} />} />
+        <div className="cms-main">
+          <TopBar state={publishState(draft, published)} updatedAt={draft.updatedAt} labels={labels} />
+          {children}
+        </div>
       </div>
-    </div>
+    </UnsavedChangesProvider>
   );
 }

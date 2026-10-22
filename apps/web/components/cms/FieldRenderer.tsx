@@ -76,7 +76,13 @@ export function FieldRenderer({
       break;
     case "textarea":
       control = (
-        <textarea {...common} rows={5} maxLength={spec.maxLength} placeholder={placeholder} {...form.register(name, optionalText)} />
+        <textarea
+          {...common}
+          rows={5}
+          maxLength={spec.maxLength}
+          placeholder={placeholder}
+          {...form.register(name, optionalText)}
+        />
       );
       break;
     case "number":

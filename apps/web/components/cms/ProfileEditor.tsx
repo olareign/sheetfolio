@@ -10,6 +10,7 @@ import { Field, fieldDescribedBy } from "@/components/sp/Field";
 import { FieldRenderer } from "./FieldRenderer";
 import { applyServerErrors, withFieldKeys } from "./form-result";
 import { SaveBar } from "./SaveBar";
+import { hasEdits, saveForm, useUnsavedChanges } from "./UnsavedChanges";
 
 const PRIVATE_LABELS: Record<PrivateField, string> = {
   dateOfBirth: "Date of birth",
@@ -40,13 +41,19 @@ export function ProfileEditor({ defaultValues, slug }: { defaultValues: FieldVal
   const [formError, setFormError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const persist = async (values: FieldValues): Promise<boolean> => {
     setFormError(null);
     const result = await saveProfileAction(values);
-    if (!result.ok) return setFormError(applyServerErrors(form, result));
+    if (!result.ok) {
+      setFormError(applyServerErrors(form, result));
+      return false;
+    }
     form.reset(form.getValues()); // raw values: the parsed output drops blank slots
     setSavedAt(result.at);
-  });
+    return true;
+  };
+  const onSubmit = form.handleSubmit(async (values) => void (await persist(values)));
+  useUnsavedChanges(hasEdits(form.formState), () => saveForm(form, persist));
 
   const err = (name: string) => get(form.formState.errors, name)?.message as string | undefined;
 
@@ -139,7 +146,7 @@ export function ProfileEditor({ defaultValues, slug }: { defaultValues: FieldVal
         </div>
       </section>
 
-      <SaveBar submitting={form.formState.isSubmitting} dirty={form.formState.isDirty} savedAt={savedAt} />
+      <SaveBar submitting={form.formState.isSubmitting} dirty={hasEdits(form.formState)} savedAt={savedAt} />
     </form>
   );
 }

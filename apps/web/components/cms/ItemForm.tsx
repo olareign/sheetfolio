@@ -14,6 +14,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { FieldRenderer, type Option } from "./FieldRenderer";
 import { applyServerErrors, withFieldKeys } from "./form-result";
 import { LocalTime } from "./LocalTime";
+import { hasEdits, saveForm, useUnsavedChanges } from "./UnsavedChanges";
 
 type Props = {
   collection: CollectionName;
@@ -49,22 +50,32 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
   const [deleting, startDelete] = useTransition();
   const title = String(useWatch({ control: form.control, name: config.titleField }) ?? "");
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const persist = async (values: FieldValues): Promise<boolean> => {
     setFormError(null);
     setNotice(null);
     const result = await saveItemAction(collection, id, values);
     if (!result.ok) {
       setFormError(applyServerErrors(form, result));
-      return;
+      return false;
     }
     if (isNew && result.id) {
       router.replace(`/dashboard/${collection}/${result.id}`);
-      return;
+      return true;
     }
-    form.reset(result.values ? withFieldKeys({ ...result.values }, fields.map((f) => f.name)) : form.getValues());
+    form.reset(
+      result.values
+        ? withFieldKeys(
+            { ...result.values },
+            fields.map((f) => f.name),
+          )
+        : form.getValues(),
+    );
     setSavedAt(result.at);
     setNotice(result.notice ?? null);
-  });
+    return true;
+  };
+  const onSubmit = form.handleSubmit(async (values) => void (await persist(values)));
+  useUnsavedChanges(hasEdits(form.formState), () => saveForm(form, persist));
 
   function onDelete() {
     startDelete(async () => {
@@ -78,7 +89,8 @@ export function ItemForm({ collection, id, defaultValues, relationOptions, slug 
     });
   }
 
-  const { isSubmitting, isDirty } = form.formState;
+  const { isSubmitting } = form.formState;
+  const isDirty = hasEdits(form.formState);
 
   return (
     <form className="cms-form" onSubmit={onSubmit} noValidate>

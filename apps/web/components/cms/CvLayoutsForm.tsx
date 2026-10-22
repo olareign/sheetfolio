@@ -6,6 +6,7 @@ import { saveCvLayoutsAction } from "@/app/(admin)/dashboard/actions";
 import { CV_TEMPLATE_IDS, CV_TEMPLATES, type CvTemplateId } from "@/content/cv-templates";
 import { CvThumb } from "./CvThumb";
 import { SaveBar } from "./SaveBar";
+import { useUnsavedChanges } from "./UnsavedChanges";
 
 /**
  * Dashboard → CV. The owner picks the ONE layout their page hands out; visitors get a single "Download CV" button and
@@ -30,18 +31,25 @@ export function CvLayoutsForm({ initial, draftVersion }: { initial: CvTemplateId
     setPreviewing(id);
   };
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const save = async (): Promise<boolean> => {
     setSubmitting(true);
     setMessage(null);
     // Stored as "offer exactly this one", which is what the public page and download link read.
     const result = await saveCvLayoutsAction({ cvTemplates: [chosen], cvTemplate: chosen });
     setSubmitting(false);
-    if (!result.ok)
-      return setMessage(result.formError ?? Object.values(result.fieldErrors)[0] ?? "Couldn't save. Try again.");
+    if (!result.ok) {
+      setMessage(result.formError ?? Object.values(result.fieldErrors)[0] ?? "Couldn't save. Try again.");
+      return false;
+    }
     setBaseline(chosen);
     setSavedAt(result.at);
+    return true;
   };
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    void save();
+  };
+  useUnsavedChanges(chosen !== baseline, save);
 
   return (
     <div className="cms-cv">
@@ -49,8 +57,8 @@ export function CvLayoutsForm({ initial, draftVersion }: { initial: CvTemplateId
         <section className="cms-section" aria-labelledby="sec-cv">
           <h2 id="sec-cv">CV on your page</h2>
           <p>
-            Pick the layout visitors download from your page. They get one &ldquo;Download CV&rdquo; button in this layout and can&rsquo;t
-            switch it. Changes reach your public page when you publish.
+            Pick the layout visitors download from your page. They get one &ldquo;Download CV&rdquo; button in this
+            layout and can&rsquo;t switch it. Changes reach your public page when you publish.
           </p>
           {message && (
             <p className="sp-alert" role="alert">

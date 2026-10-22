@@ -1218,3 +1218,8 @@
 .ins-photo-cta { font-size: 13px; font-weight: 600; color: var(--blueprint); text-decoration: none; }
 .ins-photo-cta:hover { text-decoration: underline; }
 .cms-content--wide .ins-foot { margin: 0; }
+
+/* Publish with unsaved edits: three choices, stacked so none is cut off on a phone. */
+.cms-dialog--choice { max-width: 460px; }
+.cms-dialog-actions--stack { flex-direction: column; align-items: stretch; }
+.cms-dialog-actions--stack .sp-btn { justify-content: center; }
