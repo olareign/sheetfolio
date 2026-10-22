@@ -12,13 +12,13 @@ describe("parseEnv", () => {
     const env = parseEnv({
       ...base,
       AUTH_RESEND_KEY: "",
-      BLOB_READ_WRITE_TOKEN: " ",
+      CLOUDINARY_URL: " ",
       NEXT_PUBLIC_SITE_URL: "",
       ADMIN_EMAILS: "",
       RESEND_FROM: "",
     });
     expect(env.AUTH_RESEND_KEY).toBeUndefined();
-    expect(env.BLOB_READ_WRITE_TOKEN).toBeUndefined();
+    expect(env.CLOUDINARY_URL).toBeUndefined();
     expect(env.NEXT_PUBLIC_SITE_URL).toBeUndefined();
     expect(env.ADMIN_EMAILS).toEqual([]);
     expect(env.RESEND_FROM).toBe("Sheetfolio <onboarding@resend.dev>");

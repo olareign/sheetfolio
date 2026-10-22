@@ -8,7 +8,6 @@ vi.mock("@/lib/redis", async (importOriginal) => {
   return { ...actual, redis: () => state.redis };
 });
 vi.mock("next/cache", () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn, revalidateTag: vi.fn() }));
-vi.mock("@vercel/blob", () => ({ put: vi.fn() }));
 
 const { buildPreview, refreshProjectPreview } = await import("./project-preview");
 const { upsertItem } = await import("./collections");

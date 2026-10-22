@@ -1,78 +1,48 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { UPLOAD_RULES } from "@/content/uploads";
 import { getUserRecord } from "@/lib/accounts";
 import { auth } from "@/lib/auth";
+import { signUpload } from "@/lib/cloudinary";
 import { env } from "@/lib/env";
 
-const Payload = z.object({ kind: z.enum(["image", "document"]) });
+const Payload = z.object({
+  /** `{slug}/{folder}/{file-name}`, built by `uploadPath`. */
+  pathname: z.string().min(3).max(200),
+  kind: z.enum(["image", "document"]),
+});
+
+const FORMATS = { image: ["jpg", "png", "webp"], document: ["jpg", "png", "webp", "pdf"] } as const;
 
 /**
- * Issues short-lived client-upload tokens for Vercel Blob (the file goes browser → Blob directly).
- * Only a signed-in engineer can get a token, only for paths under their own slug.
+ * Signs a browser → Cloudinary upload. Only a signed-in owner gets a signature, and only for a folder under their
+ * own slug, so a file can't be written into someone else's folder. The file itself never passes through here.
  */
-type Ready = { ok: true; slug: string; token: string } | { ok: false; response: NextResponse };
-
-/** Signed-in engineer + configured Blob store, or the error response to send. */
-async function ready(): Promise<Ready> {
+export async function POST(request: Request): Promise<NextResponse> {
   const session = await auth();
   const email = session?.user?.email;
   const account = email ? await getUserRecord(email) : null;
-  if (!account) {
-    return { ok: false, response: NextResponse.json({ error: "Sign in again to upload files." }, { status: 401 }) };
-  }
-  const token = env().BLOB_READ_WRITE_TOKEN;
-  if (!token) {
-    const error = "Uploads are not configured on this server (BLOB_READ_WRITE_TOKEN is missing).";
-    return { ok: false, response: NextResponse.json({ error }, { status: 503 }) };
-  }
-  return { ok: true, slug: account.slug, token };
-}
+  if (!account) return NextResponse.json({ error: "Sign in again to upload files." }, { status: 401 });
 
-/**
- * Status check. The Blob client hides token-route errors behind a generic message,
- * so the upload widget calls this after a failure to show the real reason.
- */
-export async function GET(): Promise<NextResponse> {
-  const r = await ready();
-  return r.ok ? NextResponse.json({ ok: true }) : r.response;
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const r = await ready();
-  if (!r.ok) return r.response;
-  const { slug, token } = r;
-
-  let body: HandleUploadBody;
-  try {
-    body = (await request.json()) as HandleUploadBody; // shape is checked by handleUpload itself
-  } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  const cloudinary = env().CLOUDINARY_URL;
+  if (!cloudinary) {
+    return NextResponse.json(
+      { error: "Uploads are not set up on this server yet (CLOUDINARY_URL is missing)." },
+      { status: 503 },
+    );
   }
 
-  try {
-    const result = await handleUpload({
-      token,
-      request,
-      body,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
-        if (!pathname.startsWith(`${slug}/`) || pathname.includes("..")) {
-          throw new Error("Upload path is outside your site");
-        }
-        const { kind } = Payload.parse(JSON.parse(clientPayload ?? "{}"));
-        const rule = UPLOAD_RULES[kind];
-        return {
-          allowedContentTypes: [...rule.contentTypes],
-          maximumSizeInBytes: rule.maxBytes,
-          addRandomSuffix: true,
-          tokenPayload: null,
-        };
-      },
-    });
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[upload] token request refused:", err instanceof Error ? err.message : err);
-    return NextResponse.json({ error: "Upload was refused. Check the file type and size." }, { status: 400 });
+  const parsed = Payload.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  const { pathname, kind } = parsed.data;
+
+  const parts = pathname.split("/");
+  const folderParts = parts.slice(0, -1);
+  const safe = folderParts.every((p) => /^[a-z0-9-]+$/.test(p));
+  if (parts[0] !== account.slug || folderParts.length < 2 || !safe) {
+    return NextResponse.json({ error: "Upload path is outside your site." }, { status: 403 });
   }
+
+  const signed = signUpload(cloudinary, { folder: `sheetfolio/${folderParts.join("/")}`, formats: FORMATS[kind] });
+  return NextResponse.json({ ...signed, maxBytes: UPLOAD_RULES[kind].maxBytes });
 }

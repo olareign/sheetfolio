@@ -14,7 +14,7 @@ export const UPLOAD_RULES: Record<UploadKind, { contentTypes: readonly string[];
   },
 };
 
-/** Blob path for an upload: `{slug}/{folder}/{safe-name}`. The route rejects anything outside `{slug}/`. */
+/** Path for an upload: `{slug}/{folder}/{safe-name}`. The route rejects anything outside `{slug}/`. */
 export function uploadPath(slug: string, folder: string, fileName: string): string {
   const safe =
     fileName

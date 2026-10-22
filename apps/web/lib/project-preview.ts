@@ -1,5 +1,5 @@
 import "server-only";
-import { put } from "@vercel/blob";
+import { uploadBytes } from "./cloudinary";
 import { ProjectPreview, type Project } from "@/content/schemas";
 import { mutateDraft } from "./collections";
 import { env } from "./env";
@@ -103,25 +103,12 @@ export async function buildPreview(websiteUrl: string, ctx: BuildContext): Promi
   return image ? { preview } : { preview, notice: NO_IMAGE_NOTICE };
 }
 
-const EXTENSION: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "image/avif": "avif",
-};
-
-function blobStore(slug: string, projectId: string): StoreImage {
+/** Keeps a project website's picture on our own image host, so the card doesn't depend on the other site. */
+function imageStore(slug: string, projectId: string): StoreImage {
   return async (bytes, contentType) => {
-    const token = env().BLOB_READ_WRITE_TOKEN;
-    if (!token) return null;
-    const blob = await put(`${slug}/previews/${projectId}.${EXTENSION[contentType] ?? "jpg"}`, Buffer.from(bytes), {
-      access: "public",
-      token,
-      addRandomSuffix: true,
-      contentType,
-    });
-    return blob.url;
+    const cloudinary = env().CLOUDINARY_URL;
+    if (!cloudinary) return null;
+    return uploadBytes(cloudinary, bytes, contentType, { folder: `sheetfolio/${slug}/previews`, publicId: projectId });
   };
 }
 
@@ -149,19 +136,14 @@ export async function refreshProjectPreview(
 
   const result = await buildPreview(project.websiteUrl, {
     now,
-    store: blobStore(slug, projectId),
+    store: imageStore(slug, projectId),
     screenshotTemplate: deps.ctx?.screenshotTemplate ?? env().SCREENSHOT_URL_TEMPLATE ?? DEFAULT_SCREENSHOT_TEMPLATE,
     ...deps.ctx,
   });
   if (!result.preview) return { notice: result.notice };
 
   const { preview } = result;
-  await patchProject(
-    slug,
-    projectId,
-    (p) => ({ ...p, preview, scope: p.scope || preview.description || "" }),
-    now,
-  );
+  await patchProject(slug, projectId, (p) => ({ ...p, preview, scope: p.scope || preview.description || "" }), now);
   return { notice: result.notice };
 }
 

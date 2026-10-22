@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { parseCloudinaryUrl } from "./cloudinary";
 
 // `.env.example` ships blank values (`KEY=`); a blank optional variable means "not set".
 const optional = <T extends z.ZodType>(schema: T) =>
@@ -13,7 +14,15 @@ const EnvSchema = z
     AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters (run `npx auth secret`)"),
     AUTH_RESEND_KEY: optional(z.string()),
     RESEND_FROM: optional(z.string()).transform((v) => v ?? "Sheetfolio <onboarding@resend.dev>"),
-    BLOB_READ_WRITE_TOKEN: optional(z.string()),
+    /** Image and document uploads: `cloudinary://<api_key>:<api_secret>@<cloud_name>` from the Cloudinary dashboard. */
+    CLOUDINARY_URL: optional(
+      z.string().transform((raw, ctx) => {
+        const parsed = parseCloudinaryUrl(raw);
+        if (!parsed)
+          ctx.addIssue({ code: "custom", message: "Must look like cloudinary://<api_key>:<api_secret>@<cloud_name>" });
+        return parsed ?? z.NEVER;
+      }),
+    ),
     /** Screenshot service for project previews; `{url}` is replaced by the encoded link. Defaults to Microlink. */
     SCREENSHOT_URL_TEMPLATE: optional(z.string().includes("{url}")),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),

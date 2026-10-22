@@ -20,7 +20,6 @@
     "@react-pdf/renderer": "^4.9.0",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
-    "@vercel/blob": "^2.8.0",
     "lucide-react": "^1.48.0",
     "next": "catalog:",
     "next-auth": "5.0.0-beta.32",
