@@ -2,6 +2,7 @@
 
 import { Controller, get, type FieldValues, type UseFormReturn } from "react-hook-form";
 import type { FieldSpec } from "@/content/form-spec";
+import { PLACEHOLDERS } from "@/content/placeholders";
 import { Field, fieldDescribedBy } from "@/components/sp/Field";
 import { ImageList } from "./ImageList";
 import { UploadField } from "./UploadField";
@@ -42,6 +43,7 @@ export function FieldRenderer({
     "aria-invalid": error ? true : undefined,
     "aria-describedby": fieldDescribedBy(id, { hint, error }),
   };
+  const placeholder = PLACEHOLDERS[spec.name];
   // Blank optional text → undefined so it clears; but a field with a schema default (e.g. scope: "")
   // keeps "" so a stored empty value doesn't read as an unsaved change.
   const optionalText = spec.required || spec.hasDefault ? {} : { setValueAs: blankToUndefined };
@@ -51,7 +53,13 @@ export function FieldRenderer({
     case "text":
     case "email":
       control = (
-        <input {...common} type={spec.kind} maxLength={spec.maxLength} {...form.register(name, optionalText)} />
+        <input
+          {...common}
+          type={spec.kind}
+          maxLength={spec.maxLength}
+          placeholder={placeholder}
+          {...form.register(name, optionalText)}
+        />
       );
       break;
     case "url":
@@ -67,7 +75,9 @@ export function FieldRenderer({
       );
       break;
     case "textarea":
-      control = <textarea {...common} rows={5} maxLength={spec.maxLength} {...form.register(name, optionalText)} />;
+      control = (
+        <textarea {...common} rows={5} maxLength={spec.maxLength} placeholder={placeholder} {...form.register(name, optionalText)} />
+      );
       break;
     case "number":
       control = (

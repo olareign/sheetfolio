@@ -3,11 +3,12 @@
 import { useActionState } from "react";
 import { Field, fieldDescribedBy } from "@/components/sp/Field";
 import { SubmitButton } from "@/components/sp/SubmitButton";
+import { PLACEHOLDERS, SLUG_PLACEHOLDER } from "@/content/placeholders";
 import { claimSite, type OnboardingField, type OnboardingState } from "./actions";
 
 const HINTS: Partial<Record<OnboardingField, string>> = {
   slug: "3–40 characters: lowercase letters, numbers, hyphens. You can change it later.",
-  firstName: "Used on your buttons, e.g. “WhatsApp Idris”.",
+  firstName: "Used on your buttons, e.g. “WhatsApp John”.",
 };
 
 export function OnboardingForm({ siteHost }: { siteHost: string }) {
@@ -40,19 +41,19 @@ export function OnboardingForm({ siteHost }: { siteHost: string }) {
             autoComplete="off"
             autoCapitalize="none"
             spellCheck={false}
-            placeholder="idris-rasaq"
+            placeholder={SLUG_PLACEHOLDER}
           />
         </div>
       </Field>
       <Field id="name" label="Full name" required error={err("name")}>
-        <input {...control("name")} autoComplete="name" placeholder="Rasaq Idris Olawale" />
+        <input {...control("name")} autoComplete="name" placeholder={PLACEHOLDERS.name} />
       </Field>
       <div className="sp-row-2">
         <Field id="firstName" label="First name" required hint={HINTS.firstName} error={err("firstName")}>
-          <input {...control("firstName")} autoComplete="given-name" placeholder="Idris" />
+          <input {...control("firstName")} autoComplete="given-name" placeholder={PLACEHOLDERS.firstName} />
         </Field>
         <Field id="headline" label="Headline" required error={err("headline")}>
-          <input {...control("headline")} placeholder="Site Engineer" />
+          <input {...control("headline")} placeholder={PLACEHOLDERS.headline} />
         </Field>
       </div>
       <div>

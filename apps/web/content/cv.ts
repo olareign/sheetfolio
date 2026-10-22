@@ -153,7 +153,7 @@ export function leadProjects(cv: Pick<CvModel, "projects">, max: number): { lead
   return { lead: ordered.slice(0, max), rest: ordered.slice(max) };
 }
 
-/** "Rasaq Idris Olawale" → "Rasaq-Idris-Olawale-CV.pdf" (ASCII only, safe for Content-Disposition). */
+/** "John Doe" → "John-Doe-CV.pdf" (ASCII only, safe for Content-Disposition). */
 export function cvFileName(name: string, template?: CvTemplateId): string {
   const ascii = (text: string) =>
     text
