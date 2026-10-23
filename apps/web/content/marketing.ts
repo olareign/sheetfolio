@@ -71,16 +71,6 @@ export type FeatureIcon =
   | "search"
   | "chat";
 
-export const STEPS = [
-  { icon: "user", title: "Sign up", text: "Pick your page address and a password. It takes under a minute." },
-  {
-    icon: "grid",
-    title: "Add your work",
-    text: "Fill in your profile, projects and credentials. A website link fills in a project's picture for you.",
-  },
-  { icon: "bolt", title: "Publish", text: "Your link goes live. Share it anywhere." },
-] as const;
-
 export type UseCase = {
   /** Who it is for, as a group. Never a named person. */
   who: string;

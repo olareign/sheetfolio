@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { AUDIENCE, FAQS, FEATURES, PLANS, STEPS, USE_CASES, type Plan, type UseCase } from "@/content/marketing";
+import { AUDIENCE, FAQS, FEATURES, PLANS, USE_CASES, type Plan, type UseCase } from "@/content/marketing";
 import { Deco, type DecoKind } from "./Deco";
 import { Icon } from "./icons";
 import { MarketingButton } from "./MarketingButton";
@@ -242,22 +242,6 @@ export function UseCaseGrid({ items = USE_CASES }: { items?: readonly UseCase[] 
       </ul>
       {items.length > 1 && <SwipeHint />}
     </>
-  );
-}
-
-export function Steps() {
-  return (
-    <ul className="mk-cards mk-cards--3">
-      {STEPS.map((s) => (
-        <li key={s.title} className="mk-card">
-          <span className="mk-icon-tile">
-            <Icon name={s.icon} />
-          </span>
-          <h3>{s.title}</h3>
-          <p>{s.text}</p>
-        </li>
-      ))}
-    </ul>
   );
 }
 

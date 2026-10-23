@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { projectCover, type Cover } from "@/content/covers";
-import type { Site } from "@/content/schemas";
+import type { Category, Site } from "@/content/schemas";
 import { FEATURED_TAG, getDayViews, getProjectViews, getPublished, listSiteSlugs } from "./site";
 
 /*
@@ -24,6 +24,8 @@ export type FeaturedUser = {
   views: number;
   projectViews: number;
   projects: number;
+  /** The kinds of project on the page, for the Featured filter. */
+  categories: Category[];
   publishedAt: string;
 };
 
@@ -75,6 +77,7 @@ export async function getFeaturedUsers(limit = 12, now: Date = new Date()): Prom
         views: days.reduce((n, d) => n + d.views, 0),
         projectViews: Object.values(perProject).reduce((n, v) => n + v, 0),
         projects: site.projects.length,
+        categories: [...new Set(site.projects.map((p) => p.category))],
         publishedAt: site.publishedAt,
       };
     }),
