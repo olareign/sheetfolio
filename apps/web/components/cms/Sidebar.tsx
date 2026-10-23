@@ -11,6 +11,8 @@ export type NavItem = {
   label: string;
   count?: number;
   /** Highlighted count, e.g. unread leads. */ badge?: number;
+  /** What the badge counts, for screen readers. Defaults to "unread". */
+  badgeLabel?: string;
 };
 
 export function Sidebar({
@@ -46,7 +48,7 @@ export function Sidebar({
           <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
             <span>{item.label}</span>
             {item.badge ? (
-              <span className="cms-badge" aria-label={`${item.badge} unread`}>
+              <span className="cms-badge" aria-label={`${item.badge} ${item.badgeLabel ?? "unread"}`}>
                 {item.badge}
               </span>
             ) : (

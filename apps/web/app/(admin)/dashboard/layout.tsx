@@ -5,6 +5,7 @@ import { TopBar } from "@/components/cms/TopBar";
 import { UnsavedChangesProvider } from "@/components/cms/UnsavedChanges";
 import { ViewsChart } from "@/components/cms/ViewsChart";
 import { publishState } from "@/content/cms";
+import { missingRequired } from "@/content/setup";
 import { collections, type CollectionName } from "@/content/schemas";
 import { getCmsContext } from "@/lib/cms-data";
 import "@/styles/cms.css";
@@ -22,7 +23,16 @@ const NAV_COLLECTIONS: CollectionName[] = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const { account, draft, published, unread, weekViews } = await getCmsContext();
+  // The setup guide stays in the menu until the page is live and has what it needs; then it is just clutter.
+  const missing = missingRequired({
+    summary: draft.profile.summary,
+    location: draft.profile.location,
+    whatsapp: draft.profile.whatsapp,
+  }).length;
   const items: NavItem[] = [
+    ...(published && missing === 0
+      ? []
+      : [{ href: "/dashboard/setup", label: "Setup guide", badge: missing || undefined, badgeLabel: "to do" }]),
     { href: "/dashboard", label: "Overview" },
     { href: "/dashboard/profile", label: "Profile" },
     ...NAV_COLLECTIONS.map((name) => ({

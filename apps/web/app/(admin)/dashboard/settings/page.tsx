@@ -15,7 +15,13 @@ export default async function SettingsPage({ searchParams }: Props) {
   return (
     <main className="cms-content">
       <SettingsForm
-        defaultValues={{ theme: draft.settings.theme, showInShowcase: draft.settings.showInShowcase, whatsapp, whatsappMessage, publicEmail }}
+        defaultValues={{
+          theme: draft.settings.theme,
+          showInShowcase: draft.settings.showInShowcase,
+          whatsapp,
+          whatsappMessage,
+          publicEmail,
+        }}
         slug={account.slug}
       />
       <PasswordForm username={credentials ? (credentials.username ?? email) : null} changed={changed === "password"} />

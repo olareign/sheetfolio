@@ -101,11 +101,11 @@ export function AboutBento({ host }: { host: string }) {
           <i aria-hidden="true" /> Why Sheetfolio
         </span>
         <h2 id="about-title" className="mk-statement">
-          A portfolio for anyone whose work is worth showing,{" "}
+          Your work deserves{" "}
           <span className="mk-inline-icon">
             <Icon name="user" size={20} />
           </span>{" "}
-          not only designers and developers.
+          to be seen.
         </h2>
       </div>
       <div className="mk-bento">

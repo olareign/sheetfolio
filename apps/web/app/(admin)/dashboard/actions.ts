@@ -6,12 +6,24 @@ import { issuesToFieldErrors } from "@/content/form-spec";
 import { CollectionNameSchema } from "@/content/schemas";
 import { signOut } from "@/lib/auth";
 import { deleteItem, reorderItems, saveCvLayouts, saveProfile, saveSettings, upsertItem } from "@/lib/collections";
+import { applyCvImport } from "@/lib/cv-import/apply";
 import { refreshProjectPreview } from "@/lib/project-preview";
 import { requireAccount } from "@/lib/session";
+import { saveSetupProfile, type SetupPart } from "@/lib/setup";
 import { getDraft, markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
 export type ActionResult =
-  { ok: true; id?: string; at: string; /** Saved fine, but something worth telling the owner. */ notice?: string; /** The item as stored, when the server changed it after the save (a filled-in description). */ values?: Record<string, unknown> } | { ok: false; formError?: string; fieldErrors: Record<string, string> };
+  | {
+      ok: true;
+      id?: string;
+      at: string;
+      /** Saved fine, but something worth telling the owner. */ notice?: string;
+      /** The item as stored, when the server changed it after the save (a filled-in description). */ values?: Record<
+        string,
+        unknown
+      >;
+    }
+  | { ok: false; formError?: string; fieldErrors: Record<string, string> };
 
 const ItemId = z.union([z.literal("new"), z.string().min(1).max(64)]);
 
@@ -71,7 +83,13 @@ const PREVIEW_BUDGET_MS = 10_000;
  */
 async function previewNotice(slug: string, projectId: string): Promise<string | undefined> {
   const slow = new Promise<{ notice: string }>((resolve) =>
-    setTimeout(() => resolve({ notice: "Saved. The website is slow to answer, so its preview isn't ready yet. Save again in a moment." }), PREVIEW_BUDGET_MS),
+    setTimeout(
+      () =>
+        resolve({
+          notice: "Saved. The website is slow to answer, so its preview isn't ready yet. Save again in a moment.",
+        }),
+      PREVIEW_BUDGET_MS,
+    ),
   );
   try {
     return (await Promise.race([refreshProjectPreview(slug, projectId), slow])).notice;
@@ -104,6 +122,25 @@ export async function saveSettingsAction(data: unknown): Promise<ActionResult> {
 
 export async function saveCvLayoutsAction(data: unknown): Promise<ActionResult> {
   return run((slug) => saveCvLayouts(slug, data));
+}
+
+export async function saveSetupAction(part: SetupPart, data: unknown): Promise<ActionResult> {
+  if (part !== "about" && part !== "contact") return badRequest("Unknown step.");
+  return run((slug) => saveSetupProfile(slug, part, data));
+}
+
+export async function applyCvImportAction(data: unknown): Promise<ActionResult> {
+  return run(async (slug) => {
+    const added = await applyCvImport(slug, data);
+    const parts = [
+      added.experiences && `${added.experiences} ${added.experiences === 1 ? "role" : "roles"}`,
+      added.education && `${added.education} ${added.education === 1 ? "qualification" : "qualifications"}`,
+      added.certifications &&
+        `${added.certifications} ${added.certifications === 1 ? "certification" : "certifications"}`,
+      added.profile && "your details",
+    ].filter(Boolean);
+    return { notice: parts.length ? `Added ${parts.join(", ")}.` : "Everything in that CV was already on your page." };
+  });
 }
 
 export async function publishAction(): Promise<ActionResult> {

@@ -68,7 +68,7 @@ export async function signUp(_prev: SignupState, formData: FormData): Promise<Si
   }
 
   try {
-    await signIn("credentials", { identifier: data.email, password: data.password, redirectTo: "/dashboard" });
+    await signIn("credentials", { identifier: data.email, password: data.password, redirectTo: "/dashboard/setup" });
   } catch (err) {
     if (err instanceof AuthError) {
       // The account exists; only the automatic sign-in failed.

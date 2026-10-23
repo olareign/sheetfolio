@@ -9,10 +9,7 @@ export default async function CvPage() {
   return (
     <main className="cms-content">
       <h1 className="cms-title">CV</h1>
-      <CvLayoutsForm
-        initial={publicCvTemplate(draft.settings)}
-        draftVersion={draft.updatedAt}
-      />
+      <CvLayoutsForm initial={publicCvTemplate(draft.settings)} draftVersion={draft.updatedAt} />
     </main>
   );
 }

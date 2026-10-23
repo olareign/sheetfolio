@@ -80,6 +80,24 @@ export async function allowResetRequest(identifier: string, ip: string): Promise
   }
 }
 
+let cvImportByAccount: Ratelimit | undefined;
+
+/** CV imports: 10 per account per hour. Reading a PDF costs real CPU, so a script cannot loop on it. */
+export async function allowCvImport(accountKey: string): Promise<boolean> {
+  cvImportByAccount ??= new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    prefix: "ratelimit:cv-import:account",
+    analytics: false,
+  });
+  try {
+    return (await cvImportByAccount.limit(accountKey.trim().toLowerCase())).success;
+  } catch (err) {
+    console.error("[cv-import] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return true;
+  }
+}
+
 let signupByIp: Ratelimit | undefined;
 
 /** Sign-ups: 10 per IP per hour, enough for a shared office network but not for filling the directory with junk. */
