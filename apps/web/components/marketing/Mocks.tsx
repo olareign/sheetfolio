@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { AutoSlide } from "./AutoSlide";
 import { Avatar } from "./Avatar";
 
 const WEEKS = [28, 34, 30, 46, 42, 58, 54, 72, 66, 88, 80, 104];
@@ -148,45 +149,47 @@ export function DashboardPreview() {
               </div>
             ))}
           </div>
-          <div className="mk-dash-grid mk-cards--swipe">
-            <div className="mk-dash-card">
-              <b>Views by week</b>
-              <Bars values={WEEKS.map((w) => Math.round((w / 104) * 100))} height={130} />
-              <div className="mk-dash-axis">
-                <span>Week 1</span>
-                <span>Week 12</span>
+          <AutoSlide>
+            <div className="mk-dash-grid mk-cards--swipe">
+              <div className="mk-dash-card">
+                <b>Views by week</b>
+                <Bars values={WEEKS.map((w) => Math.round((w / 104) * 100))} height={130} />
+                <div className="mk-dash-axis">
+                  <span>Week 1</span>
+                  <span>Week 12</span>
+                </div>
+              </div>
+              <div className="mk-dash-card">
+                <b>Most opened projects</b>
+                {top.map(([src, title, sub, n]) => (
+                  <div key={title} className="mk-top-row">
+                    <span className="mk-top-thumb">
+                      <Image src={src ?? ""} alt="" fill sizes="56px" />
+                    </span>
+                    <div>
+                      <b>{title}</b>
+                      <div className="mk-muted">{sub}</div>
+                    </div>
+                    <b className="mk-num">{n}</b>
+                  </div>
+                ))}
+              </div>
+              <div className="mk-dash-card">
+                <b>Latest enquiries</b>
+                {leads.map(([label, name, text, when, unread]) => (
+                  <div key={name} className="mk-lead-row">
+                    <Avatar label={label} size={34} />
+                    <div>
+                      <b>{name}</b>
+                      <div className="mk-muted">{text}</div>
+                    </div>
+                    <span className="mk-muted">{when}</span>
+                    {unread && <span className="mk-dot mk-pulse" aria-label="Unread" role="img" />}
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="mk-dash-card">
-              <b>Most opened projects</b>
-              {top.map(([src, title, sub, n]) => (
-                <div key={title} className="mk-top-row">
-                  <span className="mk-top-thumb">
-                    <Image src={src ?? ""} alt="" fill sizes="56px" />
-                  </span>
-                  <div>
-                    <b>{title}</b>
-                    <div className="mk-muted">{sub}</div>
-                  </div>
-                  <b className="mk-num">{n}</b>
-                </div>
-              ))}
-            </div>
-            <div className="mk-dash-card">
-              <b>Latest enquiries</b>
-              {leads.map(([label, name, text, when, unread]) => (
-                <div key={name} className="mk-lead-row">
-                  <Avatar label={label} size={34} />
-                  <div>
-                    <b>{name}</b>
-                    <div className="mk-muted">{text}</div>
-                  </div>
-                  <span className="mk-muted">{when}</span>
-                  {unread && <span className="mk-dot mk-pulse" aria-label="Unread" role="img" />}
-                </div>
-              ))}
-            </div>
-          </div>
+          </AutoSlide>
         </div>
       </div>
     </>

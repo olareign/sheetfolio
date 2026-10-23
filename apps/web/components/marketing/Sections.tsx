@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AUDIENCE, FAQS, FEATURES, PLANS, USE_CASES, type Plan, type UseCase } from "@/content/marketing";
+import { AutoSlide } from "./AutoSlide";
 import { Deco, type DecoKind } from "./Deco";
 import { Icon } from "./icons";
 import { MarketingButton } from "./MarketingButton";
@@ -182,28 +183,20 @@ export function FeatureCards() {
       <div className="mk-center-cta">
         <MarketingButton href="/signup">Create your page</MarketingButton>
       </div>
-      <ul className="mk-cards mk-cards--4 mk-cards--swipe">
-        {FEATURES.map((f) => (
-          <li key={f.title} className="mk-card mk-lift">
-            <span className="mk-icon-tile">
-              <Icon name={f.icon} />
-            </span>
-            <h3>{f.title}</h3>
-            <p>{f.text}</p>
-          </li>
-        ))}
-      </ul>
-      <SwipeHint />
+      <AutoSlide>
+        <ul className="mk-cards mk-cards--4 mk-cards--swipe">
+          {FEATURES.map((f) => (
+            <li key={f.title} className="mk-card mk-lift">
+              <span className="mk-icon-tile">
+                <Icon name={f.icon} />
+              </span>
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </li>
+          ))}
+        </ul>
+      </AutoSlide>
     </Section>
-  );
-}
-
-/** Shown under swipeable card rows on phones only. */
-export function SwipeHint() {
-  return (
-    <p className="mk-swipe-hint" aria-hidden="true">
-      <span /> Swipe for more
-    </p>
   );
 }
 
@@ -233,14 +226,15 @@ export function UseCaseCard({ useCase }: { useCase: UseCase }) {
 export function UseCaseGrid({ items = USE_CASES }: { items?: readonly UseCase[] }) {
   return (
     <>
-      <ul className="mk-cards mk-cards--3 mk-cards--stories mk-cards--swipe">
-        {items.map((u) => (
-          <li key={u.title}>
-            <UseCaseCard useCase={u} />
-          </li>
-        ))}
-      </ul>
-      {items.length > 1 && <SwipeHint />}
+      <AutoSlide>
+        <ul className="mk-cards mk-cards--3 mk-cards--stories mk-cards--swipe">
+          {items.map((u) => (
+            <li key={u.title}>
+              <UseCaseCard useCase={u} />
+            </li>
+          ))}
+        </ul>
+      </AutoSlide>
     </>
   );
 }

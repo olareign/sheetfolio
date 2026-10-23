@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { FeaturedCard } from "@/components/marketing/FeaturedCard";
 import { Hero } from "@/components/marketing/Hero";
 import { FeatureRow } from "@/components/marketing/FeatureRow";
@@ -14,7 +13,7 @@ import {
   Strip,
   UseCaseGrid,
 } from "@/components/marketing/Sections";
-import { LANDING, USE_CASES } from "@/content/marketing";
+import { USE_CASES } from "@/content/marketing";
 import { publicSiteUrl } from "@/lib/env";
 import { jsonLd } from "@/lib/seo";
 import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
@@ -128,15 +127,6 @@ export default async function HomePage() {
           <MarketingButton href="/use-cases" variant="ghost">
             See more use cases
           </MarketingButton>
-        </div>
-      </Section>
-      <Section>
-        <div className="mk-photoband">
-          {[LANDING.waterfront, LANDING.crafts, LANDING.classroom].map((img) => (
-            <div key={img.src} className="mk-photoband-item">
-              <Image src={img.src} alt={img.alt} fill sizes="(max-width: 900px) 100vw, 360px" />
-            </div>
-          ))}
         </div>
       </Section>
       <CtaBand />

@@ -266,7 +266,6 @@
 
 /* Stories and quotes */
 .mk-example-photo { position: relative; aspect-ratio: 4 / 3; flex: none; overflow: hidden; }
-.mk-example-photo img, .mk-split-media img, .mk-photoband-item img, .mk-mock-photo img, .mk-top-thumb img { object-fit: cover; }
 /* A portrait keeps the face in frame inside the landscape box. */
 .mk-example-photo--person img { object-position: center 20%; }
 
@@ -285,8 +284,6 @@
 .mk-points svg { flex: none; margin-top: 2px; color: var(--blueprint); }
 @media (max-width: 760px) { .mk-split--flip .mk-split-media { order: 0; } .mk-split-text { padding: 28px; } }
 
-.mk-photoband { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px; }
-.mk-photoband-item { position: relative; aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; }
 
 /* Product mocks */
 .mk-mock { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; width: 72%; min-width: min(230px, 100%); padding: 20px; box-sizing: border-box; border: 1px solid var(--hairline); border-radius: 18px; background: var(--paper-raised); box-shadow: var(--shadow-lift); font-size: 13px; }
@@ -434,7 +431,7 @@
 .mk-radio--on { border: 5px solid var(--blueprint); background: var(--paper-raised); }
 
 /* ── Phones: compact tiles and swipeable card rows ──────────────────────── */
-.mk-swipe-hint { display: none; }
+.mk-dots { display: none; }
 @media (max-width: 760px) {
 
   .mk-cards--swipe {
@@ -453,12 +450,7 @@
   .mk-cards--swipe .mk-lift:hover { transform: none; }
   .mk-cards--swipe .mk-card h3 { min-height: 0; }
 
-  .mk-swipe-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: var(--space-3) 0 0; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
-  .mk-swipe-hint span { position: relative; width: 40px; height: 4px; border-radius: 4px; background: var(--hairline); overflow: hidden; }
-  .mk-swipe-hint span::after { content: ""; position: absolute; inset: 0; width: 40%; border-radius: 4px; background: var(--blueprint); animation: mk-swipe 1.8s ease-in-out infinite; }
 }
-@keyframes mk-swipe { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
-@media (prefers-reduced-motion: reduce) { .mk-swipe-hint span::after { animation: none; transform: translateX(60%); } }
 @media (max-width: 760px) {
   .mk-dash { padding: 8px; border-radius: 22px; }
   .mk-dash-inner { padding: 14px; gap: 14px; border-radius: 16px; }
@@ -476,9 +468,6 @@
   .mk-mock, .mk-mock--wide { width: 100%; }
 }
 @media (max-width: 760px) {
-  .mk-photoband { display: flex; gap: 12px; margin-inline: -24px; padding-inline: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 24px; scrollbar-width: none; }
-  .mk-photoband::-webkit-scrollbar { display: none; }
-  .mk-photoband-item { flex: 0 0 78%; scroll-snap-align: start; border-radius: 20px; }
   .mk-footer-top { padding: 52px 0 36px; }
   .mk-footer-top h2 { font-size: 24px; }
   .mk-footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 20px; padding: 40px 0; }
@@ -674,4 +663,12 @@
 @media (max-width: 560px) {
   .mk-ff { grid-template-columns: minmax(0, 1fr); padding: 14px; }
   .mk-pager ol { order: 3; width: 100%; justify-content: center; }
+}
+
+/* ── Auto-sliding phone rows: dots under the row ────────────────────────── */
+@media (max-width: 760px) {
+  .mk-dots { display: flex; justify-content: center; gap: 8px; margin-top: var(--space-3); }
+  .mk-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: var(--rule); cursor: pointer; transition: width 0.25s, background 0.25s; }
+  .mk-dots button.is-on { width: 22px; background: var(--blueprint); }
+  .mk-dots button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 }
