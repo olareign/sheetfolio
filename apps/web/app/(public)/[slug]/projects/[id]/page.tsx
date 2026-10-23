@@ -22,7 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await load(params);
   if (!data) return {};
   const { site, project } = data;
-  const description = (project.scope || currentPreview(project)?.description || `${project.title}, ${project.location}.`).slice(0, 160);
+  const description = (
+    project.scope ||
+    currentPreview(project)?.description ||
+    `${project.title}, ${project.location}.`
+  ).slice(0, 160);
   const cover = projectCover(project);
   const title = `${project.title} · ${site.profile.name}`;
   return {

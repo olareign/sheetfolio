@@ -57,7 +57,9 @@ describe("buildPreview", () => {
   it("uses the site's own picture and keeps its title and description", async () => {
     const fetchImpl = network({
       "https://acme.test": () =>
-        page(`<title>Acme</title><meta property="og:description" content="We build."><meta property="og:image" content="https://acme.test/og.png">`),
+        page(
+          `<title>Acme</title><meta property="og:description" content="We build."><meta property="og:image" content="https://acme.test/og.png">`,
+        ),
       "https://acme.test/og.png": png,
     });
     const out = await buildPreview("https://acme.test", ctx(fetchImpl));
@@ -115,7 +117,9 @@ describe("buildPreview", () => {
   });
 
   it("returns a reason instead of throwing when the site is down or blocked", async () => {
-    const down = network({ "https://acme.test": () => new Response("no", { status: 500, headers: { "content-type": "text/html" } }) });
+    const down = network({
+      "https://acme.test": () => new Response("no", { status: 500, headers: { "content-type": "text/html" } }),
+    });
     const a = await buildPreview("https://acme.test", ctx(down));
     expect(a.preview).toBeUndefined();
     expect(a.notice).toMatch(/couldn't reach/);
@@ -159,7 +163,9 @@ describe("refreshProjectPreview", () => {
   const site = network({
     "https://acme.test/og.png": png,
     "https://acme.test": () =>
-      page(`<title>Acme</title><meta property="og:description" content="A clinic for older people."><meta property="og:image" content="https://acme.test/og.png">`),
+      page(
+        `<title>Acme</title><meta property="og:description" content="A clinic for older people."><meta property="og:image" content="https://acme.test/og.png">`,
+      ),
   });
 
   it("stores the preview and fills an empty description from the site", async () => {
@@ -172,7 +178,12 @@ describe("refreshProjectPreview", () => {
   });
 
   it("keeps a description the owner already wrote", async () => {
-    const id = await upsertItem(SLUG, "projects", "new", project({ websiteUrl: "https://acme.test", scope: "My own words" }));
+    const id = await upsertItem(
+      SLUG,
+      "projects",
+      "new",
+      project({ websiteUrl: "https://acme.test", scope: "My own words" }),
+    );
     await refreshProjectPreview(SLUG, id, { now, ctx: ctx(site) });
     expect((await read(id)).scope).toBe("My own words");
   });
@@ -190,7 +201,8 @@ describe("refreshProjectPreview", () => {
     await refreshProjectPreview(SLUG, id, { now, ctx: ctx(site) });
     const next = network({
       "https://other.test/og.png": png,
-      "https://other.test": () => page(`<title>Other</title><meta property="og:image" content="https://other.test/og.png">`),
+      "https://other.test": () =>
+        page(`<title>Other</title><meta property="og:image" content="https://other.test/og.png">`),
     });
     const current = await read(id);
     await upsertItem(SLUG, "projects", id, { ...current, websiteUrl: "https://other.test" });
@@ -209,7 +221,9 @@ describe("refreshProjectPreview", () => {
 
   it("leaves the project unchanged and returns a notice when the site can't be read", async () => {
     const id = await upsertItem(SLUG, "projects", "new", project({ websiteUrl: "https://acme.test" }));
-    const down = network({ "https://acme.test": () => new Response("x", { status: 503, headers: { "content-type": "text/html" } }) });
+    const down = network({
+      "https://acme.test": () => new Response("x", { status: 503, headers: { "content-type": "text/html" } }),
+    });
     const out = await refreshProjectPreview(SLUG, id, { now, ctx: ctx(down) });
     expect(out.notice).toMatch(/Upload a cover photo/);
     expect((await read(id)).preview).toBeUndefined();

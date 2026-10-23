@@ -8,7 +8,9 @@ describe("whatsappLink", () => {
     );
   });
   it("strips formatting from the number and adds context", () => {
-    expect(whatsappLink("+234 703-343", "Hi", "Geriatric Centre")).toBe("https://wa.me/234703343?text=Hi%20(Geriatric%20Centre)");
+    expect(whatsappLink("+234 703-343", "Hi", "Geriatric Centre")).toBe(
+      "https://wa.me/234703343?text=Hi%20(Geriatric%20Centre)",
+    );
   });
   it("omits text when the message is empty", () => {
     expect(whatsappLink("2347033435818", "")).toBe("https://wa.me/2347033435818");

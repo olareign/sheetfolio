@@ -66,9 +66,7 @@ export async function upsertItem(
       checkCrossItemRules(name, item, draft);
       // A project's website preview is written by the server, never by the form, so an edit keeps the stored one.
       const saved =
-        name === "projects"
-          ? { ...item, preview: (items[index] as { preview?: unknown } | undefined)?.preview }
-          : item;
+        name === "projects" ? { ...item, preview: (items[index] as { preview?: unknown } | undefined)?.preview } : item;
       const next = index === -1 ? [...items, saved] : items.map((i) => (i.id === itemId ? saved : i));
       return { ...draft, [name]: next };
     },
@@ -145,7 +143,11 @@ export async function saveSettings(slug: string, data: unknown, now: Date = new 
   const { theme, showInShowcase, ...contact } = parsed.data;
   await mutateDraft(
     slug,
-    (draft) => ({ ...draft, profile: { ...draft.profile, ...contact }, settings: { ...draft.settings, theme, showInShowcase } }),
+    (draft) => ({
+      ...draft,
+      profile: { ...draft.profile, ...contact },
+      settings: { ...draft.settings, theme, showInShowcase },
+    }),
     now,
   );
 }

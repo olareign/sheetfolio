@@ -66,14 +66,16 @@ export async function assertPublicUrl(raw: string): Promise<URL> {
   } catch {
     throw new PreviewError("BLOCKED", "That is not a valid link");
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new PreviewError("BLOCKED", "Only http and https links");
+  if (url.protocol !== "http:" && url.protocol !== "https:")
+    throw new PreviewError("BLOCKED", "Only http and https links");
   if (url.username || url.password) throw new PreviewError("BLOCKED", "Links with credentials are not allowed");
   const host = url.hostname.replace(/^\[|\]$/g, "");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
     throw new PreviewError("BLOCKED", "That address is not public");
   }
   const addresses = isIP(host) ? [host] : (await lookup(host, { all: true })).map((a) => a.address);
-  if (addresses.length === 0 || addresses.some(isPrivateAddress)) throw new PreviewError("BLOCKED", "That address is not public");
+  if (addresses.length === 0 || addresses.some(isPrivateAddress))
+    throw new PreviewError("BLOCKED", "That address is not public");
   return url;
 }
 
@@ -139,7 +141,10 @@ async function safeGet(
     }
     if (!res.ok) throw new PreviewError("FETCH", `The site answered ${res.status}`);
     const type = (res.headers.get("content-type") ?? "").split(";")[0]?.trim().toLowerCase() ?? "";
-    const ok = accept === "html" ? type === "text/html" || type === "application/xhtml+xml" : /^image\/(jpeg|png|webp|gif|avif)$/.test(type);
+    const ok =
+      accept === "html"
+        ? type === "text/html" || type === "application/xhtml+xml"
+        : /^image\/(jpeg|png|webp|gif|avif)$/.test(type);
     if (!ok) throw new PreviewError("TYPE", `Unexpected content type ${type || "unknown"}`);
     return { url: url.toString(), type, bytes: await readCapped(res, max) };
   }
@@ -182,7 +187,8 @@ export function parseSiteMeta(html: string, baseUrl: string): SiteMeta {
   const titleTag = head.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
 
   let image: string | undefined;
-  const rawImage = meta["og:image:secure_url"] ?? meta["og:image"] ?? meta["twitter:image"] ?? meta["twitter:image:src"];
+  const rawImage =
+    meta["og:image:secure_url"] ?? meta["og:image"] ?? meta["twitter:image"] ?? meta["twitter:image:src"];
   if (rawImage) {
     try {
       const resolved = new URL(decodeEntities(rawImage).trim(), baseUrl);
@@ -203,7 +209,10 @@ export type PreviewDeps = { fetchImpl?: FetchLike; guard?: Guard };
 
 /** Fetches the page and reads its metadata. Throws `PreviewError` with a reason the dashboard can show. */
 export async function fetchSiteMeta(url: string, deps: PreviewDeps = {}): Promise<SiteMeta> {
-  const page = await safeGet(url, "html", MAX_HTML_BYTES, { fetchImpl: deps.fetchImpl ?? fetch, guard: deps.guard ?? assertPublicUrl });
+  const page = await safeGet(url, "html", MAX_HTML_BYTES, {
+    fetchImpl: deps.fetchImpl ?? fetch,
+    guard: deps.guard ?? assertPublicUrl,
+  });
   return parseSiteMeta(new TextDecoder().decode(page.bytes), page.url);
 }
 
@@ -212,7 +221,10 @@ export async function fetchImageBytes(
   url: string,
   deps: PreviewDeps = {},
 ): Promise<{ bytes: Uint8Array; contentType: string }> {
-  const img = await safeGet(url, "image", MAX_IMAGE_BYTES, { fetchImpl: deps.fetchImpl ?? fetch, guard: deps.guard ?? assertPublicUrl });
+  const img = await safeGet(url, "image", MAX_IMAGE_BYTES, {
+    fetchImpl: deps.fetchImpl ?? fetch,
+    guard: deps.guard ?? assertPublicUrl,
+  });
   return { bytes: img.bytes, contentType: img.type };
 }
 
@@ -223,4 +235,3 @@ export const DEFAULT_SCREENSHOT_TEMPLATE =
 export function screenshotUrl(target: string, template = DEFAULT_SCREENSHOT_TEMPLATE): string {
   return template.replace("{url}", encodeURIComponent(target));
 }
-

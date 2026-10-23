@@ -16,12 +16,19 @@ import {
 } from "@/components/marketing/Sections";
 import { LANDING, USE_CASES } from "@/content/marketing";
 import { publicSiteUrl } from "@/lib/env";
+import { jsonLd } from "@/lib/seo";
 import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
 
+const TITLE = "Sheetfolio · Your work, your CV and your enquiries on one page";
+const DESCRIPTION =
+  "Build a portfolio page for any profession. Start from your CV, pick the layout people download, get enquiries by WhatsApp or email, and see who is looking. Free while we test.";
+
 export const metadata: Metadata = {
-  title: { absolute: "Sheetfolio · Your work, your CV and your enquiries on one page" },
-  description:
-    "Build a portfolio page for any profession. Pick the CV layout people download, and see who is looking. Free while we test.",
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "/", type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 // The featured strip follows the live ranking; a page going live drops it at once, views refresh it every minute.
@@ -39,8 +46,22 @@ async function topFeatured(): Promise<FeaturedUser[]> {
 
 export default async function HomePage() {
   const featured = await topFeatured();
+  const origin = publicSiteUrl().origin;
   return (
     <>
+      <script
+        type="application/ld+json"
+        // Structured data for search engines: the site and who runs it.
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            "@context": "https://schema.org",
+            "@graph": [
+              { "@type": "WebSite", name: "Sheetfolio", url: origin, description: DESCRIPTION },
+              { "@type": "Organization", name: "Sheetfolio", url: origin },
+            ],
+          }),
+        }}
+      />
       <Hero />
       <Strip />
       <AboutBento host={publicSiteUrl().host} />

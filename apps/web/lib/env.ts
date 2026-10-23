@@ -26,6 +26,8 @@ const EnvSchema = z
     /** Screenshot service for project previews; `{url}` is replaced by the encoded link. Defaults to Microlink. */
     SCREENSHOT_URL_TEMPLATE: optional(z.string().includes("{url}")),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),
+    /** Where privacy requests and support questions go; shown on the privacy policy. */
+    SUPPORT_EMAIL: optional(z.email()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
       (raw ?? "")
         .split(",")
