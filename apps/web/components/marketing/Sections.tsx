@@ -1,21 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  AUDIENCE,
-  FAQS,
-  FEATURES,
-  PEOPLE,
-  PLANS,
-  QUOTES,
-  STEPS,
-  STORIES,
-  TILES,
-  type Plan,
-  type Quote,
-  type Story,
-} from "@/content/marketing";
-import { Avatar } from "./Avatar";
+import { AUDIENCE, FAQS, FEATURES, PLANS, STEPS, USE_CASES, type Plan, type UseCase } from "@/content/marketing";
 import { Deco, type DecoKind } from "./Deco";
 import { Icon } from "./icons";
 import { MarketingButton } from "./MarketingButton";
@@ -81,10 +67,6 @@ export function PageHead({ eyebrow, title, lead }: { eyebrow: string; title: str
   );
 }
 
-export function SampleBadge({ children = "Sample" }: { children?: string }) {
-  return <span className="mk-sample">{children}</span>;
-}
-
 /** Scrolling "made for everyone" strip. The second copy is hidden from assistive tech. */
 export function Strip() {
   const row = (hidden?: boolean) => (
@@ -107,7 +89,11 @@ export function Strip() {
   );
 }
 
-export function AboutTiles() {
+const CV_THUMBS = ["Classic", "Modern", "Projects", "Minimal"] as const;
+const ABOUT_ROWS = ["Projects", "Experience", "CV", "Contact"] as const;
+
+/** "Why Sheetfolio": four tiles of different sizes, each showing the idea instead of only stating it. */
+export function AboutBento({ host }: { host: string }) {
   return (
     <Section deco={["blob"]} labelledBy="about-title">
       <div className="mk-head mk-head--center">
@@ -122,16 +108,63 @@ export function AboutTiles() {
           not only designers and developers.
         </h2>
       </div>
-      <div className="mk-tiles">
-        {TILES.map((t) => (
-          <div key={t.big} className={`mk-tile mk-tile--${t.tone}`}>
-            {"label" in t && <span>{t.label}</span>}
-            <div>
-              <b>{t.big}</b>
-              <p>{t.text}</p>
+      <div className="mk-bento">
+        <article className="mk-bt mk-bt--link">
+          <span className="mk-bt-label">One link</span>
+          <h3>Your whole story on one address</h3>
+          <div className="mk-bt-visual" aria-hidden="true">
+            <div className="mk-urlbar">
+              <i />
+              <span>
+                {host}/<b>your-name</b>
+              </span>
+              <em />
             </div>
+            <ul className="mk-bt-rows">
+              {ABOUT_ROWS.map((r, i) => (
+                <li key={r} style={{ animationDelay: `${i * 0.12}s` }}>
+                  {r}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+        </article>
+        <article className="mk-bt mk-bt--cv">
+          <span className="mk-bt-label">Four CV layouts</span>
+          <h3>Visitors download the one you choose</h3>
+          <ul className="mk-bt-docs" aria-label="Classic, Modern, Projects and Minimal layouts">
+            {CV_THUMBS.map((name, i) => (
+              <li key={name} className={i === 1 ? "is-picked" : undefined}>
+                <span aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                {name}
+              </li>
+            ))}
+          </ul>
+        </article>
+        <article className="mk-bt mk-bt--free">
+          <span className="mk-bt-label">While we test</span>
+          <b className="mk-bt-big">Free</b>
+          <p>No card. Publish and update whenever you like.</p>
+          <ul className="mk-bt-checks">
+            <li>No card needed</li>
+            <li>Change it any time</li>
+          </ul>
+        </article>
+        <article className="mk-bt mk-bt--anyone">
+          <span className="mk-bt-label">Who it is for</span>
+          <b className="mk-bt-big">Anyone</b>
+          <p>Any profession with work to show.</p>
+          <ul className="mk-bt-cloud" aria-label="People who use it">
+            {AUDIENCE.slice(0, 8).map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </article>
       </div>
     </Section>
   );
@@ -174,133 +207,41 @@ export function SwipeHint() {
   );
 }
 
-export function StoryCard({ story }: { story: Story }) {
-  const p = PEOPLE[story.person];
+export function UseCaseCard({ useCase }: { useCase: UseCase }) {
   return (
-    <article className="mk-story mk-lift">
-      <div className="mk-story-photo">
-        <Image src={story.photo} alt={story.alt} fill sizes="(max-width: 900px) 100vw, 360px" />
-        {story.sample && (
-          <span className="mk-story-badge">
-            <SampleBadge>Sample story</SampleBadge>
-          </span>
-        )}
+    <article className="mk-usecase mk-lift">
+      <div className="mk-usecase-photo">
+        <Image src={useCase.photo} alt={useCase.alt} fill sizes="(max-width: 900px) 100vw, 360px" />
+        <span className="mk-usecase-who">{useCase.who}</span>
       </div>
-      <div className="mk-story-body">
-        <h3>{story.title}</h3>
-        <p>{story.quote}</p>
-        <div className="mk-person">
-          <Avatar person={story.person} size={44} />
-          <span>
-            <b>{p.name}</b>
-            <span className="mk-muted">{story.role}</span>
-          </span>
-        </div>
+      <div className="mk-usecase-body">
+        <h3>{useCase.title}</h3>
+        <p>{useCase.text}</p>
+        <ul className="mk-usecase-puts">
+          {useCase.puts.map((p) => (
+            <li key={p}>
+              <Icon name="check" size={16} />
+              {p}
+            </li>
+          ))}
+        </ul>
       </div>
     </article>
   );
 }
 
-export function StoryGrid({ stories = STORIES.slice(0, 3) }: { stories?: readonly Story[] }) {
+export function UseCaseGrid({ items = USE_CASES }: { items?: readonly UseCase[] }) {
   return (
     <>
       <ul className="mk-cards mk-cards--3 mk-cards--stories mk-cards--swipe">
-        {stories.map((s) => (
-          <li key={s.title}>
-            <StoryCard story={s} />
+        {items.map((u) => (
+          <li key={u.title}>
+            <UseCaseCard useCase={u} />
           </li>
         ))}
       </ul>
-      {stories.length > 1 && <SwipeHint />}
+      {items.length > 1 && <SwipeHint />}
     </>
-  );
-}
-
-export function FeaturedStory({ story }: { story: Story }) {
-  const p = PEOPLE[story.person];
-  return (
-    <div className="mk-split">
-      <div className="mk-split-media">
-        <Image src={story.photo} alt={story.alt} fill sizes="(max-width: 900px) 100vw, 560px" />
-        {story.sample && (
-          <span className="mk-story-badge">
-            <SampleBadge>Sample story</SampleBadge>
-          </span>
-        )}
-      </div>
-      <div className="mk-split-text">
-        <span className="mk-eyebrow">
-          <i aria-hidden="true" /> Success story
-        </span>
-        <h2>{story.title}</h2>
-        <blockquote>“{story.quote}”</blockquote>
-        <div className="mk-person">
-          <Avatar person={story.person} size={52} />
-          <span>
-            <b>{p.name}</b>
-            <span className="mk-muted">{story.role}</span>
-          </span>
-        </div>
-        <dl className="mk-outcomes">
-          {story.outcomes.map((o) => (
-            <div key={o.label}>
-              <dt>{o.figure}</dt>
-              <dd>{o.label}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </div>
-  );
-}
-
-export function QuoteCard({ quote }: { quote: Quote }) {
-  const p = PEOPLE[quote.person];
-  return (
-    <figure className="mk-quote mk-lift">
-      <div className="mk-quote-top">
-        <svg width="30" height="22" viewBox="0 0 30 22" aria-hidden="true">
-          <path
-            d="M0 22V11C0 4 4 0 11 0v5C8 5 6 7 6 11h5v11zM17 22V11c0-7 4-11 11-11v5c-3 0-5 2-5 6h5v11z"
-            fill="currentColor"
-            opacity=".25"
-          />
-        </svg>
-        {quote.sample && <SampleBadge>Sample quote</SampleBadge>}
-      </div>
-      <blockquote>{quote.text}</blockquote>
-      <figcaption className="mk-person">
-        <Avatar person={quote.person} size={44} />
-        <span>
-          <b>{p.name}</b>
-          <span className="mk-muted">{quote.role}</span>
-        </span>
-      </figcaption>
-    </figure>
-  );
-}
-
-export function QuoteGrid({ quotes }: { quotes: readonly Quote[] }) {
-  return (
-    <>
-      <ul className="mk-cards mk-cards--3 mk-cards--swipe">
-        {quotes.map((q) => (
-          <li key={q.text}>
-            <QuoteCard quote={q} />
-          </li>
-        ))}
-      </ul>
-      {quotes.length > 1 && <SwipeHint />}
-    </>
-  );
-}
-
-export function SampleNote() {
-  return (
-    <p className="mk-note">
-      Names, quotes and figures are sample content. Photos are free stock images from Unsplash, standing in for real
-      users and projects until launch.
-    </p>
   );
 }
 

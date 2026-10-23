@@ -1,6 +1,5 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
-import { PEOPLE, PROOF_FACES } from "@/content/marketing";
 import { Avatar } from "./Avatar";
 import { Deco } from "./Deco";
 import { Icon } from "./icons";
@@ -99,9 +98,7 @@ const CARDS: HeroCard[] = [
     dur: 5.8,
     body: (
       <>
-        <b className="mk-hc-num">
-          248 <small>sample</small>
-        </b>
+        <b className="mk-hc-num">248</b>
         <Bars />
       </>
     ),
@@ -154,9 +151,9 @@ const CARDS: HeroCard[] = [
     body: (
       <>
         <div className="mk-hc-lead">
-          <Avatar person="ngozi" size={28} />
+          <Avatar label="C" size={28} />
           <div>
-            <b>Ngozi E.</b>
+            <b>A client</b>
             <Lines n={2} tone="light" />
           </div>
         </div>
@@ -232,16 +229,14 @@ export function Hero() {
             </MarketingButton>
             <MarketingButton href="/signup">Create your page</MarketingButton>
           </div>
-          <div className="mk-proof mk-up" style={{ animationDelay: ".55s" }}>
-            <span className="mk-proof-faces">
-              {PROOF_FACES.map((p) => (
-                <span key={p} title={PEOPLE[p].name}>
-                  <Avatar person={p} size={36} />
-                </span>
-              ))}
-            </span>
-            <span>Early users from many different fields</span>
-          </div>
+          <ul className="mk-proof mk-up" style={{ animationDelay: ".55s" }}>
+            {["Free while we test", "No card needed", "Your own link"].map((t) => (
+              <li key={t}>
+                <Icon name="check" size={15} />
+                {t}
+              </li>
+            ))}
+          </ul>
         </div>
         <div className="mk-hero-cards mk-up" style={{ animationDelay: ".6s" }}>
           {/* Desktop: one fanned row. Phones: the same cards glide past as a loop, so the list is rendered twice and the
@@ -252,7 +247,6 @@ export function Hero() {
               <HeroCardList clone />
             </div>
           </div>
-          <p className="mk-hero-note">No card needed. Figures on the cards are sample data.</p>
         </div>
       </section>
     </div>

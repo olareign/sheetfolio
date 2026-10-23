@@ -104,6 +104,7 @@ export const RESERVED_SLUGS = new Set([
   "product",
   "examples",
   "stories",
+  "use-cases",
   "preview",
   "terms",
   "privacy",

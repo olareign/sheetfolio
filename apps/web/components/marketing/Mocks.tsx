@@ -29,10 +29,10 @@ export function PortfolioMock() {
   return (
     <div className="mk-mock">
       <div className="mk-mock-row">
-        <Avatar person="amara" size={40} />
+        <Avatar label="YN" size={40} />
         <div>
-          <b>Amara Okafor</b>
-          <div className="mk-muted">Site Engineer, Lagos</div>
+          <b>Your name</b>
+          <div className="mk-muted">Your headline, your city</div>
         </div>
       </div>
       <div className="mk-mock-photo">
@@ -76,16 +76,16 @@ export function CvMock() {
 
 export function LeadsMock() {
   const leads = [
-    { person: "ngozi", name: "Ngozi E.", text: "Can we talk about a clinic build?", unread: true },
-    { person: "emeka", name: "Emeka O.", text: "Interested in your road work.", unread: false },
-    { person: "bisi", name: "Bisi L.", text: "Are you available in March?", unread: false },
+    { label: "C", name: "A client", text: "Can we talk about a clinic build?", unread: true },
+    { label: "R", name: "A recruiter", text: "Interested in your road work.", unread: false },
+    { label: "V", name: "A visitor", text: "Are you available in March?", unread: false },
   ] as const;
   return (
     <div className="mk-mock">
       <b>Leads</b>
       {leads.map((l) => (
         <div key={l.name} className="mk-lead-row">
-          <Avatar person={l.person} size={30} />
+          <Avatar label={l.label} size={30} />
           <div>
             <b>{l.name}</b>
             <div className="mk-muted">{l.text}</div>
@@ -103,7 +103,6 @@ export function InsightsMock() {
       <b>Views, last 7 days</b>
       <span className="mk-big">248</span>
       <Bars values={[30, 45, 38, 60, 52, 78, 90]} height={70} />
-      <span className="mk-muted">Sample data</span>
     </div>
   );
 }
@@ -122,9 +121,9 @@ export function DashboardPreview() {
     ["/stock/projects/education.jpg", "School block, Ilaje", "Education, Ondo", "171"],
   ];
   const leads = [
-    ["ngozi", "Ngozi E.", "Can we talk about a clinic build?", "2h", true],
-    ["emeka", "Emeka O.", "Interested in your road work.", "1d", true],
-    ["bisi", "Bisi L.", "Are you available in March?", "3d", false],
+    ["C", "A client", "Can we talk about a clinic build?", "2h", true],
+    ["R", "A recruiter", "Interested in your road work.", "1d", true],
+    ["V", "A visitor", "Are you available in March?", "3d", false],
   ] as const;
   return (
     <>
@@ -132,10 +131,10 @@ export function DashboardPreview() {
         <div className="mk-dash-inner">
           <div className="mk-dash-head">
             <div className="mk-mock-row">
-              <Avatar person="amara" size={40} />
+              <Avatar label="YN" size={40} />
               <div>
-                <b>Amara Okafor</b>
-                <div className="mk-muted">sheetfolio.vercel.app/amara-okafor</div>
+                <b>Your name</b>
+                <div className="mk-muted">your-link/your-name</div>
               </div>
             </div>
             <span className="mk-chip mk-chip--on">Published</span>
@@ -175,9 +174,9 @@ export function DashboardPreview() {
             </div>
             <div className="mk-dash-card">
               <b>Latest enquiries</b>
-              {leads.map(([person, name, text, when, unread]) => (
+              {leads.map(([label, name, text, when, unread]) => (
                 <div key={name} className="mk-lead-row">
-                  <Avatar person={person} size={34} />
+                  <Avatar label={label} size={34} />
                   <div>
                     <b>{name}</b>
                     <div className="mk-muted">{text}</div>
@@ -190,7 +189,6 @@ export function DashboardPreview() {
           </div>
         </div>
       </div>
-      <p className="mk-note">Sample dashboard with example figures.</p>
     </>
   );
 }
@@ -211,4 +209,45 @@ export function CvPreviewMock() {
   );
 }
 
-export const MOCK_BY_NAME = { portfolio: PortfolioMock, cv: CvMock, leads: LeadsMock, insights: InsightsMock } as const;
+/** A link shared in a chat: the card people see before they tap it, with the owner's photo and details. */
+export function LinkPreviewMock({ host }: { host: string }) {
+  return (
+    <div className="mk-mock mk-mock--chat">
+      <span className="mk-bubble">Here is my work 👇</span>
+      <div className="mk-og">
+        <div className="mk-og-photo" aria-hidden="true">
+          <Avatar label="YN" size={84} />
+        </div>
+        <div className="mk-og-text">
+          <b>Your name · Your headline</b>
+          <span className="mk-muted">Your city · 6 projects</span>
+          <small>{host}/your-name</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Start from a CV: drop a PDF and the basics fill themselves in, to be checked before anything is saved. */
+export function ImportMock() {
+  const found = ["Name and headline", "Contact details", "Experience", "Education"];
+  return (
+    <div className="mk-mock">
+      <b>Start from your CV</b>
+      <div className="mk-drop">
+        <span className="mk-drop-icon" aria-hidden="true">
+          ↑
+        </span>
+        <span>Drop your CV here (PDF)</span>
+      </div>
+      <ul className="mk-found">
+        {found.map((f, i) => (
+          <li key={f} style={{ animationDelay: `${0.15 * i}s` }}>
+            <span aria-hidden="true">✓</span> {f}
+          </li>
+        ))}
+      </ul>
+      <span className="mk-muted">You check everything before it is saved</span>
+    </div>
+  );
+}

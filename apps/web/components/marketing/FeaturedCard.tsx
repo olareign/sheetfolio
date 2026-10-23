@@ -11,8 +11,8 @@ export function FeaturedCard({ user, rank }: { user: FeaturedUser; rank: number 
     <Link href={`/${user.slug}`} className="mk-example mk-lift">
       <div className={user.isPerson ? "mk-example-photo mk-example-photo--person" : "mk-example-photo"}>
         <CoverImage cover={user.cover} sizes="(max-width: 700px) 100vw, 360px" />
-        <span className="mk-story-badge">
-          <span className={rank === 1 ? "mk-sample mk-sample--live" : "mk-sample"}>
+        <span className="mk-rank-badge">
+          <span className={rank === 1 ? "mk-rank mk-rank--top" : "mk-rank"}>
             {rank === 1 ? "#1 most visited" : `#${rank}`}
           </span>
         </span>

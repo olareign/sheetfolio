@@ -1,4 +1,22 @@
-import { ArrowUpRight, Check, Eye, FileText, LayoutGrid, Link2, Mail, User, Zap, type LucideIcon } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Eye,
+  FileText,
+  ImageIcon,
+  LayoutGrid,
+  Link2,
+  Mail,
+  MessageCircle,
+  Moon,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  Upload,
+  User,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import type { FeatureIcon } from "@/content/marketing";
 
 const ICONS: Record<FeatureIcon, LucideIcon> = {
@@ -10,6 +28,13 @@ const ICONS: Record<FeatureIcon, LucideIcon> = {
   bolt: Zap,
   check: Check,
   user: User,
+  phone: Smartphone,
+  moon: Moon,
+  shield: ShieldCheck,
+  image: ImageIcon,
+  upload: Upload,
+  search: Search,
+  chat: MessageCircle,
 };
 
 export function Icon({ name, size = 20 }: { name: FeatureIcon; size?: number }) {

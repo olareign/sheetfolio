@@ -41,7 +41,7 @@ export function MarketingFooter() {
         </div>
         <div className="mk-footer-bar">
           <span>© {new Date().getFullYear()} Sheetfolio. All rights reserved.</span>
-          <span>Photos from Unsplash. Names, quotes and figures on example pages are samples.</span>
+          <Link href="/privacy">Privacy policy</Link>
         </div>
       </div>
       <div className="mk-wordmark" aria-hidden="true">

@@ -1,40 +1,16 @@
 /*
- * Copy and picture references for the marketing pages (/, /product, /examples, /stories, /pricing).
- * Stories, quotes and figures are SAMPLES until real users replace them: every item carries `sample: true`,
- * the pages show a "Sample" badge for it, and nothing here may be presented as a real person's words.
- * To publish a real story or quote, change `sample` to false and fill in the real name, role and words.
+ * Copy and picture references for the marketing pages (/, /product, /featured, /use-cases).
+ * Nothing here is presented as a real person's words: the use-case pages describe what a page can hold, with no
+ * invented names, quotes or results. Real stories belong here only once real users have agreed to them.
+ * /pricing exists but is hidden (redirected in next.config.ts) until plans are settled.
  */
-
-export type Sample = { /** Shown with a "Sample" badge until it is a real person's story or words. */ sample: boolean };
 
 export const NAV = [
   { href: "/", label: "Home" },
   { href: "/product", label: "Product" },
   { href: "/featured", label: "Featured" },
-  { href: "/stories", label: "Stories" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/use-cases", label: "Use cases" },
 ] as const;
-
-/** Portraits in /public/stock/people. Free stock photos (Unsplash licence), shown with sample names. */
-export const PEOPLE = {
-  amara: { name: "Amara Okafor", file: "amara" },
-  chidi: { name: "Chidi Nwosu", file: "chidi" },
-  ruth: { name: "Ruth Adeyemi", file: "ruth" },
-  tobi: { name: "Tobi Sanusi", file: "tobi" },
-  kemi: { name: "Kemi Balogun", file: "kemi" },
-  ngozi: { name: "Ngozi Eze", file: "ngozi" },
-  emeka: { name: "Emeka Obi", file: "emeka" },
-  bisi: { name: "Bisi Lawal", file: "bisi" },
-  sola: { name: "Sola Adebayo", file: "sola" },
-  claire: { name: "Claire Bennett", file: "claire" },
-  mark: { name: "Mark Holloway", file: "mark" },
-} as const;
-export type PersonKey = keyof typeof PEOPLE;
-
-export const personSrc = (key: PersonKey): string => `/stock/people/${PEOPLE[key].file}.jpg`;
-
-/** The "early users" row under the hero buttons: eight Black faces to two white, in that proportion. */
-export const PROOF_FACES: readonly PersonKey[] = ["amara", "chidi", "kemi", "emeka", "claire"];
 
 export const LANDING = {
   skyline: { src: "/stock/landing/lagos-skyline.jpg", alt: "Lagos skyline under a blue sky" },
@@ -59,18 +35,6 @@ export const AUDIENCE = [
   "Anyone with work to show",
 ] as const;
 
-export const TILES = [
-  { tone: "accent", big: "4", text: "CV layouts to pick from. Visitors download the one you choose." },
-  {
-    tone: "plain",
-    label: "Pages you can publish",
-    big: "1 link",
-    text: "Projects, credentials, CV and contact in one place.",
-  },
-  { tone: "soft", label: "While we test", big: "Free", text: "No card. Publish and update whenever you like." },
-  { tone: "dark", label: "Who can use it", big: "Anyone", text: "Any profession with work to show." },
-] as const;
-
 export const FEATURES = [
   {
     icon: "grid",
@@ -93,7 +57,19 @@ export const FEATURES = [
     text: "Page views and enquiries in one place, so you know what is working.",
   },
 ] as const;
-export type FeatureIcon = (typeof FEATURES)[number]["icon"] | "link" | "bolt" | "check" | "user";
+export type FeatureIcon =
+  | (typeof FEATURES)[number]["icon"]
+  | "link"
+  | "bolt"
+  | "check"
+  | "user"
+  | "phone"
+  | "moon"
+  | "shield"
+  | "image"
+  | "upload"
+  | "search"
+  | "chat";
 
 export const STEPS = [
   { icon: "user", title: "Sign up", text: "Pick your page address and a password. It takes under a minute." },
@@ -105,136 +81,65 @@ export const STEPS = [
   { icon: "bolt", title: "Publish", text: "Your link goes live. Share it anywhere." },
 ] as const;
 
-export type Story = Sample & {
-  person: PersonKey;
-  role: string;
-  /** Category photo from /public/stock/projects, standing in for the person's own work until they add theirs. */
+export type UseCase = {
+  /** Who it is for, as a group. Never a named person. */
+  who: string;
   photo: string;
   alt: string;
   title: string;
-  quote: string;
-  outcomes: readonly { figure: string; label: string }[];
+  text: string;
+  /** What that group typically puts on the page. */
+  puts: readonly string[];
 };
 
-export const STORIES: readonly Story[] = [
+export const USE_CASES: readonly UseCase[] = [
   {
-    sample: true,
-    person: "amara",
-    role: "Site Engineer, Lagos",
+    who: "Engineers and builders",
     photo: "/stock/projects/building.jpg",
     alt: "A tall building under construction with a crane",
-    title: "From a PDF in every email to one link on every bid",
-    quote:
-      "I used to attach the same heavy PDF to every bid. Now I send my link, and clients open the projects that matter to them.",
-    outcomes: [
-      { figure: "3", label: "enquiries in the first week" },
-      { figure: "1", label: "CV, in the layout she chose" },
-      { figure: "1", label: "link on every bid" },
-    ],
+    title: "One link on every bid",
+    text: "Show the buildings, roads and sites you have delivered, then send a single link instead of a heavy PDF.",
+    puts: ["Projects with role, location and status", "Registrations and certificates", "A CV clients can download"],
   },
   {
-    sample: true,
-    person: "chidi",
-    role: "Freelance accountant, Abuja",
-    photo: "/stock/projects/fintech.jpg",
-    alt: "A shopkeeper standing in a small shop",
-    title: "Clients check the page before they call",
-    quote: "People read about my past clients first, so the first call is already a conversation about their books.",
-    outcomes: [
-      { figure: "2", label: "new clients from the page" },
-      { figure: "1", label: "CV layout for job applications" },
-      { figure: "0", label: "emails with attachments" },
-    ],
+    who: "Freelancers and consultants",
+    photo: "/stock/landing/team-laptops.jpg",
+    alt: "Colleagues working together at laptops",
+    title: "Let clients check you out before they call",
+    text: "Past work and a clear way to get in touch, so the first conversation starts further along.",
+    puts: ["Client work and outcomes", "A WhatsApp button and enquiry form", "Your CV, ready to download"],
   },
   {
-    sample: true,
-    person: "ruth",
-    role: "Nurse educator, Ibadan",
+    who: "Nurses, teachers and health workers",
     photo: "/stock/projects/healthcare.jpg",
     alt: "A doctor and patient at a health screening",
-    title: "Credentials in one place, for every application",
-    quote: "My certificates, training and research used to live in folders. Now an employer sees them in one scroll.",
-    outcomes: [
-      { figure: "5", label: "applications sent with one link" },
-      { figure: "2", label: "interview calls" },
-      { figure: "1", label: "page, always current" },
-    ],
+    title: "Credentials in one place",
+    text: "Certificates, training and research are easy to lose in folders. Put them in front of employers in one scroll.",
+    puts: ["Certifications with scans", "Experience and education", "Referees, shown only if you choose"],
   },
   {
-    sample: true,
-    person: "tobi",
-    role: "Architect, Lagos",
-    photo: "/stock/projects/institutional.jpg",
-    alt: "A white building with a clock tower",
-    title: "Pitches that start with the portfolio",
-    quote: "Instead of building a deck for each pitch, I send the link and pick the three projects to talk through.",
-    outcomes: [],
-  },
-];
-
-export type Quote = Sample & { person: PersonKey; role: string; text: string };
-
-/** Ten quotes: eight from Black users and two from white users, the mix the product is built around. */
-export const QUOTES: readonly Quote[] = [
-  {
-    sample: true,
-    person: "tobi",
-    role: "Architect, Lagos",
-    text: "The projects page does the talking. I stopped re-making portfolio decks for every pitch.",
+    who: "Architects, designers and makers",
+    photo: "/stock/landing/crafts-market.jpg",
+    alt: "A crafts market stall with masks and paintings",
+    title: "Start the pitch with the portfolio",
+    text: "Pick the three projects worth talking through and let the rest sit one tap away.",
+    puts: ["Photo-led project pages", "A picture pulled from any project's website", "Light and dark themes"],
   },
   {
-    sample: true,
-    person: "emeka",
-    role: "Civil engineer, Enugu",
-    text: "I choose the CV layout, and every visitor gets that exact PDF. That was the feature that sold me.",
+    who: "Students and job seekers",
+    photo: "/stock/landing/classroom.jpg",
+    alt: "A girl reading in a crowded classroom",
+    title: "A proper page before the first job",
+    text: "Coursework, volunteering and early projects count. Show them properly and keep it current as you grow.",
+    puts: ["Projects and volunteering", "Education and certificates", "One link for every application"],
   },
   {
-    sample: true,
-    person: "kemi",
-    role: "Photographer, Abeokuta",
-    text: "Enquiries arrive in my inbox with the project they were looking at. That context saves me hours.",
-  },
-  {
-    sample: true,
-    person: "sola",
-    role: "Secondary school teacher, Ondo",
-    text: "I am not a designer. The page looked finished after one evening of filling it in.",
-  },
-  {
-    sample: true,
-    person: "ngozi",
-    role: "Pharmacist, Port Harcourt",
-    text: "It works on a phone, which is where most people open the link.",
-  },
-  {
-    sample: true,
-    person: "bisi",
-    role: "Brand writer, Lagos",
-    text: "Light and dark themes, a CV, and my work. Nothing else I need to host.",
-  },
-  {
-    sample: true,
-    person: "amara",
-    role: "Site Engineer, Lagos",
-    text: "I add a website link to a project and the picture appears. I never opened an image editor.",
-  },
-  {
-    sample: true,
-    person: "claire",
-    role: "Freelance consultant, Manchester",
-    text: "One link in my email signature replaced a folder of attachments.",
-  },
-  {
-    sample: true,
-    person: "chidi",
-    role: "Accountant, Abuja",
-    text: "Clients tell me they read the page before the first call. It saves us both time.",
-  },
-  {
-    sample: true,
-    person: "mark",
-    role: "Researcher, Leeds",
-    text: "My publications and CV sit side by side. Reviewers find everything in one place.",
+    who: "Researchers and academics",
+    photo: "/stock/projects/data-ai.jpg",
+    alt: "A person coding on a laptop",
+    title: "Publications beside your CV",
+    text: "Reviewers and collaborators find your work and your CV in the same place.",
+    puts: ["Research and publications", "A projects-first CV layout", "Contact details you control"],
   },
 ];
 
@@ -309,26 +214,26 @@ export const FOOTER_COLUMNS = [
       { label: "CV layouts", href: "/product" },
       { label: "Enquiries", href: "/product" },
       { label: "Insights", href: "/product" },
-      { label: "Pricing", href: "/pricing" },
+      { label: "Link previews", href: "/product" },
     ],
   },
   {
     title: "Made for everyone",
     links: [
-      { label: "Job seekers", href: "/featured" },
-      { label: "Freelancers", href: "/featured" },
-      { label: "Students", href: "/featured" },
-      { label: "Small businesses", href: "/featured" },
-      { label: "Anyone with work to show", href: "/featured" },
+      { label: "Job seekers", href: "/use-cases" },
+      { label: "Freelancers", href: "/use-cases" },
+      { label: "Students", href: "/use-cases" },
+      { label: "Small businesses", href: "/use-cases" },
+      { label: "Anyone with work to show", href: "/use-cases" },
     ],
   },
   {
     title: "Explore",
     links: [
       { label: "Featured users", href: "/featured" },
-      { label: "Success stories", href: "/stories" },
-      { label: "How it works", href: "/featured#how-it-works" },
-      { label: "Questions", href: "/pricing#questions" },
+      { label: "Use cases", href: "/use-cases" },
+      { label: "How it works", href: "/product#how-it-works" },
+      { label: "Questions", href: "/product#questions" },
     ],
   },
   {
@@ -340,13 +245,16 @@ export const FOOTER_COLUMNS = [
       { label: "Reset password", href: "/forgot-password" },
     ],
   },
+  {
+    title: "Legal",
+    links: [{ label: "Privacy policy", href: "/privacy" }],
+  },
 ] as const;
 
 /** Every picture the marketing pages point at, so a test can check each file exists. */
 export function marketingImagePaths(): string[] {
   const paths = new Set<string>();
-  for (const k of Object.keys(PEOPLE) as PersonKey[]) paths.add(personSrc(k));
   for (const l of Object.values(LANDING)) paths.add(l.src);
-  for (const s of STORIES) paths.add(s.photo);
+  for (const u of USE_CASES) paths.add(u.photo);
   return [...paths];
 }

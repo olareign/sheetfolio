@@ -6,17 +6,16 @@ import { FeatureRow } from "@/components/marketing/FeatureRow";
 import { CvPreviewMock, DashboardPreview } from "@/components/marketing/Mocks";
 import { MarketingButton } from "@/components/marketing/MarketingButton";
 import {
-  AboutTiles,
+  AboutBento,
   CtaBand,
   FeatureCards,
-  QuoteGrid,
-  SampleNote,
   Section,
   SectionHead,
   Strip,
-  StoryGrid,
+  UseCaseGrid,
 } from "@/components/marketing/Sections";
-import { LANDING, QUOTES } from "@/content/marketing";
+import { LANDING, USE_CASES } from "@/content/marketing";
+import { publicSiteUrl } from "@/lib/env";
 import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
 
 export const metadata: Metadata = {
@@ -44,7 +43,7 @@ export default async function HomePage() {
     <>
       <Hero />
       <Strip />
-      <AboutTiles />
+      <AboutBento host={publicSiteUrl().host} />
       <FeatureCards />
       <Section deco={["dots"]} labelledBy="dash-title">
         <SectionHead
@@ -96,24 +95,19 @@ export default async function HomePage() {
           </div>
         </Section>
       )}
-      <Section tint deco={["blob", "waves"]} labelledBy="home-stories">
+      <Section tint deco={["blob", "waves"]} labelledBy="home-usecases">
         <SectionHead
-          eyebrow="Success stories"
-          id="home-stories"
-          title="Real work, found by the right people"
-          lead="Short stories from early users, shown here as samples."
+          eyebrow="Use cases"
+          id="home-usecases"
+          title="Made for the work you actually do"
+          lead="Whatever your field, a page that shows your work and makes it easy to reach you."
         />
-        <StoryGrid />
+        <UseCaseGrid items={USE_CASES.slice(0, 3)} />
         <div className="mk-center-cta">
-          <MarketingButton href="/stories" variant="ghost">
-            Read more stories
+          <MarketingButton href="/use-cases" variant="ghost">
+            See more use cases
           </MarketingButton>
         </div>
-      </Section>
-      <Section labelledBy="home-quotes">
-        <SectionHead eyebrow="Testimonials" id="home-quotes" title="What people say once they publish" />
-        <QuoteGrid quotes={QUOTES.slice(0, 3)} />
-        <SampleNote />
       </Section>
       <Section>
         <div className="mk-photoband">

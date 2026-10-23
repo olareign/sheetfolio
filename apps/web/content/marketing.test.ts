@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RESERVED_SLUGS } from "./schemas";
-import { marketingImagePaths, NAV, PEOPLE, PROOF_FACES, QUOTES, STORIES } from "./marketing";
+import { FOOTER_COLUMNS, marketingImagePaths, NAV, USE_CASES } from "./marketing";
 
 describe("marketing content", () => {
   it("only points at pictures that exist in /public", () => {
@@ -10,26 +10,25 @@ describe("marketing content", () => {
     expect(missing).toEqual([]);
   });
 
-  it("marks every story and quote as a sample until it is replaced with a real one", () => {
-    expect([...STORIES, ...QUOTES].filter((x) => !x.sample)).toEqual([]);
-  });
-
-  it("shows eight Black users to two white users in the testimonials, and in the early-user row", () => {
-    const WHITE = new Set(["claire", "mark"]);
-    const white = QUOTES.filter((q) => WHITE.has(q.person)).length;
-    expect({ white, other: QUOTES.length - white }).toEqual({ white: 2, other: 8 });
-    expect(PROOF_FACES.filter((p) => WHITE.has(p)).length).toBe(1);
-    expect(PROOF_FACES.length).toBe(5);
-  });
-
-  it("gives every quote and story a known person", () => {
-    for (const x of [...STORIES, ...QUOTES]) expect(PEOPLE[x.person]).toBeDefined();
-  });
-
   it("keeps every page route out of the account address space", () => {
     for (const item of NAV) {
       const first = item.href.split("/")[1];
       if (first) expect(RESERVED_SLUGS.has(first)).toBe(true);
     }
+    expect(RESERVED_SLUGS.has("privacy")).toBe(true);
+  });
+
+  it("describes groups of people, never an invented person, quote or result", () => {
+    for (const u of USE_CASES) {
+      expect(`${u.title} ${u.text}`).not.toMatch(/\d+ (enquiries|new clients|interview calls)/i);
+      expect(u.puts.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not link to the hidden pricing page", () => {
+    const navHrefs: string[] = NAV.map((n) => n.href);
+    expect(navHrefs).not.toContain("/pricing");
+    const footerHrefs = FOOTER_COLUMNS.flatMap((c) => c.links.map((l): string => l.href));
+    expect(footerHrefs.some((h) => h.startsWith("/pricing"))).toBe(false);
   });
 });

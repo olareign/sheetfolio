@@ -7,8 +7,7 @@ re-encoded for the web. The ids below are the Unsplash image ids (`images.unspla
 They stand in until real users add their own photos:
 
 - `projects/<category>.jpg` is the default cover of a project in that category when the owner has no photo and no website picture.
-- `landing/` and `people/` illustrate the marketing pages. People shown there are stock models, not Sheetfolio users, and are
-  always shown with sample names. Replace them with real users and real quotes, with permission, before relying on them.
+- `landing/` illustrates the marketing pages. The marketing pages show no invented people, names or quotes.
 
 | File | Unsplash id |
 | --- | --- |
@@ -33,14 +32,3 @@ They stand in until real users add their own photos:
 | landing/fabrics.jpg | 1768212565426-58b089b6386d |
 | landing/classroom.jpg | 1632215861513-130b66fe97f4 |
 | landing/team-laptops.jpg | 1531482615713-2afd69097998 |
-| people/amara.jpg | 1573496358961-3c82861ab8f4 |
-| people/chidi.jpg | 1614023342667-6f060e9d1e04 |
-| people/ruth.jpg | 1784652951070-9cb1a374132f |
-| people/tobi.jpg | 1522529599102-193c0d76b5b6 |
-| people/kemi.jpg | 1638727295415-286409421143 |
-| people/ngozi.jpg | 1763757321139-e7e4de128cd9 |
-| people/emeka.jpg | 1521119989659-a83eee488004 |
-| people/bisi.jpg | 1765005204227-bf58bcdd4449 |
-| people/sola.jpg | 1614317226858-a2bcad5498c0 |
-| people/claire.jpg | 1494790108377-be9c29b29330 |
-| people/mark.jpg | 1568602471122-7832951cc4c5 |

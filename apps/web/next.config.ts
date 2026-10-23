@@ -4,8 +4,13 @@ import type { NextConfig } from "next";
 const cloudName = /@([A-Za-z0-9_-]+)\/?$/.exec(process.env.CLOUDINARY_URL?.trim() ?? "")?.[1];
 
 const nextConfig: NextConfig = {
-  // The Examples page became Featured; keep old links working.
-  redirects: async () => [{ source: "/examples", destination: "/featured", permanent: true }],
+  redirects: async () => [
+    // The Examples page became Featured, and Stories became Use cases; keep old links working.
+    { source: "/examples", destination: "/featured", permanent: true },
+    { source: "/stories", destination: "/use-cases", permanent: true },
+    // Pricing is hidden until plans are settled (temporary, so search engines do not drop the address for good).
+    { source: "/pricing", destination: "/", permanent: false },
+  ],
   // The CV renderer reads its fonts from disk at request time, which file tracing cannot see.
   outputFileTracingIncludes: { "/api/cv/[slug]": ["./lib/fonts/**/*"] },
   images: {
