@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishableSite, type Site } from "@/content/schemas";
 import type { Email } from "@/lib/email";
+import { db } from "@/lib/db";
 import { FakeRedis } from "@/test/fake-redis";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
@@ -24,6 +25,7 @@ const valid = {
   message: "Need a site engineer <b>now</b>",
 };
 let fake: FakeRedis;
+const leadRows = async () => Number((await db().query<{ n: number }>("select count(*)::int as n from leads"))[0]?.n);
 
 const deps = (over: Partial<Parameters<typeof submitEnquiry>[2]> = {}) => ({
   getSite: async () => site,
@@ -65,7 +67,7 @@ describe("submitEnquiry", () => {
       reason: "INVALID",
       fieldErrors: { name: "Required", email: "Enter a valid email address", message: "Required" },
     });
-    expect(fake.lists.size).toBe(0);
+    expect(await leadRows()).toBe(0);
   });
 
   it("stops at the rate limit before storing", async () => {
@@ -73,7 +75,7 @@ describe("submitEnquiry", () => {
       ok: false,
       reason: "RATE_LIMITED",
     });
-    expect(fake.lists.size).toBe(0);
+    expect(await leadRows()).toBe(0);
   });
 
   it("refuses sites that aren't published (or are suspended)", async () => {

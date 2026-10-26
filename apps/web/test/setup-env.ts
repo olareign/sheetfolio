@@ -2,3 +2,4 @@
 process.env.UPSTASH_REDIS_REST_URL ??= "https://test.upstash.invalid";
 process.env.UPSTASH_REDIS_REST_TOKEN ??= "test-token";
 process.env.AUTH_SECRET ??= "x".repeat(32);
+process.env.DATABASE_URL ??= "postgresql://test:test@localhost:5432/test";

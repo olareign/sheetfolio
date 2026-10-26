@@ -1,21 +1,15 @@
 import type { Redis } from "@upstash/redis";
 import { iso, type Db } from "../db/types";
 import { keys } from "../redis-keys";
-import { mirrorOf, primaryOf, read, type StoreMode } from "./mode";
 
 /*
- * A page's documents: the draft the owner edits, the published copy visitors see, and when it first went live.
- * The documents are opaque here (JSON); lib/site.ts checks their shape on the way in and out.
+ * A page's documents: the draft the owner edits, the published copy visitors see, and when it first went live, in
+ * Postgres. The documents are opaque here (JSON); lib/site.ts checks their shape on the way in and out.
  *
- * The set of registered page addresses ("sites" in Redis) also stays in Redis in every mode, as a fast index: the
- * view counter asks "is this a real page?" on every visit, and that must not wake the database each time.
+ * The set of registered page addresses also lives in Redis (the "sites" set), as a fast index: the view counter asks
+ * "is this a real page?" on every visit, and that must not wake the database each time. Postgres is the truth for it;
+ * `pnpm db:stats reindex` rebuilds the Redis copy.
  */
-
-export type SiteSnapshot = {
-  draft: unknown;
-  published: unknown | null;
-  firstPublishedAt: string | null;
-};
 
 export interface SiteStore {
   getDraft(slug: string): Promise<unknown | null>;
@@ -29,61 +23,7 @@ export interface SiteStore {
   put(slug: string, docs: { draft: unknown; published?: unknown }): Promise<void>;
   /** Makes `doc` the published copy, and records the first time a page ever went live. */
   publish(slug: string, published: { doc: unknown; publishedAt: string }): Promise<void>;
-  /** Everything stored for a page, or null when there is nothing. Used to copy a page whole. */
-  snapshot(slug: string): Promise<SiteSnapshot | null>;
-  /** Makes the stored page exactly this, registering it. The inverse of `snapshot`. */
-  restore(slug: string, snapshot: SiteSnapshot): Promise<void>;
 }
-
-// ── Redis ───────────────────────────────────────────────────────────────────
-
-export function redisSiteStore(redis: () => Redis): SiteStore {
-  const store: SiteStore = {
-    getDraft: (slug) => redis().get<unknown>(keys.draft(slug)),
-    getPublished: (slug) => redis().get<unknown>(keys.published(slug)),
-    firstPublishedAt: (slug) => redis().get<string>(keys.firstPublished(slug)),
-    list: () => redis().smembers(keys.sites()),
-    async create(slug, draft) {
-      const tx = redis().multi();
-      tx.set(keys.draft(slug), draft);
-      tx.sadd(keys.sites(), slug);
-      await tx.exec();
-    },
-    async put(slug, docs) {
-      const tx = redis().multi();
-      tx.set(keys.draft(slug), docs.draft);
-      if (docs.published !== undefined) tx.set(keys.published(slug), docs.published);
-      await tx.exec();
-    },
-    async publish(slug, { doc, publishedAt }) {
-      const tx = redis().multi();
-      tx.set(keys.published(slug), doc);
-      tx.set(keys.firstPublished(slug), publishedAt, { nx: true });
-      await tx.exec();
-    },
-    async snapshot(slug) {
-      const [draft, published, firstPublishedAt] = await Promise.all([
-        store.getDraft(slug),
-        store.getPublished(slug),
-        store.firstPublishedAt(slug),
-      ]);
-      return draft === null ? null : { draft, published, firstPublishedAt };
-    },
-    async restore(slug, s) {
-      const tx = redis().multi();
-      tx.set(keys.draft(slug), s.draft);
-      if (s.published === null) tx.del(keys.published(slug));
-      else tx.set(keys.published(slug), s.published);
-      if (s.firstPublishedAt === null) tx.del(keys.firstPublished(slug));
-      else tx.set(keys.firstPublished(slug), s.firstPublishedAt);
-      tx.sadd(keys.sites(), slug);
-      await tx.exec();
-    },
-  };
-  return store;
-}
-
-// ── Postgres ────────────────────────────────────────────────────────────────
 
 type DocRow = { doc: unknown };
 
@@ -98,7 +38,11 @@ function publishedStamp(published: unknown, ...fallbacks: (string | null)[]): st
   return stamp(published, "publishedAt") ?? fallbacks.find((f): f is string => f !== null) ?? new Date().toISOString();
 }
 
-export function pgSiteStore(db: () => Db): SiteStore {
+export function siteStore(
+  db: () => Db,
+  /** Adds a page address to the Redis index; see the note at the top of this file. */
+  indexAdd: (slug: string) => Promise<void>,
+): SiteStore {
   const one = async (slug: string, column: "draft" | "published") =>
     (await db().query<DocRow>(`select ${column} as doc from sites where slug = $1`, [slug]))[0]?.doc ?? null;
 
@@ -116,6 +60,12 @@ export function pgSiteStore(db: () => Db): SiteStore {
     },
     async create(slug, draft) {
       await store.put(slug, { draft });
+      // The page exists once Postgres has it; a failed index update is repaired by `pnpm db:stats reindex`.
+      try {
+        await indexAdd(slug);
+      } catch (err) {
+        console.error("[store] register page: index update failed:", err instanceof Error ? err.message : err);
+      }
     },
     async put(slug, { draft, published }) {
       const updatedAt = stamp(draft, "updatedAt") ?? new Date().toISOString();
@@ -145,91 +95,18 @@ export function pgSiteStore(db: () => Db): SiteStore {
       // Publishing needs a draft to publish; silently doing nothing would look like success.
       if (rows.length === 0) throw new Error(`Cannot publish /${slug}: it has no page in the database`);
     },
-    async snapshot(slug) {
-      const rows = await db().query<{ draft: unknown; published: unknown; first: unknown }>(
-        "select draft, published, first_published_at as first from sites where slug = $1",
-        [slug],
-      );
-      const row = rows[0];
-      if (!row) return null;
-      return {
-        draft: row.draft,
-        published: row.published ?? null,
-        firstPublishedAt: row.first ? iso(row.first) : null,
-      };
-    },
-    async restore(slug, s) {
-      const publishedAt =
-        s.published === null ? null : publishedStamp(s.published, s.firstPublishedAt, stamp(s.draft, "updatedAt"));
-      await db().query(
-        `insert into sites (slug, draft, draft_updated_at, published, published_at, first_published_at)
-         values ($1, $2::jsonb, $3, $4::jsonb, $5, $6)
-         on conflict (slug) do update set draft = excluded.draft, draft_updated_at = excluded.draft_updated_at,
-           published = excluded.published, published_at = excluded.published_at,
-           first_published_at = excluded.first_published_at`,
-        [
-          slug,
-          JSON.stringify(s.draft),
-          stamp(s.draft, "updatedAt") ?? new Date().toISOString(),
-          s.published === null ? null : JSON.stringify(s.published),
-          publishedAt,
-          s.firstPublishedAt,
-        ],
-      );
-    },
   };
   return store;
 }
 
-// ── Both, according to the mode ─────────────────────────────────────────────
-
 /**
- * Reads come from the primary side. A write goes to the primary side, and then the mirror side gets a copy of the whole
- * page as the primary now holds it, rather than a repeat of the one change. So any save also repairs a page the
- * mirror was missing or had behind, and a failed copy is just a gap for the next save or the backfill to close.
+ * Makes the Redis page index name every page Postgres has. It only adds: an address left in the index after its page is
+ * gone is harmless (the view counter then counts views for a page that 404s), and removing one is a manual decision.
  */
-export function siteStore(
-  mode: StoreMode,
-  redis: SiteStore,
-  pg: SiteStore,
-  /** Adds a page address to the Redis index (needed when Redis is not receiving the copy). */
-  indexAdd: (slug: string) => Promise<void>,
-): SiteStore {
-  const side = { redis, pg };
-  const primary = side[primaryOf(mode)];
-  const mirrorSide = mirrorOf(mode);
-
-  async function mutate(slug: string, label: string, op: (s: SiteStore) => Promise<void>): Promise<void> {
-    await op(primary);
-    if (!mirrorSide) return;
-    try {
-      const snapshot = await primary.snapshot(slug);
-      if (snapshot) await side[mirrorSide].restore(slug, snapshot);
-    } catch (err) {
-      console.error(`[store] ${label}: copy to ${mirrorSide} failed:`, err instanceof Error ? err.message : err);
-    }
-  }
-
-  return {
-    getDraft: (slug) => read(mode, { redis: () => redis.getDraft(slug), pg: () => pg.getDraft(slug) }),
-    getPublished: (slug) => read(mode, { redis: () => redis.getPublished(slug), pg: () => pg.getPublished(slug) }),
-    firstPublishedAt: (slug) =>
-      read(mode, { redis: () => redis.firstPublishedAt(slug), pg: () => pg.firstPublishedAt(slug) }),
-    list: () => read(mode, { redis: () => redis.list(), pg: () => pg.list() }),
-    async create(slug, draft) {
-      await mutate(slug, "create page", (s) => s.create(slug, draft));
-      // With Postgres alone the page address still has to reach the Redis index, or its views would not be counted.
-      if (mode === "postgres") {
-        try {
-          await indexAdd(slug);
-        } catch (err) {
-          console.error("[store] register page: index update failed:", err instanceof Error ? err.message : err);
-        }
-      }
-    },
-    put: (slug, docs) => mutate(slug, "save page", (s) => s.put(slug, docs)),
-    publish: (slug, p) => mutate(slug, "publish page", (s) => s.publish(slug, p)),
-    snapshot: (slug) => primary.snapshot(slug),
-    restore: (slug, s) => mutate(slug, "restore page", (st) => st.restore(slug, s)),
-  };
+export async function reindexSites(redis: Redis, sites: SiteStore): Promise<{ added: number; total: number }> {
+  const slugs = await sites.list();
+  const indexed = new Set(await redis.smembers(keys.sites()));
+  const missing = slugs.filter((slug) => !indexed.has(slug));
+  if (missing.length > 0) await redis.sadd(keys.sites(), missing[0], ...missing.slice(1));
+  return { added: missing.length, total: slugs.length };
 }

@@ -14,9 +14,9 @@
  *   pnpm seed --list                           # accounts and whether each has a password
  *
  * Generated passwords are written to `.credentials.local` (git-ignored, owner-only) and never printed.
- * Set SEED_PASSWORD to choose one yourself. Reads UPSTASH_REDIS_REST_URL / _TOKEN from the environment or .env.local.
- * Writes through the same stores as the app, so ACCOUNTS_STORE / SITES_STORE (and DATABASE_URL when one is not "redis")
- * decide where the accounts and pages land.
+ * Set SEED_PASSWORD to choose one yourself. Reads UPSTASH_REDIS_REST_URL / _TOKEN and DATABASE_URL from the environment
+ * or .env.local.
+ * Writes through the same stores as the app, so it also needs DATABASE_URL: accounts and pages land in Postgres.
  */
 import { randomBytes } from "node:crypto";
 import { appendFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
@@ -24,12 +24,16 @@ import { parseArgs } from "node:util";
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { PublishableSite, Slug, UserRecord } from "../content/schemas";
-import { getCredentials, setPassword } from "../lib/credential-store";
+import { getCredentials, setPassword, type CredStore } from "../lib/credential-store";
 import { neonDb } from "../lib/db/neon";
-import { modesFromEnv, wireStores, type Stores } from "../lib/store/wire";
+import { credStore } from "../lib/store/credentials";
+import { siteStore, type SiteStore } from "../lib/store/sites";
+import { userStore, type UserStore } from "../lib/store/users";
 
 const SeedFile = z.object({ slug: Slug, site: z.record(z.string(), z.unknown()) });
 const CREDENTIALS_FILE = ".credentials.local";
+
+type Stores = { users: UserStore; credentials: CredStore; sites: SiteStore };
 
 function fail(message: string): never {
   console.error(`seed: ${message}`);
@@ -88,15 +92,19 @@ async function main(): Promise<void> {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) fail("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set");
   const redis = new Redis({ url, token });
-  const modes = modesFromEnv(process.env);
   const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-  if (Object.values(modes).some((m) => m !== "redis") && !databaseUrl)
-    fail("DATABASE_URL must be set when a store is not on redis");
-  const stores = wireStores({
-    redis: () => redis,
-    db: () => neonDb(databaseUrl ?? fail("DATABASE_URL is not set")),
-    modes,
-  });
+  if (!databaseUrl) fail("DATABASE_URL must be set");
+  const db = neonDb(databaseUrl);
+  const stores: Stores = {
+    users: userStore(() => db),
+    credentials: credStore(() => db),
+    sites: siteStore(
+      () => db,
+      async (slug) => {
+        await redis.sadd("sites", slug);
+      },
+    ),
+  };
 
   if (values.list) {
     for (const { email, record } of await accounts(stores)) {

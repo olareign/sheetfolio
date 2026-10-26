@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptySite, type Site } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
+import { seedPage } from "@/test/pages";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
 vi.mock("@/lib/redis", async (importOriginal) => {
@@ -15,7 +16,7 @@ const { getDraft, SiteError } = await import("../site");
 const SLUG = "ada-obi";
 let fake: FakeRedis;
 
-function seed(): Site {
+async function seed(): Promise<Site> {
   const site = createEmptySite({
     name: "Ada Obi",
     firstName: "Ada",
@@ -23,7 +24,7 @@ function seed(): Site {
     publicEmail: "ada@example.com",
     now: new Date("2026-10-01T00:00:00.000Z"),
   });
-  fake.strings.set(`site:${SLUG}:draft`, JSON.stringify(site));
+  await seedPage(SLUG, { draft: site });
   return site;
 }
 
@@ -36,10 +37,10 @@ const input = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   fake = new FakeRedis();
   state.redis = fake;
-  seed();
+  await seed();
 });
 
 describe("applyCvImport", () => {

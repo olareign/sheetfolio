@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Site } from "@/content/schemas";
+import { db } from "@/lib/db";
 import { FakeRedis } from "@/test/fake-redis";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
@@ -18,6 +19,11 @@ const now = new Date("2026-09-28T10:00:00.000Z");
 const input = { slug: "idris-rasaq", name: "Rasaq Idris Olawale", firstName: "Idris", headline: "Site Engineer" };
 let fake: FakeRedis;
 
+const count = async (table: string) =>
+  Number((await db().query<{ n: number }>(`select count(*)::int as n from ${table}`))[0]?.n);
+const ownerOf = async (slug: string) =>
+  (await db().query<{ id: string }>("select id from users where slug = $1", [slug]))[0]?.id;
+
 beforeEach(() => {
   fake = new FakeRedis();
   state.redis = fake;
@@ -31,7 +37,7 @@ describe("onboard", () => {
       record: expect.objectContaining({ id: "u1", slug: "idris-rasaq", role: "engineer" }),
     });
 
-    expect(fake.strings.get("slug:idris-rasaq")).toBe("u1");
+    expect(await ownerOf("idris-rasaq")).toBe("u1");
     expect(await getUserRecord("ridrisolawale@gmail.com")).toMatchObject({ slug: "idris-rasaq" });
     expect(fake.sets.get("sites")?.has("idris-rasaq")).toBe(true);
 
@@ -46,7 +52,7 @@ describe("onboard", () => {
     await onboard({ userId: "u1", email: "a@example.com", role: "engineer", input, now });
     const r = await onboard({ userId: "u2", email: "b@example.com", role: "engineer", input, now });
     expect(r).toEqual({ ok: false, reason: "SLUG_TAKEN" });
-    expect(fake.strings.get("slug:idris-rasaq")).toBe("u1");
+    expect(await ownerOf("idris-rasaq")).toBe("u1");
     expect(await getUserRecord("b@example.com")).toBeNull();
   });
 
@@ -60,30 +66,30 @@ describe("onboard", () => {
       now,
     });
     expect(r).toEqual({ ok: false, reason: "ALREADY_ONBOARDED", slug: "idris-rasaq" });
-    expect(fake.strings.has("slug:second")).toBe(false);
+    expect(await ownerOf("second")).toBeUndefined();
   });
 
-  it("releases the slug if a concurrent onboarding for the same email won", async () => {
-    // Simulate the race: the user record appears between the existence check and the NX write.
-    const realSet = fake.set.bind(fake);
-    let injected = false;
-    fake.set = async (key, value, opts) => {
-      if (!injected && key === "user:a@example.com") {
-        injected = true;
-        await realSet(key, { id: "u1", slug: "winner", role: "engineer", name: "A", createdAt: now.toISOString() });
-      }
-      return realSet(key, value, opts);
-    };
-    const r = await onboard({ userId: "u1", email: "a@example.com", role: "engineer", input, now });
-    expect(r).toEqual({ ok: false, reason: "ALREADY_ONBOARDED", slug: "winner" });
-    expect(fake.strings.has("slug:idris-rasaq")).toBe(false);
+  it("gives a concurrent sign-up for the same email to the first, and releases the loser's page address", async () => {
+    const [first, second] = await Promise.all([
+      onboard({ userId: "u1", email: "a@example.com", role: "engineer", input, now }),
+      onboard({ userId: "u2", email: "a@example.com", role: "engineer", input: { ...input, slug: "second" }, now }),
+    ]);
+    expect(first.ok).toBe(true);
+    expect(second).toEqual({ ok: false, reason: "ALREADY_ONBOARDED", slug: "idris-rasaq" });
+    expect(await ownerOf("second")).toBeUndefined();
+    expect(await count("users")).toBe(1);
   });
 
-  it("rolls back the slug and user record if creating the draft fails", async () => {
-    fake.failNextExec = true;
-    await expect(onboard({ userId: "u1", email: "a@example.com", role: "engineer", input, now })).rejects.toThrow();
-    expect(fake.strings.has("slug:idris-rasaq")).toBe(false);
-    expect(fake.strings.has("user:a@example.com")).toBe(false);
+  it("rolls back the user record if creating the draft fails", async () => {
+    // Take the pages table away for the duration so that creating the draft throws.
+    await db().query("alter table sites rename to sites_away");
+    try {
+      await expect(onboard({ userId: "u1", email: "a@example.com", role: "engineer", input, now })).rejects.toThrow();
+    } finally {
+      await db().query("alter table sites_away rename to sites");
+    }
+    expect(await ownerOf("idris-rasaq")).toBeUndefined();
+    expect(await getUserRecord("a@example.com")).toBeNull();
   });
 
   it("validates input", async () => {
@@ -121,7 +127,7 @@ describe("registerAccount", () => {
       input: { ...input, slug: "second" },
     });
     expect(again).toEqual({ ok: false, reason: "EMAIL_TAKEN" });
-    expect(fake.strings.has("slug:second")).toBe(false);
+    expect(await ownerOf("second")).toBeUndefined();
     expect(await authenticate("ada@example.com", signup.password)).not.toBeNull();
     expect(await authenticate("ada@example.com", "another-long-password")).toBeNull();
   });
@@ -142,7 +148,9 @@ describe("registerAccount", () => {
   });
 
   it("still creates the account when the page address is already someone's username", async () => {
-    fake.strings.set("username:idris-rasaq", JSON.stringify("other@example.com"));
+    await db().query(
+      "insert into credentials (email, username, password_hash, updated_at) values ('other@example.com', 'idris-rasaq', 'x', now())",
+    );
     const r = await registerAccount(signup);
     expect(r.ok).toBe(true);
     expect(await authenticate("ada@example.com", signup.password)).not.toBeNull();
@@ -151,6 +159,6 @@ describe("registerAccount", () => {
 
   it("rejects a short password before touching anything", async () => {
     await expect(registerAccount({ ...signup, password: "short" })).rejects.toThrow();
-    expect(fake.strings.size).toBe(0);
+    expect([await count("users"), await count("credentials"), await count("sites")]).toEqual([0, 0, 0]);
   });
 });

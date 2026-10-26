@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "@/lib/db";
 import { FakeRedis } from "@/test/fake-redis";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
@@ -24,6 +25,9 @@ const email = "ada@example.com";
 const now = new Date("2026-10-21T09:00:00.000Z");
 let fake: FakeRedis;
 
+const usernameOwner = async (username: string) =>
+  (await db().query<{ email: string }>("select email from credentials where username = $1", [username]))[0]?.email;
+
 beforeEach(() => {
   fake = new FakeRedis();
   state.redis = fake;
@@ -34,10 +38,10 @@ describe("setPassword", () => {
     const r = await setPassword({ email: "Ada@Example.com", password: "a long password", username: "Ada", now });
     expect(r).toEqual({ ok: true, username: "ada" });
 
-    const stored = fake.strings.get("cred:ada@example.com") ?? "";
-    expect(stored).not.toContain("a long password");
+    const [row] = await db().query<{ password_hash: string }>("select password_hash from credentials");
+    expect(row?.password_hash).not.toContain("a long password");
     expect(await getCredentials(email)).toMatchObject({ username: "ada", updatedAt: now.toISOString() });
-    expect(fake.strings.get("username:ada")).toBe(email);
+    expect(await usernameOwner("ada")).toBe(email);
   });
 
   it("refuses a username another account owns and writes nothing", async () => {
@@ -62,8 +66,8 @@ describe("setPassword", () => {
   it("frees the old username when the account moves to a new one", async () => {
     await setPassword({ email, password: "first password!", username: "ada" });
     await setPassword({ email, password: "first password!", username: "lovelace" });
-    expect(fake.strings.has("username:ada")).toBe(false);
-    expect(fake.strings.get("username:lovelace")).toBe(email);
+    expect(await usernameOwner("ada")).toBeUndefined();
+    expect(await usernameOwner("lovelace")).toBe(email);
   });
 
   it.each([["short"], ["x".repeat(129)]])("rejects a password outside 10–128 characters", async (password) => {

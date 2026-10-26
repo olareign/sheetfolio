@@ -1,56 +1,56 @@
-# Moving data from Redis to Postgres (Neon)
+# Where the data lives
 
-Redis (Upstash) held everything. The plan is for Postgres to hold what must not be lost, and Redis to keep what is
-short-lived or rebuildable (rate limits, reset links, caches, hot counters). It moves in phases, one kind of data at
-a time, and each kind has a switch that can be moved forward or back.
+**Postgres (Neon)** holds everything that must not be lost: accounts, passwords and sign-out stamps, enquiries, pages
+(draft and published), and the durable copy of view and download totals.
 
-| Phase | Moves                                           | Setting                         | Status                             |
-| ----- | ----------------------------------------------- | ------------------------------- | ---------------------------------- |
-| 1     | accounts, passwords, sign-out stamps, enquiries | `ACCOUNTS_STORE`, `LEADS_STORE` | built; waiting for a Neon database |
-| 2     | pages (draft and published), the page list      | `SITES_STORE`                   | not started                        |
-| 3     | view and download counts (daily rollups)        | `STATS_STORE`                   | not started                        |
-| 4     | remove the Redis paths and old keys             | none                            | after 1–3 are settled              |
+**Redis (Upstash)** holds only what is short-lived or rebuildable:
 
-## The switch (`lib/store/mode.ts`)
+| Redis key                   | What                                            | If Redis is lost                |
+| --------------------------- | ----------------------------------------------- | ------------------------------- |
+| `reset:*`, `reset-latest:*` | password-reset links (expire after an hour)     | people ask for a new link       |
+| `views:*`, `cv:*`           | live view and download counters                 | `pnpm db:stats restore --apply` |
+| `sites`                     | index of page addresses, checked on every visit | `pnpm db:stats reindex`         |
+| rate-limit counters         | throttling of sign-in, enquiries and reset asks | start again from zero           |
 
-| Mode       | Reads from | Writes to                      | Use                                |
-| ---------- | ---------- | ------------------------------ | ---------------------------------- |
-| `redis`    | Redis      | Redis                          | the default; nothing changes       |
-| `dual`     | Redis      | Redis, then copied to Postgres | fill Postgres and watch it         |
-| `pg-first` | Postgres   | Postgres, then copied to Redis | live on Postgres, Redis as the net |
-| `postgres` | Postgres   | Postgres                       | finished                           |
+`DATABASE_URL` is required: the app refuses to start without it.
 
-A failed copy is logged (`[store] <what>: copy to pg failed`) and never fails the visitor's request; the backfill
-repairs it. A failure on the side being read from does fail the request, as it should.
+## Tables
 
-## Pages (phase 2)
+`db/migrations/NNNN_*.sql`, applied in order and never edited afterwards (forward-only; plain DDL only, see
+`lib/db/migrate.ts`). To change the schema add the next numbered file, then `pnpm db:migrate` (it prints the database
+host first and is safe to repeat). Run it **before** deploying code that needs the change.
+
+## Pages
 
 - Each page is one row in `sites`: the draft and the published copy as JSON, plus when they were saved, published and
   first published.
-- **The list of page addresses stays in Redis in every mode** (the `sites` set). The view counter checks it on every
-  visit, and that must not wake the database each time. `pnpm db:backfill --verify` checks the index against Postgres.
-- In `dual` and `pg-first`, a save copies the _whole page_ as it now stands to the other side, not just the one change,
-  so any save repairs a page the copy was missing or had behind.
-- Two saves of one page at the same instant could leave the copy one step behind until the next save or backfill.
-  A page has one editor, so this is rare; `--verify` reports it if it happens.
+- Creating a page also adds its address to the Redis `sites` set. If that update fails it is logged
+  (`[store] register page: index update failed`) and the page still exists, but its views are not counted until
+  `pnpm db:stats reindex` runs. The command only adds; it never removes.
 
-## Moving a store, step by step
+## View and download totals
 
-1. **Create the Neon project** in the same region as Vercel (`iad1`, so AWS us-east-1). Copy its pooled connection string.
-2. **Add `DATABASE_URL`** to Vercel (Production). Nothing changes yet: both settings still default to `redis`.
-3. **Create the tables:** put `DATABASE_URL` in `apps/web/.env.local`, then `pnpm db:migrate`. It prints the database host first. It is safe to repeat.
-4. **Start copying new writes:** set the store settings you are moving (`ACCOUNTS_STORE`, `LEADS_STORE`, `SITES_STORE`) to `dual` on Vercel and redeploy.
-5. **Copy what already exists:** `pnpm db:backfill` (dry run, shows counts), then `pnpm db:backfill --apply`.
-6. **Check it:** `pnpm db:backfill --verify` must end with "Postgres matches Redis." Fix or repeat step 5 if not.
-7. **Watch for a day.** Look in the Vercel logs for `[store]` lines. None means every write reached both.
-8. **Switch reads:** run steps 5 and 6 once more, then set both to `pg-first` and redeploy. People are now served from Postgres.
-9. **Finish:** after a few quiet days set both to `postgres`.
+Live counters are bumped in Redis on every public visit, which keeps the database asleep. A daily job
+(`/api/cron/stats`, scheduled in `vercel.json`, guarded by `CRON_SECRET` sent as a bearer token) copies their totals into
+`stats_daily`, `stats_projects` and `stats_cv`. A copy only ever raises a number. Redis keeps daily counts for 90 days;
+Postgres keeps them.
 
-**Going back:** set the setting to the previous mode and redeploy. In `dual` and `pg-first` both sides have every write, so nothing is lost by stepping back. In `postgres` Redis stops receiving writes: step back to `pg-first` _before_ anything goes wrong, not after.
+```bash
+pnpm db:stats flush              # copy the live totals to Postgres now (the daily job does this too)
+pnpm db:stats restore            # dry run: how much Redis is missing compared with Postgres
+pnpm db:stats restore --apply    # fill in what Redis is missing (never lowers a live count)
+pnpm db:stats reindex            # rebuild the Redis page index from Postgres
+```
+
+Everything counted since the last daily run is lost if Redis is lost before the job has run.
 
 ## Things to know
 
-- `pnpm seed` writes through the same stores as the app, so it obeys the three settings (set them and `DATABASE_URL` in the environment or `.env.local`).
-- `pnpm db:backfill` only ever reads Redis. It writes to Postgres. After `postgres` mode, rows exist only in Postgres, so `--verify` will list them as "rows only in Postgres", which is normal.
-- Migrations are forward-only: never edit one that has been applied, add the next numbered file. Plain DDL only (see `lib/db/migrate.ts`).
-- Sign-in checks the sign-out stamp on every request, which is one small query in Postgres modes.
+- The scripts read `DATABASE_URL` and the Upstash variables from the environment or `apps/web/.env.local`.
+- `pnpm seed` writes accounts and pages straight to Postgres (and the page index to Redis).
+- Sign-in checks the sign-out stamp on every request: one small query.
+- Neon's free compute scales to zero, so the first request after a quiet spell is slower. `/api/health` pings the
+  database at most every 30 seconds, so it cannot be used to keep it awake.
+- Old keys from before the move (`user:*`, `cred:*`, `username:*`, `slug:*`, `site:*`, `leads:*`, `session-epoch:*`) may
+  still sit in Redis. Nothing reads them. They are a cold backup of the data as it was at the move; delete them only
+  when you are sure Postgres is right.

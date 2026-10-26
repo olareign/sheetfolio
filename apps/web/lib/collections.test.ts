@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptySite } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
+import { clearPages, seedPage } from "@/test/pages";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
 vi.mock("@/lib/redis", async (importOriginal) => {
@@ -34,7 +35,7 @@ const experience = (over: Record<string, unknown> = {}) => ({
 });
 const draft = async () => (await getDraft(SLUG))!;
 
-beforeEach(() => {
+beforeEach(async () => {
   fake = new FakeRedis();
   state.redis = fake;
   const site = createEmptySite({
@@ -44,7 +45,7 @@ beforeEach(() => {
     publicEmail: "i@example.com",
     now: t0,
   });
-  fake.strings.set(`site:${SLUG}:draft`, JSON.stringify(site));
+  await seedPage(SLUG, { draft: site });
 });
 
 describe("upsertItem", () => {
@@ -101,7 +102,7 @@ describe("upsertItem", () => {
   });
 
   it("throws NOT_FOUND without a draft", async () => {
-    fake.strings.clear();
+    await clearPages();
     await expect(upsertItem(SLUG, "projects", "new", project())).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
@@ -322,8 +323,7 @@ describe("project preview is server-managed", () => {
 
 async function mutateDraftForTest(id: string, preview: Record<string, unknown>) {
   const current = await draft();
-  fake.strings.set(
-    `site:${SLUG}:draft`,
-    JSON.stringify({ ...current, projects: current.projects.map((p) => (p.id === id ? { ...p, preview } : p)) }),
-  );
+  await seedPage(SLUG, {
+    draft: { ...current, projects: current.projects.map((p) => (p.id === id ? { ...p, preview } : p)) },
+  });
 }

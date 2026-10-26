@@ -1,17 +1,20 @@
 /**
- * The view and download totals: copy them to Postgres, or put them back into Redis after a loss.
+ * The view and download totals: copy them to Postgres, or put them back into Redis after a loss. Also rebuilds the
+ * Redis page index.
  *
  *   pnpm db:stats flush               # copy the live totals from Redis into Postgres (the daily job does this too)
  *   pnpm db:stats restore             # dry run: how much Redis is missing compared with Postgres
  *   pnpm db:stats restore --apply     # fill in what Redis is missing (never lowers a live count)
+ *   pnpm db:stats reindex             # add to Redis's page index every page Postgres has (views are only counted for those)
  *
  * Reads UPSTASH_REDIS_REST_URL / _TOKEN and DATABASE_URL from the environment or .env.local. `restore --apply` is the only
- * thing here that writes to Redis.
+ * things here that write to Redis.
  */
 import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { Redis } from "@upstash/redis";
 import { neonDb } from "../lib/db/neon";
+import { reindexSites, siteStore } from "../lib/store/sites";
 import { flushStats, pgStatsArchive, restoreStats } from "../lib/store/stats";
 
 function fail(message: string): never {
@@ -25,7 +28,8 @@ async function main(): Promise<void> {
     options: { apply: { type: "boolean", default: false } },
   });
   const command = positionals[0];
-  if (command !== "flush" && command !== "restore") fail("usage: pnpm db:stats flush | restore [--apply]");
+  if (command !== "flush" && command !== "restore" && command !== "reindex")
+    fail("usage: pnpm db:stats flush | restore [--apply] | reindex");
   if (existsSync(".env.local")) process.loadEnvFile(".env.local");
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -38,6 +42,15 @@ async function main(): Promise<void> {
   const archive = pgStatsArchive(() => db);
   console.log(`stats: Redis ${new URL(url).host}  <->  Postgres ${new URL(databaseUrl).host}`);
 
+  if (command === "reindex") {
+    // Reading the page list does not need the index, so the no-op index writer is never called.
+    const result = await reindexSites(
+      redis,
+      siteStore(() => db, async () => {}),
+    );
+    console.log(`stats: page index now covers all ${result.total} pages (${result.added} added)`);
+    return;
+  }
   if (command === "flush") {
     console.log("stats: copied to Postgres", await flushStats(redis, archive));
     return;

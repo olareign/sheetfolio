@@ -12,7 +12,6 @@
     "test:watch": "vitest",
     "seed": "tsx scripts/seed.ts",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:backfill": "tsx scripts/backfill.ts",
     "db:stats": "tsx scripts/stats.ts"
   },
   "dependencies": {

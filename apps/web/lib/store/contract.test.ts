@@ -1,17 +1,14 @@
 import type { Redis } from "@upstash/redis";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Lead, UserRecord } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
 import { testDb } from "@/test/pg";
-import { pgCredStore, redisCredStore, type CredentialRecord, type CredStore, type KV } from "./credentials";
-import { MAX_LEADS, pgLeadStore, redisLeadStore, type LeadStore } from "./leads";
-import { pgSiteStore, redisSiteStore, type SiteStore } from "./sites";
-import { pgUserStore, redisUserStore, type UserStore } from "./users";
+import { credStore, type CredentialRecord, type CredStore } from "./credentials";
+import { leadStore, MAX_LEADS, type LeadStore } from "./leads";
+import { reindexSites, siteStore, type SiteStore } from "./sites";
+import { userStore, type UserStore } from "./users";
 
-/*
- * One set of behaviours, run against the Redis stores and the Postgres stores. If a test passes for one and fails for
- * the other, moving the data would change what the app does, so it must fail here first.
- */
+/* The stores' behaviour against a real Postgres (PGlite) with the real migrations applied. */
 
 type Side = { users: UserStore; creds: CredStore; leads: LeadStore; sites: SiteStore };
 type Db = Awaited<ReturnType<typeof testDb>>;
@@ -24,32 +21,18 @@ afterAll(async () => {
   await db.raw.close();
 });
 
-const sides: { name: string; make: () => Promise<Side> }[] = [
-  {
-    name: "Redis",
-    make: async () => {
-      const fake = new FakeRedis();
-      return {
-        users: redisUserStore(() => fake as unknown as Redis),
-        creds: redisCredStore(() => fake as unknown as KV),
-        leads: redisLeadStore(() => fake as unknown as Redis),
-        sites: redisSiteStore(() => fake as unknown as Redis),
-      };
-    },
-  },
-  {
-    name: "Postgres",
-    make: async () => {
-      await db.query("truncate users, credentials, session_epochs, leads, sites");
-      return {
-        users: pgUserStore(() => db),
-        creds: pgCredStore(() => db),
-        leads: pgLeadStore(() => db),
-        sites: pgSiteStore(() => db),
-      };
-    },
-  },
-];
+const make = async (): Promise<Side> => {
+  await db.query("truncate users, credentials, session_epochs, leads, sites");
+  return {
+    users: userStore(() => db),
+    creds: credStore(() => db),
+    leads: leadStore(() => db),
+    sites: siteStore(
+      () => db,
+      async () => {},
+    ),
+  };
+};
 
 const user = (id: string, slug: string, over: Partial<UserRecord> = {}): UserRecord => ({
   id,
@@ -74,7 +57,7 @@ const lead = (n: number, over: Partial<Lead> = {}): Lead => ({
   ...over,
 });
 
-describe.each(sides)("$name: accounts", ({ make }) => {
+describe("accounts", () => {
   let s: Side;
   beforeEach(async () => (s = await make()));
 
@@ -110,7 +93,7 @@ describe.each(sides)("$name: accounts", ({ make }) => {
   });
 });
 
-describe.each(sides)("$name: sign-in details", ({ make }) => {
+describe("sign-in details", () => {
   let s: Side;
   beforeEach(async () => (s = await make()));
 
@@ -165,7 +148,7 @@ describe.each(sides)("$name: sign-in details", ({ make }) => {
   });
 });
 
-describe.each(sides)("$name: enquiries", ({ make }) => {
+describe("enquiries", () => {
   let s: Side;
   beforeEach(async () => (s = await make()));
 
@@ -244,7 +227,7 @@ const publishedDoc = (n = 1) => ({
   publishedAt: `2026-10-0${n}T12:00:00.000Z`,
 });
 
-describe.each(sides)("$name: pages", ({ make }) => {
+describe("pages", () => {
   let s: Side;
   beforeEach(async () => (s = await make()));
 
@@ -280,50 +263,73 @@ describe.each(sides)("$name: pages", ({ make }) => {
     expect(await s.sites.firstPublishedAt("ada-obi")).toBe("2026-10-01T12:00:00.000Z");
     expect(await s.sites.getPublished("ada-obi")).toEqual(publishedDoc(2));
   });
-
-  it("copies a whole page out and back in, byte for byte in meaning", async () => {
-    await s.sites.create("ada-obi", draftDoc(1));
-    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: "2026-10-01T12:00:00.000Z" });
-    const snap = await s.sites.snapshot("ada-obi");
-    expect(snap).toEqual({
-      draft: draftDoc(1),
-      published: publishedDoc(1),
-      firstPublishedAt: "2026-10-01T12:00:00.000Z",
-    });
-    expect(await s.sites.snapshot("nobody")).toBeNull();
-
-    await s.sites.restore("bob", snap!);
-    expect(await s.sites.snapshot("bob")).toEqual(snap);
-    expect(await s.sites.list()).toContain("bob");
-  });
-
-  it("restores a page that was never published, clearing any published copy", async () => {
-    await s.sites.create("ada-obi", draftDoc(1));
-    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: "2026-10-01T12:00:00.000Z" });
-    await s.sites.restore("ada-obi", { draft: draftDoc(2), published: null, firstPublishedAt: null });
-    expect(await s.sites.snapshot("ada-obi")).toEqual({ draft: draftDoc(2), published: null, firstPublishedAt: null });
-  });
 });
 
-describe("Postgres only", () => {
+describe("constraints and edge cases", () => {
   it("refuses to publish a page that has no draft rather than quietly doing nothing", async () => {
     await db.query("truncate sites");
     await expect(
-      pgSiteStore(() => db).publish("ghost", { doc: publishedDoc(), publishedAt: "2026-10-01T12:00:00.000Z" }),
+      siteStore(
+        () => db,
+        async () => {},
+      ).publish("ghost", { doc: publishedDoc(), publishedAt: "2026-10-01T12:00:00.000Z" }),
     ).rejects.toThrow(/no page in the database/);
   });
 
   it("rejects page addresses and documents that break the table's rules", async () => {
-    const store = pgSiteStore(() => db);
+    const store = siteStore(
+      () => db,
+      async () => {},
+    );
     await expect(store.create("Bad Slug", draftDoc())).rejects.toMatchObject({ code: "23514" });
     await expect(store.create("ada", ["not", "an", "object"])).rejects.toMatchObject({ code: "23514" });
   });
 
-  it("ignores the same enquiry arriving twice (a retry, or the backfill overlapping a live write)", async () => {
+  it("ignores the same enquiry arriving twice (a retry)", async () => {
     await db.query("truncate leads");
-    const store = pgLeadStore(() => db);
+    const store = leadStore(() => db);
     await store.add("ada", lead(1));
     await store.add("ada", lead(1));
     expect(await store.count("ada")).toBe(1);
+  });
+});
+
+describe("page registration", () => {
+  it("adds a new page to the Redis index, and survives that index being unavailable", async () => {
+    await db.query("truncate sites");
+    const added: string[] = [];
+    const store = siteStore(
+      () => db,
+      async (slug) => {
+        added.push(slug);
+      },
+    );
+    await store.create("ada-obi", draftDoc());
+    expect(added).toEqual(["ada-obi"]);
+
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const broken = siteStore(
+      () => db,
+      async () => Promise.reject(new Error("redis down")),
+    );
+    await expect(broken.create("bob", draftDoc())).resolves.toBeUndefined();
+    expect(await broken.getDraft("bob")).toEqual(draftDoc());
+    log.mockRestore();
+  });
+
+  it("rebuilds the Redis index from the database, adding only what is missing", async () => {
+    await db.query("truncate sites");
+    const store = siteStore(
+      () => db,
+      async () => {},
+    );
+    await store.create("ada-obi", draftDoc());
+    await store.create("bob", draftDoc());
+    const fake = new FakeRedis();
+    fake.sets.set("sites", new Set(["ada-obi", "stale-page"]));
+
+    expect(await reindexSites(fake as unknown as Redis, store)).toEqual({ added: 1, total: 2 });
+    expect([...(fake.sets.get("sites") ?? [])].sort()).toEqual(["ada-obi", "bob", "stale-page"]);
+    expect(await reindexSites(fake as unknown as Redis, store)).toEqual({ added: 0, total: 2 });
   });
 });

@@ -7,7 +7,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    setupFiles: ["./test/setup-env.ts"],
+    setupFiles: ["./test/setup-env.ts", "./test/setup-db.ts"],
     // Tests that start an in-process Postgres (PGlite) need a few seconds when the whole suite runs at once.
     testTimeout: 30_000,
     hookTimeout: 30_000,

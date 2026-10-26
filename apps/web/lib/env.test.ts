@@ -5,6 +5,7 @@ const base = {
   UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
   UPSTASH_REDIS_REST_TOKEN: "token",
   AUTH_SECRET: "x".repeat(32),
+  DATABASE_URL: "postgresql://u:p@ep-x.us-east-1.aws.neon.tech/db?sslmode=require",
 };
 
 describe("parseEnv", () => {
@@ -43,7 +44,7 @@ describe("parseEnv", () => {
   });
 
   it("accepts the KV_REST_API_* names Vercel's Upstash integration injects", () => {
-    const rest = { AUTH_SECRET: base.AUTH_SECRET }; // no UPSTASH_* names at all
+    const rest = { AUTH_SECRET: base.AUTH_SECRET, DATABASE_URL: base.DATABASE_URL }; // no UPSTASH_* names at all
     const env = parseEnv({ ...rest, KV_REST_API_URL: "https://kv.upstash.io", KV_REST_API_TOKEN: "kv-token" });
     expect(env.UPSTASH_REDIS_REST_URL).toBe("https://kv.upstash.io");
     expect(env.UPSTASH_REDIS_REST_TOKEN).toBe("kv-token");
@@ -56,27 +57,18 @@ describe("parseEnv", () => {
   });
 });
 
-describe("store modes", () => {
-  it("default to Redis, and need no database", () => {
-    const env = parseEnv({ ...base, ACCOUNTS_STORE: "", LEADS_STORE: undefined });
-    expect([env.ACCOUNTS_STORE, env.LEADS_STORE, env.DATABASE_URL]).toEqual(["redis", "redis", undefined]);
+describe("DATABASE_URL", () => {
+  it("is required, so a deploy without a database fails at startup", () => {
+    expect(() => parseEnv({ ...base, DATABASE_URL: undefined })).toThrow(/DATABASE_URL/);
   });
 
-  it("refuse to start when a store has left Redis but there is no database", () => {
-    expect(() => parseEnv({ ...base, ACCOUNTS_STORE: "dual" })).toThrow(
-      /DATABASE_URL: Required when ACCOUNTS_STORE is dual/,
+  it("can come from Vercel's POSTGRES_URL", () => {
+    expect(parseEnv({ ...base, DATABASE_URL: undefined, POSTGRES_URL: base.DATABASE_URL }).DATABASE_URL).toBe(
+      base.DATABASE_URL,
     );
-    expect(() => parseEnv({ ...base, LEADS_STORE: "postgres" })).toThrow(/Required when LEADS_STORE is postgres/);
   });
 
-  it("accept a database, from DATABASE_URL or Vercel's POSTGRES_URL", () => {
-    const url = "postgresql://u:p@ep-x.us-east-1.aws.neon.tech/db?sslmode=require";
-    expect(parseEnv({ ...base, ACCOUNTS_STORE: "pg-first", DATABASE_URL: url }).DATABASE_URL).toBe(url);
-    expect(parseEnv({ ...base, LEADS_STORE: "dual", POSTGRES_URL: url }).DATABASE_URL).toBe(url);
-  });
-
-  it("reject an unknown mode or a database address that is not Postgres", () => {
-    expect(() => parseEnv({ ...base, ACCOUNTS_STORE: "both" })).toThrow(/ACCOUNTS_STORE/);
+  it("must be a Postgres address", () => {
     expect(() => parseEnv({ ...base, DATABASE_URL: "mysql://x" })).toThrow(/DATABASE_URL/);
   });
 });

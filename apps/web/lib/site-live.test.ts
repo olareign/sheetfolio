@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptySite } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
+import { seedPage } from "@/test/pages";
 
 // A data cache that behaves like Next's: it keeps what the function returns (by key) and nothing from a throw.
 const state = vi.hoisted(() => ({ redis: undefined as unknown, memo: new Map<string, unknown>() }));
@@ -32,7 +33,7 @@ beforeEach(() => {
   state.memo.clear();
 });
 
-function seedReadyDraft() {
+async function seedReadyDraft() {
   const site = createEmptySite({
     name: "Taofeeq Abdulrasaq",
     firstName: "Taofeeq",
@@ -41,13 +42,14 @@ function seedReadyDraft() {
     now: new Date("2026-10-22T08:00:00.000Z"),
   });
   site.profile = { ...site.profile, summary: "Engineer.", location: "Lagos, Nigeria", whatsapp: "2347033435818" };
-  fake.strings.set(`site:${SLUG}:draft`, JSON.stringify(site));
+  await seedPage(SLUG, { draft: site });
   fake.sets.set("sites", new Set([SLUG]));
+  return site;
 }
 
 describe("a page that is visited before it is published", () => {
   it("is a 404 at first, then shows as soon as it is published", async () => {
-    seedReadyDraft();
+    await seedReadyDraft();
     expect(await getPublished(SLUG)).toBeNull();
 
     await publish(SLUG, new Date("2026-10-22T09:00:00.000Z"));
@@ -56,16 +58,15 @@ describe("a page that is visited before it is published", () => {
 
   it("is not stuck on 404 even when the page was written without going through publish", async () => {
     expect(await getPublished(SLUG)).toBeNull();
-    seedReadyDraft();
-    const draft = JSON.parse(String(fake.strings.get(`site:${SLUG}:draft`)));
-    fake.strings.set(
-      `site:${SLUG}:published`,
-      JSON.stringify({
+    const draft = await seedReadyDraft();
+    await seedPage(SLUG, {
+      draft,
+      published: {
         ...draft,
         publishedAt: "2026-10-22T09:00:00.000Z",
         settings: { ...draft.settings, status: "published" },
-      }),
-    );
+      },
+    });
     expect(await getPublished(SLUG)).not.toBeNull();
   });
 });

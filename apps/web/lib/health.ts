@@ -1,24 +1,15 @@
 import type { Db } from "./db/types";
-import type { StoreMode } from "./store/mode";
 
-export type Health = {
-  ok: boolean;
-  stores: { accounts: StoreMode; leads: StoreMode; sites: StoreMode };
-  /** "unused" while every store is on Redis, so a Redis-only setup never wakes the database. */
-  postgres: "unused" | "up" | "down";
-};
+export type Health = { ok: boolean; postgres: "up" | "down" };
 
 const CACHE_MS = 30_000;
 let cached: { at: number; up: boolean } | undefined;
 
 /**
- * Whether the app can reach what it is configured to use. The database is pinged at most every 30 seconds however
- * often this is called, so a public health address cannot be used to keep the database awake (and billing).
+ * Whether the database answers. It is pinged at most every 30 seconds however often this is called, so a public health
+ * address cannot be used to keep the database awake (and billing).
  */
-export async function checkHealth(modes: Health["stores"], db: () => Db, now: number = Date.now()): Promise<Health> {
-  if (Object.values(modes).every((m) => m === "redis")) {
-    return { ok: true, stores: modes, postgres: "unused" };
-  }
+export async function checkHealth(db: () => Db, now: number = Date.now()): Promise<Health> {
   if (!cached || now - cached.at >= CACHE_MS) {
     try {
       await db().query("select 1");
@@ -27,7 +18,7 @@ export async function checkHealth(modes: Health["stores"], db: () => Db, now: nu
       cached = { at: now, up: false };
     }
   }
-  return { ok: cached.up, stores: modes, postgres: cached.up ? "up" : "down" };
+  return { ok: cached.up, postgres: cached.up ? "up" : "down" };
 }
 
 /** For tests. */

@@ -41,7 +41,7 @@ function parseSite(raw: unknown, key: string): Site {
   const parsed = Site.safeParse(raw);
   if (!parsed.success) {
     // Stored data that no longer matches the schema is a bug or a migration gap: fail loudly.
-    throw new SiteError("INVALID", `Stored document ${key} does not match the Site schema`, parsed.error.issues);
+    throw new SiteError("INVALID", `Stored ${key} does not match the Site schema`, parsed.error.issues);
   }
   return parsed.data;
 }
@@ -57,7 +57,7 @@ function assertSlug(slug: string): string {
 export async function getDraft(slug: string): Promise<Site | null> {
   const s = assertSlug(slug);
   const raw = await sites().getDraft(s);
-  return raw === null ? null : parseSite(raw, keys.draft(s));
+  return raw === null ? null : parseSite(raw, `draft of /${s}`);
 }
 
 /** Validates the whole document and stamps `updatedAt`. */
@@ -95,7 +95,7 @@ export async function updateCollection<N extends CollectionName>(
 export async function getPublishedFresh(slug: string): Promise<Site | null> {
   const s = assertSlug(slug);
   const raw = await sites().getPublished(s);
-  return raw === null ? null : parseSite(raw, keys.published(s));
+  return raw === null ? null : parseSite(raw, `published copy of /${s}`);
 }
 
 /** Thrown inside the cached read so a missing page is never stored: `unstable_cache` keeps return values, not errors. */

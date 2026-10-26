@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { revalidateTag } from "next/cache";
 import { createEmptySite, type Site } from "@/content/schemas";
+import { db } from "@/lib/db";
 import { FakeRedis } from "@/test/fake-redis";
+import { seedPage } from "@/test/pages";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
 
@@ -37,8 +39,9 @@ const SLUG = "idris-rasaq";
 const t0 = new Date("2026-09-28T10:00:00.000Z");
 const t1 = new Date("2026-09-28T11:00:00.000Z");
 let fake: FakeRedis;
+const leadRows = async () => Number((await db().query<{ n: number }>("select count(*)::int as n from leads"))[0]?.n);
 
-function seedDraft(over: Partial<Site["profile"]> = {}): Site {
+async function seedDraft(over: Partial<Site["profile"]> = {}): Promise<Site> {
   const site = createEmptySite({
     name: "Rasaq Idris Olawale",
     firstName: "Idris",
@@ -47,7 +50,7 @@ function seedDraft(over: Partial<Site["profile"]> = {}): Site {
     now: t0,
   });
   site.profile = { ...site.profile, ...over };
-  fake.strings.set(`site:${SLUG}:draft`, JSON.stringify(site));
+  await seedPage(SLUG, { draft: site });
   fake.sets.set("sites", new Set([SLUG]));
   return site;
 }
@@ -67,12 +70,12 @@ describe("getDraft", () => {
   });
 
   it("returns the stored draft, parsed", async () => {
-    const site = seedDraft();
+    const site = await seedDraft();
     expect(await getDraft(SLUG)).toEqual(site);
   });
 
   it("fails loudly on a corrupt stored document", async () => {
-    fake.strings.set(`site:${SLUG}:draft`, JSON.stringify({ profile: {} }));
+    await seedPage(SLUG, { draft: { profile: {} } });
     await expect(getDraft(SLUG)).rejects.toMatchObject({ code: "INVALID" });
   });
 
@@ -83,14 +86,14 @@ describe("getDraft", () => {
 
 describe("saveDraft", () => {
   it("stamps updatedAt", async () => {
-    const site = seedDraft();
+    const site = await seedDraft();
     const saved = await saveDraft(SLUG, site, t1);
     expect(saved.updatedAt).toBe(t1.toISOString());
     expect((await getDraft(SLUG))?.updatedAt).toBe(t1.toISOString());
   });
 
   it("refuses an invalid document and leaves the stored one untouched", async () => {
-    const site = seedDraft();
+    const site = await seedDraft();
     const bad = { ...site, profile: { ...site.profile, publicEmail: "not-an-email" } };
     await expect(saveDraft(SLUG, bad, t1)).rejects.toMatchObject({ code: "INVALID" });
     expect(await getDraft(SLUG)).toEqual(site);
@@ -99,7 +102,7 @@ describe("saveDraft", () => {
 
 describe("updateCollection", () => {
   it("replaces one array and keeps the given order", async () => {
-    seedDraft();
+    await seedDraft();
     await updateCollection(SLUG, "experiences", [experience("b", "Samkey"), experience("a")], t1);
     const draft = await getDraft(SLUG);
     expect(draft?.experiences.map((e) => e.id)).toEqual(["b", "a"]);
@@ -108,14 +111,14 @@ describe("updateCollection", () => {
   });
 
   it("rejects invalid items", async () => {
-    seedDraft();
+    await seedDraft();
     await expect(updateCollection(SLUG, "experiences", [{ ...experience("a"), company: "" }])).rejects.toMatchObject({
       code: "INVALID",
     });
   });
 
   it("rejects duplicate ids", async () => {
-    seedDraft();
+    await seedDraft();
     await expect(updateCollection(SLUG, "experiences", [experience("a"), experience("a")])).rejects.toMatchObject({
       code: "INVALID",
     });
@@ -128,7 +131,7 @@ describe("updateCollection", () => {
 
 describe("publish / getPublished", () => {
   it("refuses a draft that isn't ready and lists the reasons", async () => {
-    seedDraft();
+    await seedDraft();
     const err = await publish(SLUG, t1).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(SiteError);
     expect((err as InstanceType<typeof SiteError>).issues.length).toBe(3);
@@ -136,7 +139,7 @@ describe("publish / getPublished", () => {
   });
 
   it("copies draft → published, stamps publishedAt and drops the cache tag", async () => {
-    seedDraft(ready);
+    await seedDraft(ready);
     const published = await publish(SLUG, t1);
     expect(published.publishedAt).toBe(t1.toISOString());
     expect(published.settings.status).toBe("published");
@@ -153,12 +156,12 @@ describe("publish / getPublished", () => {
   });
 
   it("hides suspended sites and refuses to republish them", async () => {
-    seedDraft(ready);
+    await seedDraft(ready);
     const published = await publish(SLUG, t1);
-    fake.strings.set(
-      `site:${SLUG}:published`,
-      JSON.stringify({ ...published, settings: { ...published.settings, status: "suspended" } }),
-    );
+    await seedPage(SLUG, {
+      draft: published,
+      published: { ...published, settings: { ...published.settings, status: "suspended" } },
+    });
     expect(await getPublished(SLUG)).toBeNull();
     await expect(publish(SLUG)).rejects.toMatchObject({ code: "SUSPENDED" });
   });
@@ -170,7 +173,7 @@ describe("publish / getPublished", () => {
 
 describe("recordView", () => {
   it("counts daily page views with a 90-day TTL", async () => {
-    seedDraft();
+    await seedDraft();
     await recordView(SLUG, undefined, t0);
     await recordView(SLUG, undefined, t0);
     expect(fake.strings.get(`views:${SLUG}:2026-09-28`)).toBe("2");
@@ -178,7 +181,7 @@ describe("recordView", () => {
   });
 
   it("counts project views separately", async () => {
-    seedDraft();
+    await seedDraft();
     await recordView(SLUG, "p1", t0);
     expect(fake.strings.get(`views:${SLUG}:p:p1`)).toBe("1");
     expect(fake.strings.has(`views:${SLUG}:2026-09-28`)).toBe(false);
@@ -192,6 +195,8 @@ describe("recordView", () => {
 });
 
 describe("leads", () => {
+  // Newest-first needs distinct times: two enquiries in the same millisecond have no defined order.
+  const at = (i: number) => new Date(t0.getTime() + i * 1000);
   const lead = (n: number) => ({ name: `Client ${n}`, email: `c${n}@example.com`, message: "Hello" });
 
   it("stores newest first and counts unread", async () => {
@@ -200,17 +205,17 @@ describe("leads", () => {
     const leads = await listLeads(SLUG, 0);
     expect(leads.map((l) => l.name)).toEqual(["Client 2", "Client 1"]);
     expect(leads[0]?.read).toBe(false);
-    expect(fake.strings.get(`leads:${SLUG}:unread`)).toBe("2");
+    expect(await getUnreadCount(SLUG)).toBe(2);
   });
 
   it("keeps only the latest 500", async () => {
-    for (let i = 0; i < 502; i++) await addLead(SLUG, lead(i), t0);
-    expect(fake.lists.get(`leads:${SLUG}`)?.length).toBe(500);
+    for (let i = 0; i < 502; i++) await addLead(SLUG, lead(i), at(i));
+    expect(await leadRows()).toBe(500);
     expect((await listLeads(SLUG, 0, 1))[0]?.name).toBe("Client 501");
   });
 
   it("paginates", async () => {
-    for (let i = 0; i < 5; i++) await addLead(SLUG, lead(i), t0);
+    for (let i = 0; i < 5; i++) await addLead(SLUG, lead(i), at(i));
     expect((await listLeads(SLUG, 1, 2)).map((l) => l.name)).toEqual(["Client 2", "Client 1"]);
     expect(await listLeads(SLUG, 9, 2)).toEqual([]);
     expect((await listLeads(SLUG, -1, 2)).length).toBe(2); // bad page falls back to 0
@@ -219,7 +224,7 @@ describe("leads", () => {
   it("rejects invalid enquiries", async () => {
     await expect(addLead(SLUG, { ...lead(1), email: "nope" })).rejects.toMatchObject({ code: "INVALID" });
     await expect(addLead(SLUG, { ...lead(1), message: "  " })).rejects.toMatchObject({ code: "INVALID" });
-    expect(fake.lists.size).toBe(0);
+    expect(await leadRows()).toBe(0);
   });
 });
 
@@ -239,7 +244,7 @@ describe("lead read state", () => {
 
   it("marks the right lead even after new leads shift the list", async () => {
     const a = await addLead(SLUG, lead(1), t0);
-    await addLead(SLUG, lead(2), t0); // a is now at index 1
+    await addLead(SLUG, lead(2), t1); // a is now at index 1
     await markLeadRead(SLUG, a.id);
     const leads = await listLeads(SLUG, 0);
     expect(leads.map((l) => [l.name, l.read])).toEqual([
@@ -264,16 +269,11 @@ describe("lead read state", () => {
     await addLead(SLUG, lead(3), t0);
     expect(await getUnreadCount(SLUG)).toBe(1);
   });
-
-  it("never reports a negative unread count", async () => {
-    fake.strings.set(`leads:${SLUG}:unread`, "-3");
-    expect(await getUnreadCount(SLUG)).toBe(0);
-  });
 });
 
 describe("view counters", () => {
   it("returns the last 7 UTC days oldest first, zero-filled", async () => {
-    seedDraft();
+    await seedDraft();
     await recordView(SLUG, undefined, new Date("2026-09-28T23:00:00.000Z"));
     await recordView(SLUG, undefined, new Date("2026-09-26T01:00:00.000Z"));
     await recordView(SLUG, undefined, new Date("2026-09-26T02:00:00.000Z"));
@@ -291,7 +291,7 @@ describe("view counters", () => {
   });
 
   it("reads per-project totals", async () => {
-    seedDraft();
+    await seedDraft();
     await recordView(SLUG, "p-1", t0);
     await recordView(SLUG, "p-1", t0);
     expect(await getProjectViews(SLUG, ["p-1", "p-2"])).toEqual({ "p-1": 2, "p-2": 0 });
@@ -301,7 +301,7 @@ describe("view counters", () => {
 
 describe("CV download counter", () => {
   it("counts downloads per page and reads zero before the first", async () => {
-    seedDraft();
+    await seedDraft();
     expect(await getCvDownloads(SLUG)).toBe(0);
     await recordCvDownload(SLUG);
     await recordCvDownload(SLUG);

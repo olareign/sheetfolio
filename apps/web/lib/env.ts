@@ -1,6 +1,5 @@
 import "server-only";
 import { z } from "zod";
-import { STORE_MODES } from "./store/mode";
 import { parseCloudinaryUrl } from "./cloudinary";
 
 // `.env.example` ships blank values (`KEY=`); a blank optional variable means "not set".
@@ -27,16 +26,10 @@ const EnvSchema = z
     /** Screenshot service for project previews; `{url}` is replaced by the encoded link. Defaults to Microlink. */
     SCREENSHOT_URL_TEMPLATE: optional(z.string().includes("{url}")),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),
-    /** Postgres (Neon). Needed once any store below leaves "redis". Vercel's Neon integration sets DATABASE_URL. */
-    DATABASE_URL: optional(z.string().regex(/^postgres(ql)?:\/\//, "Must start with postgres:// or postgresql://")),
-    /** Where accounts and passwords live: see lib/store/mode.ts. */
-    ACCOUNTS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
-    /** Where enquiries live. */
-    LEADS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
+    /** Postgres (Neon): accounts, sign-in details, enquiries, pages, stats history. Vercel's Neon integration sets it. */
+    DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "Must start with postgres:// or postgresql://"),
     /** Shared secret for the daily job at /api/cron/stats; Vercel sends it as a bearer token. At least 32 characters. */
     CRON_SECRET: optional(z.string().min(32, "CRON_SECRET must be at least 32 characters")),
-    /** Where the pages themselves (draft and published) live. */
-    SITES_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where privacy requests and support questions go; shown on the privacy policy. */
     SUPPORT_EMAIL: optional(z.email()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
@@ -51,12 +44,6 @@ const EnvSchema = z
     // so local runs work without a Resend account. Production must be able to send mail.
     if (env.NODE_ENV === "production" && !env.AUTH_RESEND_KEY) {
       ctx.addIssue({ code: "custom", path: ["AUTH_RESEND_KEY"], message: "Required in production" });
-    }
-    // A store that has left Redis cannot work without somewhere to go: fail at startup, not on someone's first request.
-    for (const key of ["ACCOUNTS_STORE", "LEADS_STORE", "SITES_STORE"] as const) {
-      if (env[key] !== "redis" && !env.DATABASE_URL) {
-        ctx.addIssue({ code: "custom", path: ["DATABASE_URL"], message: `Required when ${key} is ${env[key]}` });
-      }
     }
   });
 

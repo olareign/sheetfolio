@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptySite, type Site } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
+import { seedPage, storedPublished } from "@/test/pages";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
 vi.mock("@/lib/redis", async (importOriginal) => {
@@ -14,7 +15,7 @@ const { getFeaturedUsers, leadProject, rankFeatured } = await import("./showcase
 const now = new Date("2026-10-22T12:00:00.000Z");
 let fake: FakeRedis;
 
-function addSite(
+async function addSite(
   slug: string,
   name: string,
   over: {
@@ -37,7 +38,7 @@ function addSite(
     publishedAt: over.publishedAt ?? "2026-10-01T00:00:00.000Z",
     settings: { ...base.settings, status: over.status ?? "published", showInShowcase: over.showInShowcase ?? true },
   };
-  fake.strings.set(`site:${slug}:published`, JSON.stringify(site));
+  await seedPage(slug, { draft: site, published: site });
   fake.sets.set("sites", new Set([...(fake.sets.get("sites") ?? []), slug]));
 }
 const day = (daysAgo: number) => {
@@ -105,8 +106,8 @@ describe("leadProject", () => {
 
 describe("getFeaturedUsers", () => {
   it("ranks published pages by views in the last 30 days", async () => {
-    addSite("low-views", "Low Views");
-    addSite("top-views", "Top Views");
+    await addSite("low-views", "Low Views");
+    await addSite("top-views", "Top Views");
     views("low-views", 1, 4);
     views("top-views", 2, 40);
     views("top-views", 10, 2);
@@ -118,21 +119,23 @@ describe("getFeaturedUsers", () => {
   });
 
   it("ignores views older than 30 days", async () => {
-    addSite("old-fame", "Old Fame");
+    await addSite("old-fame", "Old Fame");
     views("old-fame", 45, 1000);
     expect((await getFeaturedUsers(12, now))[0]?.views).toBe(0);
   });
 
   it("leaves out pages that opted out, were suspended, or are unpublished", async () => {
-    addSite("shown", "Shown");
-    addSite("opted-out", "Opted Out", { showInShowcase: false });
-    addSite("suspended", "Suspended", { status: "suspended" });
+    await addSite("shown", "Shown");
+    await addSite("opted-out", "Opted Out", { showInShowcase: false });
+    await addSite("suspended", "Suspended", { status: "suspended" });
     fake.sets.set("sites", new Set([...(fake.sets.get("sites") ?? []), "never-published"]));
     expect((await getFeaturedUsers(12, now)).map((u) => u.slug)).toEqual(["shown"]);
   });
 
   it("shows the picture of the most opened project, falling back to a stock photo for its category", async () => {
-    addSite("ada-obi", "Ada Obi", { projects: [project("p1", "Clinic", "healthcare"), project("p2", "Road", "road")] });
+    await addSite("ada-obi", "Ada Obi", {
+      projects: [project("p1", "Clinic", "healthcare"), project("p2", "Road", "road")],
+    });
     fake.strings.set("views:ada-obi:p:p2", "9");
     const [u] = await getFeaturedUsers(12, now);
     expect(u).toMatchObject({ coverTitle: "Road", projectViews: 9, projects: 2 });
@@ -140,11 +143,10 @@ describe("getFeaturedUsers", () => {
   });
 
   it("shows the person's own photo when they uploaded one, over any project picture", async () => {
-    addSite("ada-obi", "Ada Obi", { projects: [project("p1", "Clinic", "healthcare")] });
-    const key = "site:ada-obi:published";
-    const stored = JSON.parse(String(fake.strings.get(key)));
+    await addSite("ada-obi", "Ada Obi", { projects: [project("p1", "Clinic", "healthcare")] });
+    const stored = (await storedPublished("ada-obi")) as Site;
     stored.profile.avatar = "https://abc.public.blob.vercel-storage.com/ada.jpg";
-    fake.strings.set(key, JSON.stringify(stored));
+    await seedPage("ada-obi", { draft: stored, published: stored });
     const [u] = await getFeaturedUsers(12, now);
     expect(u).toMatchObject({
       isPerson: true,
@@ -154,12 +156,12 @@ describe("getFeaturedUsers", () => {
   });
 
   it("marks a card that shows a project picture as not a person", async () => {
-    addSite("no-photo", "No Photo", { projects: [project("p1", "Clinic", "healthcare")] });
+    await addSite("no-photo", "No Photo", { projects: [project("p1", "Clinic", "healthcare")] });
     expect((await getFeaturedUsers(12, now))[0]?.isPerson).toBe(false);
   });
 
   it("respects the limit", async () => {
-    for (const n of ["aaa", "bbb", "ccc"]) addSite(n, n.toUpperCase());
+    for (const n of ["aaa", "bbb", "ccc"]) await addSite(n, n.toUpperCase());
     expect(await getFeaturedUsers(2, now)).toHaveLength(2);
   });
 });

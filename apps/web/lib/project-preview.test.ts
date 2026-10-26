@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptySite } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
+import { seedPage } from "@/test/pages";
 
 const state = vi.hoisted(() => ({ redis: undefined as unknown }));
 vi.mock("@/lib/redis", async (importOriginal) => {
@@ -147,7 +148,7 @@ describe("refreshProjectPreview", () => {
   });
   const read = async (id: string) => (await getDraft(SLUG))!.projects.find((p) => p.id === id)!;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     fake = new FakeRedis();
     state.redis = fake;
     const site = createEmptySite({
@@ -157,7 +158,7 @@ describe("refreshProjectPreview", () => {
       publicEmail: "i@example.com",
       now,
     });
-    fake.strings.set(`site:${SLUG}:draft`, JSON.stringify(site));
+    await seedPage(SLUG, { draft: site });
   });
 
   const site = network({
