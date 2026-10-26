@@ -15,6 +15,7 @@ import { neonDb } from "../lib/db/neon";
 import { backfill, verify, type Targets } from "../lib/store/backfill";
 import { pgCredStore } from "../lib/store/credentials";
 import { pgLeadStore } from "../lib/store/leads";
+import { pgSiteStore } from "../lib/store/sites";
 import { pgUserStore } from "../lib/store/users";
 
 function fail(message: string): never {
@@ -36,13 +37,18 @@ async function main(): Promise<void> {
 
   const redis = new Redis({ url, token });
   const db = neonDb(databaseUrl);
-  const targets: Targets = { users: pgUserStore(() => db), creds: pgCredStore(() => db), leads: pgLeadStore(() => db) };
+  const targets: Targets = {
+    users: pgUserStore(() => db),
+    creds: pgCredStore(() => db),
+    leads: pgLeadStore(() => db),
+    sites: pgSiteStore(() => db),
+  };
   console.log(`backfill: Redis ${new URL(url).host}  ->  Postgres ${new URL(databaseUrl).host}`);
 
   if (values.verify) {
     const verdict = await verify(redis, targets, db);
     console.log("backfill: checked", verdict.checked);
-    if (verdict.extraInPostgres.users + verdict.extraInPostgres.credentials + verdict.extraInPostgres.leads > 0) {
+    if (Object.values(verdict.extraInPostgres).some((n) => n > 0)) {
       console.log("backfill: rows only in Postgres (normal once writes go there)", verdict.extraInPostgres);
     }
     for (const d of verdict.differences) console.log(`backfill: ${d.kind}: ${d.what} ${d.label}`);

@@ -2,38 +2,24 @@ import "server-only";
 import { db } from "../db";
 import { env } from "../env";
 import { redis } from "../redis";
-import { credStore, pgCredStore, redisCredStore, type CredStore, type KV } from "./credentials";
-import { leadStore, pgLeadStore, redisLeadStore, type LeadStore } from "./leads";
-import { pgUserStore, redisUserStore, userStore, type UserStore } from "./users";
+import type { CredStore, KV } from "./credentials";
+import type { LeadStore } from "./leads";
+import type { SiteStore } from "./sites";
+import type { UserStore } from "./users";
+import { kvFor, wireStores } from "./wire";
 
 /*
  * The stores the app uses, each wired to the Redis and Postgres sides according to its mode setting
- * (ACCOUNTS_STORE, LEADS_STORE: see lib/store/mode.ts). Postgres is only touched when a mode asks for it.
+ * (ACCOUNTS_STORE, LEADS_STORE, SITES_STORE: see lib/store/mode.ts). Postgres is only touched when a mode asks for it.
  */
 
-/** Redis, narrowed to what the credential store and reset tokens need. */
-export function credentialKv(): KV {
-  const client = redis();
-  return {
-    get: (key) => client.get(key),
-    set: (key, value, opts) => client.set(key, value, opts),
-    del: (...keys) => client.del(...keys),
-    incr: (key) => client.incr(key),
-    getdel: (key) => client.getdel(key),
-  };
-}
+const stores = () => {
+  const e = env();
+  return wireStores({ redis, db, modes: { accounts: e.ACCOUNTS_STORE, leads: e.LEADS_STORE, sites: e.SITES_STORE } });
+};
 
-export const accountsMode = () => env().ACCOUNTS_STORE;
-export const leadsMode = () => env().LEADS_STORE;
-
-export function users(): UserStore {
-  return userStore(accountsMode(), redisUserStore(redis), pgUserStore(db));
-}
-
-export function credentialStore(): CredStore {
-  return credStore(accountsMode(), redisCredStore(credentialKv), pgCredStore(db));
-}
-
-export function leads(): LeadStore {
-  return leadStore(leadsMode(), redisLeadStore(redis), pgLeadStore(db));
-}
+export const credentialKv = (): KV => kvFor(redis)();
+export const users = (): UserStore => stores().users;
+export const credentialStore = (): CredStore => stores().credentials;
+export const leads = (): LeadStore => stores().leads;
+export const sites = (): SiteStore => stores().sites;

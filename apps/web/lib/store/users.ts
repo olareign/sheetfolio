@@ -2,6 +2,7 @@ import type { Redis } from "@upstash/redis";
 import { UserRecord } from "../../content/schemas";
 import { isUniqueViolation, iso, type Db } from "../db/types";
 import { keys } from "../redis-keys";
+import { StoredDataError } from "./errors";
 import { read, write, type StoreMode } from "./mode";
 
 /** An account: who owns which page address, and in what role. The email is the account's identity. */
@@ -15,6 +16,8 @@ export interface UserStore {
   create(user: NewUser): Promise<CreateUserResult>;
   /** Undoes a `create` (used when the rest of setting up an account fails). */
   remove(email: string, slug: string): Promise<void>;
+  /** Every account, newest first (the admin overview). */
+  list(): Promise<NewUser[]>;
 }
 
 // ── Redis ───────────────────────────────────────────────────────────────────
@@ -26,7 +29,7 @@ export function redisUserStore(redis: () => Redis): UserStore {
       const raw = await redis().get<unknown>(key);
       if (raw === null) return null;
       const parsed = UserRecord.safeParse(raw);
-      if (!parsed.success) throw new Error(`Stored ${key} is invalid`);
+      if (!parsed.success) throw new StoredDataError(`Stored ${key} is invalid`, parsed.error.issues);
       return parsed.data;
     },
     async create({ email, record }) {
@@ -40,6 +43,21 @@ export function redisUserStore(redis: () => Redis): UserStore {
     },
     async remove(email, slug) {
       await redis().del(keys.user(email), keys.slug(slug));
+    },
+    async list() {
+      const out: NewUser[] = [];
+      let cursor = "0";
+      do {
+        const [next, found] = await redis().scan(cursor, { match: "user:*", count: 200 });
+        cursor = String(next);
+        for (const key of found) {
+          const email = key.slice("user:".length);
+          // A malformed record is reported, not hidden: the admin page is where it gets noticed.
+          const record = await redisUserStore(redis).get(email);
+          if (record) out.push({ email, record });
+        }
+      } while (cursor !== "0");
+      return out.sort((a, b) => b.record.createdAt.localeCompare(a.record.createdAt));
     },
   };
 }
@@ -91,6 +109,21 @@ export function pgUserStore(db: () => Db): PgUserStore {
     async remove(email) {
       await db().query("delete from users where email = $1", [email.toLowerCase()]);
     },
+    async list() {
+      const rows = await db().query<UserRow & { email: string }>(
+        "select id, email, slug, role, name, created_at from users order by created_at desc, email",
+      );
+      return rows.map((row) => ({
+        email: row.email,
+        record: UserRecord.parse({
+          id: row.id,
+          slug: row.slug,
+          role: row.role,
+          name: row.name,
+          createdAt: iso(row.created_at),
+        }),
+      }));
+    },
     async upsert(user) {
       await insert(
         user,
@@ -107,6 +140,7 @@ export function userStore(mode: StoreMode, redis: UserStore, pg: UserStore): Use
     get: (email) => read(mode, { redis: () => redis.get(email), pg: () => pg.get(email) }),
     create: (user) =>
       write(mode, "create account", { redis: () => redis.create(user), pg: () => pg.create(user) }, (r) => r === "ok"),
+    list: () => read(mode, { redis: () => redis.list(), pg: () => pg.list() }),
     remove: async (email, slug) => {
       await write(mode, "remove account", {
         redis: () => redis.remove(email, slug),

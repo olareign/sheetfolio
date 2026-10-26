@@ -17,16 +17,31 @@ vi.mock("@/lib/redis", async (importOriginal) => {
 });
 vi.mock("@/lib/db", () => ({ db: () => state.db }));
 vi.mock("@/lib/env", () => ({
-  env: () => ({ ACCOUNTS_STORE: state.mode, LEADS_STORE: state.mode, ADMIN_EMAILS: [] }),
+  env: () => ({ ACCOUNTS_STORE: state.mode, LEADS_STORE: state.mode, SITES_STORE: state.mode, ADMIN_EMAILS: [] }),
 }));
 vi.mock("next/cache", () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn, revalidateTag: vi.fn() }));
 
 const { registerAccount, getUserRecord } = await import("@/lib/accounts");
 const { authenticate, changePassword, isSessionCurrent, getSessionEpoch } = await import("@/lib/credentials");
-const { addLead, countLeads, getUnreadCount, listLeads, markAllLeadsRead, markLeadRead } = await import("@/lib/site");
+const {
+  addLead,
+  countLeads,
+  getDraft,
+  getPublished,
+  getPublishedFresh,
+  getUnreadCount,
+  listLeads,
+  listSiteSlugs,
+  markAllLeadsRead,
+  markLeadRead,
+  publish,
+  saveDraft,
+} = await import("@/lib/site");
+const { listSignups, listSites, setSuspended } = await import("@/lib/admin");
 const { backfill, verify } = await import("./backfill");
 const { pgCredStore } = await import("./credentials");
 const { pgLeadStore } = await import("./leads");
+const { pgSiteStore } = await import("./sites");
 const { pgUserStore } = await import("./users");
 
 let db: Db;
@@ -39,7 +54,7 @@ beforeEach(async () => {
   fake = new FakeRedis();
   state.redis = fake;
   state.db = db;
-  await db.query("truncate users, credentials, session_epochs, leads");
+  await db.query("truncate users, credentials, session_epochs, leads, sites");
 });
 
 const EMAIL = "ada@example.com";
@@ -123,8 +138,53 @@ describe.each(Object.keys(WHERE) as StoreMode[])("the app in %s mode", (mode) =>
     expect([await pgCount("users"), await pgCount("credentials"), await pgCount("leads")]).toEqual(
       inPg ? [1, 1, 1] : [0, 0, 0],
     );
-    // The page itself is not part of this move yet: it is in Redis in every mode.
-    expect(fake.strings.has("site:ada-obi:draft")).toBe(true);
+    // The page itself follows the same mode, but its address is in the Redis index in every mode.
+    expect(fake.strings.has("site:ada-obi:draft")).toBe(inRedis);
+    expect(await pgCount("sites")).toBe(inPg ? 1 : 0);
+    expect(fake.sets.get("sites")?.has("ada-obi")).toBe(true);
+  });
+
+  it("saves, publishes, suspends and lists pages, and the admin overview adds up", async () => {
+    await registerAccount({ email: EMAIL, password: PASSWORD, role: "engineer", input });
+    await addLead("ada-obi", { name: "Client A", email: "a@example.com", message: "Hi" });
+
+    const draft = await getDraft("ada-obi");
+    expect(draft?.profile.name).toBe("Ada Obi");
+    await saveDraft("ada-obi", {
+      ...draft!,
+      profile: { ...draft!.profile, summary: "Builds things.", location: "Lagos", whatsapp: "2348012345678" },
+    });
+    expect((await getDraft("ada-obi"))?.profile.summary).toBe("Builds things.");
+
+    expect(await getPublishedFresh("ada-obi")).toBeNull();
+    const published = await publish("ada-obi", new Date("2030-01-02T10:00:00Z"));
+    expect(published.publishedAt).toBe("2030-01-02T10:00:00.000Z");
+    expect((await getPublishedFresh("ada-obi"))?.profile.summary).toBe("Builds things.");
+    expect(await listSiteSlugs()).toEqual(["ada-obi"]);
+
+    const [row] = await listSites();
+    expect(row).toMatchObject({
+      slug: "ada-obi",
+      status: "live",
+      owner: EMAIL,
+      firstPublishedAt: "2030-01-02T10:00:00.000Z",
+      leads: 1,
+      unread: 1,
+    });
+    expect((await listSignups()).map((u) => u.email)).toEqual([EMAIL]);
+
+    // A second publish moves the page's date on but not the first-published date.
+    await publish("ada-obi", new Date("2030-01-05T10:00:00Z"));
+    expect((await listSites())[0]).toMatchObject({
+      publishedAt: "2030-01-05T10:00:00.000Z",
+      firstPublishedAt: "2030-01-02T10:00:00.000Z",
+    });
+
+    await setSuspended("ada-obi", true);
+    expect(await getPublished("ada-obi")).toBeNull();
+    expect((await listSites())[0]?.status).toBe("suspended");
+    await setSuspended("ada-obi", false);
+    expect((await listSites())[0]?.status).toBe("live");
   });
 });
 
@@ -148,19 +208,29 @@ describe("the copy never fails the request, and the backfill repairs it", () => 
 
     state.db = db;
     error.mockRestore();
-    const targets = { users: pgUserStore(() => db), creds: pgCredStore(() => db), leads: pgLeadStore(() => db) };
+    const targets = {
+      users: pgUserStore(() => db),
+      creds: pgCredStore(() => db),
+      leads: pgLeadStore(() => db),
+      sites: pgSiteStore(() => db),
+    };
     const before = await verify(fake as unknown as Redis, targets, db);
     expect(before.ok).toBe(false);
-    expect(before.differences.map((d) => d.what).sort()).toEqual(["account", "enquiry", "sign-in"]);
+    expect(before.differences.map((d) => d.what).sort()).toEqual(["account", "enquiry", "page", "sign-in"]);
 
     expect(await backfill(fake as unknown as Redis, targets, { apply: true })).toEqual({
       users: 1,
       credentials: 1,
       epochs: 0,
       leads: 1,
+      sites: 1,
     });
     const after = await verify(fake as unknown as Redis, targets, db);
-    expect(after).toMatchObject({ ok: true, differences: [], checked: { users: 1, credentials: 1, leads: 1 } });
+    expect(after).toMatchObject({
+      ok: true,
+      differences: [],
+      checked: { users: 1, credentials: 1, leads: 1, sites: 1 },
+    });
   });
 
   it("copies existing data across, again and again without duplicating, and carries the read state", async () => {
@@ -179,9 +249,14 @@ describe("the copy never fails the request, and the backfill repairs it", () => 
     );
     await markLeadRead("ada-obi", a.id);
 
-    const targets = { users: pgUserStore(() => db), creds: pgCredStore(() => db), leads: pgLeadStore(() => db) };
+    const targets = {
+      users: pgUserStore(() => db),
+      creds: pgCredStore(() => db),
+      leads: pgLeadStore(() => db),
+      sites: pgSiteStore(() => db),
+    };
     const dry = await backfill(fake as unknown as Redis, targets, { apply: false });
-    expect(dry).toEqual({ users: 1, credentials: 1, epochs: 1, leads: 2 });
+    expect(dry).toEqual({ users: 1, credentials: 1, epochs: 1, leads: 2, sites: 1 });
     expect(await pgCount("users")).toBe(0);
 
     await backfill(fake as unknown as Redis, targets, { apply: true });
@@ -208,7 +283,12 @@ describe("the copy never fails the request, and the backfill repairs it", () => 
   it("reports a difference when the copy has drifted, naming it without printing an email address", async () => {
     state.mode = "redis";
     await registerAccount({ email: EMAIL, password: PASSWORD, role: "engineer", input });
-    const targets = { users: pgUserStore(() => db), creds: pgCredStore(() => db), leads: pgLeadStore(() => db) };
+    const targets = {
+      users: pgUserStore(() => db),
+      creds: pgCredStore(() => db),
+      leads: pgLeadStore(() => db),
+      sites: pgSiteStore(() => db),
+    };
     await backfill(fake as unknown as Redis, targets, { apply: true });
     await db.query("update credentials set password_hash = 'tampered'");
     const verdict = await verify(fake as unknown as Redis, targets, db);

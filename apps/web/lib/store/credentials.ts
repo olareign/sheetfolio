@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Username } from "../../content/schemas";
 import { isUniqueViolation, iso, type Db } from "../db/types";
+import { StoredDataError } from "./errors";
 import { read, write, type StoreMode } from "./mode";
 
 /*
@@ -62,7 +63,7 @@ export function redisCredStore(kv: () => KV): CredStore {
     const raw = await kv().get<unknown>(key);
     if (raw === null) return null;
     const parsed = CredentialRecord.safeParse(raw);
-    if (!parsed.success) throw new Error(`Stored ${key} is invalid`);
+    if (!parsed.success) throw new StoredDataError(`Stored ${key} is invalid`, parsed.error.issues);
     return parsed.data;
   };
   return {

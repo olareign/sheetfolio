@@ -33,6 +33,8 @@ const EnvSchema = z
     ACCOUNTS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where enquiries live. */
     LEADS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
+    /** Where the pages themselves (draft and published) live. */
+    SITES_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where privacy requests and support questions go; shown on the privacy policy. */
     SUPPORT_EMAIL: optional(z.email()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
@@ -49,7 +51,7 @@ const EnvSchema = z
       ctx.addIssue({ code: "custom", path: ["AUTH_RESEND_KEY"], message: "Required in production" });
     }
     // A store that has left Redis cannot work without somewhere to go: fail at startup, not on someone's first request.
-    for (const key of ["ACCOUNTS_STORE", "LEADS_STORE"] as const) {
+    for (const key of ["ACCOUNTS_STORE", "LEADS_STORE", "SITES_STORE"] as const) {
       if (env[key] !== "redis" && !env.DATABASE_URL) {
         ctx.addIssue({ code: "custom", path: ["DATABASE_URL"], message: `Required when ${key} is ${env[key]}` });
       }

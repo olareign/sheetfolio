@@ -5,6 +5,7 @@ import { FakeRedis } from "@/test/fake-redis";
 import { testDb } from "@/test/pg";
 import { pgCredStore, redisCredStore, type CredentialRecord, type CredStore, type KV } from "./credentials";
 import { MAX_LEADS, pgLeadStore, redisLeadStore, type LeadStore } from "./leads";
+import { pgSiteStore, redisSiteStore, type SiteStore } from "./sites";
 import { pgUserStore, redisUserStore, type UserStore } from "./users";
 
 /*
@@ -12,7 +13,7 @@ import { pgUserStore, redisUserStore, type UserStore } from "./users";
  * the other, moving the data would change what the app does, so it must fail here first.
  */
 
-type Side = { users: UserStore; creds: CredStore; leads: LeadStore };
+type Side = { users: UserStore; creds: CredStore; leads: LeadStore; sites: SiteStore };
 type Db = Awaited<ReturnType<typeof testDb>>;
 
 let db: Db;
@@ -32,14 +33,20 @@ const sides: { name: string; make: () => Promise<Side> }[] = [
         users: redisUserStore(() => fake as unknown as Redis),
         creds: redisCredStore(() => fake as unknown as KV),
         leads: redisLeadStore(() => fake as unknown as Redis),
+        sites: redisSiteStore(() => fake as unknown as Redis),
       };
     },
   },
   {
     name: "Postgres",
     make: async () => {
-      await db.query("truncate users, credentials, session_epochs, leads");
-      return { users: pgUserStore(() => db), creds: pgCredStore(() => db), leads: pgLeadStore(() => db) };
+      await db.query("truncate users, credentials, session_epochs, leads, sites");
+      return {
+        users: pgUserStore(() => db),
+        creds: pgCredStore(() => db),
+        leads: pgLeadStore(() => db),
+        sites: pgSiteStore(() => db),
+      };
     },
   },
 ];
@@ -225,7 +232,93 @@ describe.each(sides)("$name: enquiries", ({ make }) => {
   });
 });
 
+const draftDoc = (n = 1) => ({
+  profile: { name: "Ada Obi", headline: "Engineer", summary: `Version ${n}`, nested: { list: [1, 2, { deep: true }] } },
+  projects: [{ id: "p1", title: "Clinic" }],
+  settings: { theme: "sheet", status: "draft" },
+  updatedAt: `2026-10-0${n}T10:00:00.000Z`,
+});
+const publishedDoc = (n = 1) => ({
+  ...draftDoc(n),
+  settings: { theme: "sheet", status: "published" },
+  publishedAt: `2026-10-0${n}T12:00:00.000Z`,
+});
+
+describe.each(sides)("$name: pages", ({ make }) => {
+  let s: Side;
+  beforeEach(async () => (s = await make()));
+
+  it("creates a page and reads its draft back exactly, nested data included", async () => {
+    await s.sites.create("ada-obi", draftDoc());
+    expect(await s.sites.getDraft("ada-obi")).toEqual(draftDoc());
+    expect(await s.sites.getDraft("nobody")).toBeNull();
+    expect([await s.sites.getPublished("ada-obi"), await s.sites.firstPublishedAt("ada-obi")]).toEqual([null, null]);
+  });
+
+  it("lists every registered page address", async () => {
+    await s.sites.create("bob", draftDoc());
+    await s.sites.create("ada-obi", draftDoc());
+    expect((await s.sites.list()).sort()).toEqual(["ada-obi", "bob"]);
+  });
+
+  it("replaces the draft and leaves the published copy alone, or replaces both together", async () => {
+    await s.sites.create("ada-obi", draftDoc(1));
+    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: publishedDoc(1).publishedAt });
+    await s.sites.put("ada-obi", { draft: draftDoc(2) });
+    expect((await s.sites.getDraft("ada-obi")) as object).toEqual(draftDoc(2));
+    expect(await s.sites.getPublished("ada-obi")).toEqual(publishedDoc(1));
+
+    await s.sites.put("ada-obi", { draft: draftDoc(3), published: publishedDoc(3) });
+    expect(await s.sites.getDraft("ada-obi")).toEqual(draftDoc(3));
+    expect(await s.sites.getPublished("ada-obi")).toEqual(publishedDoc(3));
+  });
+
+  it("remembers the first time a page went live, and only the first", async () => {
+    await s.sites.create("ada-obi", draftDoc());
+    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: "2026-10-01T12:00:00.000Z" });
+    await s.sites.publish("ada-obi", { doc: publishedDoc(2), publishedAt: "2026-10-02T12:00:00.000Z" });
+    expect(await s.sites.firstPublishedAt("ada-obi")).toBe("2026-10-01T12:00:00.000Z");
+    expect(await s.sites.getPublished("ada-obi")).toEqual(publishedDoc(2));
+  });
+
+  it("copies a whole page out and back in, byte for byte in meaning", async () => {
+    await s.sites.create("ada-obi", draftDoc(1));
+    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: "2026-10-01T12:00:00.000Z" });
+    const snap = await s.sites.snapshot("ada-obi");
+    expect(snap).toEqual({
+      draft: draftDoc(1),
+      published: publishedDoc(1),
+      firstPublishedAt: "2026-10-01T12:00:00.000Z",
+    });
+    expect(await s.sites.snapshot("nobody")).toBeNull();
+
+    await s.sites.restore("bob", snap!);
+    expect(await s.sites.snapshot("bob")).toEqual(snap);
+    expect(await s.sites.list()).toContain("bob");
+  });
+
+  it("restores a page that was never published, clearing any published copy", async () => {
+    await s.sites.create("ada-obi", draftDoc(1));
+    await s.sites.publish("ada-obi", { doc: publishedDoc(1), publishedAt: "2026-10-01T12:00:00.000Z" });
+    await s.sites.restore("ada-obi", { draft: draftDoc(2), published: null, firstPublishedAt: null });
+    expect(await s.sites.snapshot("ada-obi")).toEqual({ draft: draftDoc(2), published: null, firstPublishedAt: null });
+  });
+});
+
 describe("Postgres only", () => {
+  it("refuses to publish a page that has no draft rather than quietly doing nothing", async () => {
+    await db.query("truncate sites");
+    await expect(
+      pgSiteStore(() => db).publish("ghost", { doc: publishedDoc(), publishedAt: "2026-10-01T12:00:00.000Z" }),
+    ).rejects.toThrow(/no page in the database/);
+  });
+
+  it("rejects page addresses and documents that break the table's rules", async () => {
+    const store = pgSiteStore(() => db);
+    await expect(store.create("Bad Slug", draftDoc())).rejects.toMatchObject({ code: "23514" });
+    await expect(store.create("ada", ["not", "an", "object"])).rejects.toMatchObject({ code: "23514" });
+  });
+
   it("ignores the same enquiry arriving twice (a retry, or the backfill overlapping a live write)", async () => {
     await db.query("truncate leads");
     const store = pgLeadStore(() => db);

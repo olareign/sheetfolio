@@ -23,12 +23,23 @@ a time, and each kind has a switch that can be moved forward or back.
 A failed copy is logged (`[store] <what>: copy to pg failed`) and never fails the visitor's request; the backfill
 repairs it. A failure on the side being read from does fail the request, as it should.
 
-## Moving phase 1, step by step
+## Pages (phase 2)
+
+- Each page is one row in `sites`: the draft and the published copy as JSON, plus when they were saved, published and
+  first published.
+- **The list of page addresses stays in Redis in every mode** (the `sites` set). The view counter checks it on every
+  visit, and that must not wake the database each time. `pnpm db:backfill --verify` checks the index against Postgres.
+- In `dual` and `pg-first`, a save copies the _whole page_ as it now stands to the other side, not just the one change,
+  so any save repairs a page the copy was missing or had behind.
+- Two saves of one page at the same instant could leave the copy one step behind until the next save or backfill.
+  A page has one editor, so this is rare; `--verify` reports it if it happens.
+
+## Moving a store, step by step
 
 1. **Create the Neon project** in the same region as Vercel (`iad1`, so AWS us-east-1). Copy its pooled connection string.
 2. **Add `DATABASE_URL`** to Vercel (Production). Nothing changes yet: both settings still default to `redis`.
 3. **Create the tables:** put `DATABASE_URL` in `apps/web/.env.local`, then `pnpm db:migrate`. It prints the database host first. It is safe to repeat.
-4. **Start copying new writes:** set `ACCOUNTS_STORE=dual` and `LEADS_STORE=dual` on Vercel and redeploy.
+4. **Start copying new writes:** set the store settings you are moving (`ACCOUNTS_STORE`, `LEADS_STORE`, `SITES_STORE`) to `dual` on Vercel and redeploy.
 5. **Copy what already exists:** `pnpm db:backfill` (dry run, shows counts), then `pnpm db:backfill --apply`.
 6. **Check it:** `pnpm db:backfill --verify` must end with "Postgres matches Redis." Fix or repeat step 5 if not.
 7. **Watch for a day.** Look in the Vercel logs for `[store]` lines. None means every write reached both.
@@ -39,7 +50,7 @@ repairs it. A failure on the side being read from does fail the request, as it s
 
 ## Things to know
 
-- `pnpm seed` still writes accounts to Redis only. Use it before the switch, or make it write through the stores first.
-- `pnpm db:backfill` only ever reads Redis. It writes to Postgres.
+- `pnpm seed` writes through the same stores as the app, so it obeys the three settings (set them and `DATABASE_URL` in the environment or `.env.local`).
+- `pnpm db:backfill` only ever reads Redis. It writes to Postgres. After `postgres` mode, rows exist only in Postgres, so `--verify` will list them as "rows only in Postgres", which is normal.
 - Migrations are forward-only: never edit one that has been applied, add the next numbered file. Plain DDL only (see `lib/db/migrate.ts`).
 - Sign-in checks the sign-out stamp on every request, which is one small query in Postgres modes.

@@ -1,8 +1,7 @@
 import "server-only";
 import { createEmptySite, NewPassword, OnboardingInput, UserRecord } from "@/content/schemas";
 import { getCredentials, setPassword } from "./credentials";
-import { keys, redis } from "./redis";
-import { users } from "./store";
+import { sites, users } from "./store";
 
 export function getUserRecord(email: string): Promise<UserRecord | null> {
   return users().get(email);
@@ -56,10 +55,7 @@ export async function onboard(args: {
   });
 
   try {
-    const tx = redis().multi();
-    tx.set(keys.draft(input.slug), draft);
-    tx.sadd(keys.sites(), input.slug);
-    await tx.exec();
+    await sites().create(input.slug, draft);
   } catch (err) {
     await users().remove(email, input.slug);
     throw err;

@@ -2,7 +2,7 @@ import "server-only";
 import { revalidateTag } from "next/cache";
 import { publishState, type PublishState } from "@/content/cms";
 import { Site, UserRecord } from "@/content/schemas";
-import { keys, redis } from "./redis";
+import { leads as leadStore, sites, users } from "./store";
 import { FEATURED_TAG, getDraft, getPublishedFresh, siteTag, SiteError } from "./site";
 
 export type Signup = UserRecord & { email: string };
@@ -24,34 +24,22 @@ export type SiteSummary = {
   unread: number;
 };
 
-/** Every app account (`user:{email}`). Auth.js keys live under `auth:` and are not matched. */
+/** Every app account, newest first. */
 export async function listSignups(): Promise<Signup[]> {
-  const out: Signup[] = [];
-  let cursor = "0";
-  do {
-    const [next, found] = await redis().scan(cursor, { match: "user:*", count: 200 });
-    cursor = String(next);
-    for (const key of found) {
-      const parsed = UserRecord.safeParse(await redis().get<unknown>(key));
-      // A malformed record is reported, not hidden: the admin page is where it gets noticed.
-      if (!parsed.success) throw new SiteError("INVALID", `Stored ${key} is invalid`, parsed.error.issues);
-      out.push({ ...parsed.data, email: key.slice("user:".length) });
-    }
-  } while (cursor !== "0");
-  return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return (await users().list()).map(({ email, record }) => ({ ...record, email }));
 }
 
 export async function listSites(): Promise<SiteSummary[]> {
-  const [slugs, signups] = await Promise.all([redis().smembers(keys.sites()), listSignups()]);
+  const [slugs, signups] = await Promise.all([sites().list(), listSignups()]);
   const owners = new Map(signups.map((s) => [s.slug, s]));
   const rows = await Promise.all(
     slugs.map(async (slug): Promise<SiteSummary | null> => {
       const [draft, published, firstPublishedAt, leads, unread] = await Promise.all([
         getDraft(slug),
         getPublishedFresh(slug),
-        redis().get<string>(keys.firstPublished(slug)),
-        redis().llen(keys.leads(slug)),
-        redis().get<number>(keys.leadsUnread(slug)),
+        sites().firstPublishedAt(slug),
+        leadStore().count(slug),
+        leadStore().unread(slug),
       ]);
       if (!draft) return null; // registered but never finished onboarding
       const owner = owners.get(slug);
@@ -72,7 +60,7 @@ export async function listSites(): Promise<SiteSummary[]> {
         projects: (published ?? draft).projects.length,
         certifications: (published ?? draft).certifications.length,
         leads,
-        unread: Math.max(0, Number(unread ?? 0)),
+        unread,
       };
     }),
   );
@@ -86,16 +74,15 @@ export async function listSites(): Promise<SiteSummary[]> {
 export async function setSuspended(slug: string, suspended: boolean): Promise<void> {
   const [draft, published] = await Promise.all([getDraft(slug), getPublishedFresh(slug)]);
   if (!draft) throw new SiteError("NOT_FOUND", `No site ${slug}`);
-  const tx = redis().multi();
-  tx.set(
-    keys.draft(slug),
-    Site.parse({ ...draft, settings: { ...draft.settings, status: suspended ? "suspended" : "draft" } }),
-  );
-  if (published) {
-    const status = suspended ? "suspended" : "published";
-    tx.set(keys.published(slug), Site.parse({ ...published, settings: { ...published.settings, status } }));
-  }
-  await tx.exec();
+  await sites().put(slug, {
+    draft: Site.parse({ ...draft, settings: { ...draft.settings, status: suspended ? "suspended" : "draft" } }),
+    ...(published && {
+      published: Site.parse({
+        ...published,
+        settings: { ...published.settings, status: suspended ? "suspended" : "published" },
+      }),
+    }),
+  });
   revalidateTag(siteTag(slug), { expire: 0 });
   revalidateTag(FEATURED_TAG, { expire: 0 });
 }

@@ -13,7 +13,7 @@ import {
   type SiteInput,
 } from "@/content/schemas";
 import { keys, redis } from "./redis";
-import { leads } from "./store";
+import { leads, sites } from "./store";
 
 const VIEW_TTL_SECONDS = 90 * 24 * 60 * 60;
 export const LEADS_PAGE_SIZE = 20;
@@ -55,17 +55,17 @@ function assertSlug(slug: string): string {
 // ── Draft ───────────────────────────────────────────────────────────────────
 
 export async function getDraft(slug: string): Promise<Site | null> {
-  const key = keys.draft(assertSlug(slug));
-  const raw = await redis().get<unknown>(key);
-  return raw === null ? null : parseSite(raw, key);
+  const s = assertSlug(slug);
+  const raw = await sites().getDraft(s);
+  return raw === null ? null : parseSite(raw, keys.draft(s));
 }
 
 /** Validates the whole document and stamps `updatedAt`. */
 export async function saveDraft(slug: string, site: SiteInput, now: Date = new Date()): Promise<Site> {
-  const key = keys.draft(assertSlug(slug));
+  const s = assertSlug(slug);
   const parsed = Site.safeParse({ ...site, updatedAt: now.toISOString() });
   if (!parsed.success) throw new SiteError("INVALID", "Draft failed validation", parsed.error.issues);
-  await redis().set(key, parsed.data);
+  await sites().put(s, { draft: parsed.data });
   return parsed.data;
 }
 
@@ -93,9 +93,9 @@ export async function updateCollection<N extends CollectionName>(
 
 /** Uncached read for the CMS (needs the real `publishedAt` to show "Unpublished changes"). */
 export async function getPublishedFresh(slug: string): Promise<Site | null> {
-  const key = keys.published(assertSlug(slug));
-  const raw = await redis().get<unknown>(key);
-  return raw === null ? null : parseSite(raw, key);
+  const s = assertSlug(slug);
+  const raw = await sites().getPublished(s);
+  return raw === null ? null : parseSite(raw, keys.published(s));
 }
 
 /** Thrown inside the cached read so a missing page is never stored: `unstable_cache` keeps return values, not errors. */
@@ -146,10 +146,7 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
     publishedAt: now.toISOString(),
     settings: { ...checked.data.settings, status: "published" },
   };
-  const tx = redis().multi();
-  tx.set(keys.published(slug), published);
-  tx.set(keys.firstPublished(slug), published.publishedAt, { nx: true });
-  await tx.exec();
+  await sites().publish(slug, { doc: published, publishedAt: now.toISOString() });
   // Expire immediately (not stale-while-revalidate): the engineer expects to see the change at once.
   revalidateTag(siteTag(slug), { expire: 0 });
   revalidateTag(FEATURED_TAG, { expire: 0 });
@@ -158,7 +155,7 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
 
 /** Every registered slug (the `sites` set). */
 export async function listSiteSlugs(): Promise<string[]> {
-  return redis().smembers(keys.sites());
+  return sites().list();
 }
 
 // ── Views ───────────────────────────────────────────────────────────────────

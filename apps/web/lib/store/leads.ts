@@ -2,6 +2,7 @@ import type { Redis } from "@upstash/redis";
 import { Lead } from "../../content/schemas";
 import { iso, type Db } from "../db/types";
 import { keys } from "../redis-keys";
+import { StoredDataError } from "./errors";
 import { read, write, type StoreMode } from "./mode";
 
 /** Enquiries sent from a public page, newest first. Each page keeps its latest 500. */
@@ -35,7 +36,8 @@ export function redisLeadStore(redis: () => Redis): LeadStore {
       const raw = await redis().lrange<unknown>(keys.leads(slug), start, start + pageSize - 1);
       const leads = raw.map((r) => {
         const parsed = Lead.safeParse(r);
-        if (!parsed.success) throw new Error(`Stored lead in ${keys.leads(slug)} is invalid`);
+        if (!parsed.success)
+          throw new StoredDataError(`Stored lead in ${keys.leads(slug)} is invalid`, parsed.error.issues);
         return parsed.data;
       });
       if (leads.length === 0) return leads;

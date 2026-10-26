@@ -15,6 +15,8 @@
  *
  * Generated passwords are written to `.credentials.local` (git-ignored, owner-only) and never printed.
  * Set SEED_PASSWORD to choose one yourself. Reads UPSTASH_REDIS_REST_URL / _TOKEN from the environment or .env.local.
+ * Writes through the same stores as the app, so ACCOUNTS_STORE / SITES_STORE (and DATABASE_URL when one is not "redis")
+ * decide where the accounts and pages land.
  */
 import { randomBytes } from "node:crypto";
 import { appendFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
@@ -23,7 +25,8 @@ import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { PublishableSite, Slug, UserRecord } from "../content/schemas";
 import { getCredentials, setPassword } from "../lib/credential-store";
-import { redisCredStore, type KV } from "../lib/store/credentials";
+import { neonDb } from "../lib/db/neon";
+import { modesFromEnv, wireStores, type Stores } from "../lib/store/wire";
 
 const SeedFile = z.object({ slug: Slug, site: z.record(z.string(), z.unknown()) });
 const CREDENTIALS_FILE = ".credentials.local";
@@ -33,32 +36,9 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-/** The sign-in details, kept in Redis. (A Postgres-backed seed comes with the cut-over; see lib/store/mode.ts.) */
-const credsFor = (redis: Redis) => redisCredStore(() => kvFor(redis));
-
-function kvFor(redis: Redis): KV {
-  return {
-    get: (key) => redis.get(key),
-    set: (key, value, opts) => redis.set(key, value, opts),
-    del: (...keys) => redis.del(...keys),
-    incr: (key) => redis.incr(key),
-    getdel: (key) => redis.getdel(key),
-  };
-}
-
-/** Every account record, found by scanning `user:*` (a handful of accounts during incubation). */
-async function accounts(redis: Redis): Promise<{ email: string; record: UserRecord }[]> {
-  const found: { email: string; record: UserRecord }[] = [];
-  let cursor = "0";
-  do {
-    const [next, batch] = await redis.scan(cursor, { match: "user:*", count: 100 });
-    cursor = String(next);
-    for (const key of batch) {
-      const parsed = UserRecord.safeParse(await redis.get<unknown>(key));
-      if (parsed.success) found.push({ email: key.slice("user:".length), record: parsed.data });
-    }
-  } while (cursor !== "0");
-  return found;
+/** Every account, from whichever store is the source. */
+async function accounts(stores: Stores): Promise<{ email: string; record: UserRecord }[]> {
+  return stores.users.list();
 }
 
 /** Saves the details to the local file only. The password is not printed, so it stays out of logs and chat. */
@@ -73,10 +53,10 @@ function saveCredentials(entry: { slug: string; username: string; email: string;
 }
 
 async function giveCredentials(
-  redis: Redis,
+  stores: Stores,
   args: { slug: string; email: string; username: string; reset: boolean },
 ): Promise<void> {
-  const creds = credsFor(redis);
+  const creds = stores.credentials;
   if ((await getCredentials(creds, args.email)) && !args.reset) {
     console.log(`seed: /${args.slug} already has a password; left unchanged (use --reset-password to replace it).`);
     return;
@@ -108,11 +88,19 @@ async function main(): Promise<void> {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) fail("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set");
   const redis = new Redis({ url, token });
+  const modes = modesFromEnv(process.env);
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (Object.values(modes).some((m) => m !== "redis") && !databaseUrl)
+    fail("DATABASE_URL must be set when a store is not on redis");
+  const stores = wireStores({
+    redis: () => redis,
+    db: () => neonDb(databaseUrl ?? fail("DATABASE_URL is not set")),
+    modes,
+  });
 
   if (values.list) {
-    const store = credsFor(redis);
-    for (const { email, record } of await accounts(redis)) {
-      const creds = await getCredentials(store, email);
+    for (const { email, record } of await accounts(stores)) {
+      const creds = await getCredentials(stores.credentials, email);
       console.log(
         `/${record.slug}  ${record.role}  password: ${creds ? `yes (${creds.username ?? "no username"})` : "no"}`,
       );
@@ -123,9 +111,9 @@ async function main(): Promise<void> {
   if (values["credentials-only"]) {
     if (!values.slug) fail("--credentials-only needs --slug");
     const slug = Slug.parse(values.slug);
-    const owner = (await accounts(redis)).find((a) => a.record.slug === slug);
+    const owner = (await accounts(stores)).find((a) => a.record.slug === slug);
     if (!owner) fail(`no account owns /${slug}`);
-    await giveCredentials(redis, {
+    await giveCredentials(stores, {
       slug,
       email: owner.email,
       username: values.username ?? slug,
@@ -142,40 +130,41 @@ async function main(): Promise<void> {
   if (!parsed.success) fail(`${values.file} is not a publishable site:\n${z.prettifyError(parsed.error)}`);
   const site = parsed.data;
 
-  const draftKey = `site:${slug}:draft`;
-  if (!values.force && (await redis.exists(draftKey))) {
+  if (!values.force && (await stores.sites.getDraft(slug)) !== null) {
     fail(`/${slug} already has a draft. Re-run with --force to overwrite its draft and published page.`);
   }
   if (values.username && !values.email) fail("--username needs --email (the account it belongs to)");
 
   const email = values.email?.trim().toLowerCase();
   if (email) {
-    const existing = await redis.get<unknown>(`user:${email}`);
+    const existing = await stores.users.get(email);
     if (existing) {
-      const record = UserRecord.parse(existing);
-      if (record.slug !== slug) fail(`${email} already owns /${record.slug}`);
+      if (existing.slug !== slug) fail(`${email} already owns /${existing.slug}`);
     } else {
-      const owner = `seed:${email}`;
-      const claimed = await redis.set(`slug:${slug}`, owner, { nx: true });
-      if (claimed !== "OK" && (await redis.get<string>(`slug:${slug}`)) !== owner) {
-        fail(`/${slug} is already claimed by another account`);
-      }
-      const record = UserRecord.parse({ id: owner, slug, role: "engineer", name: site.profile.name, createdAt: now });
-      await redis.set(`user:${email}`, record);
+      const record = UserRecord.parse({
+        id: `seed:${email}`,
+        slug,
+        role: "engineer",
+        name: site.profile.name,
+        createdAt: now,
+      });
+      const created = await stores.users.create({ email, record });
+      if (created === "SLUG_TAKEN") fail(`/${slug} is already claimed by another account`);
+      if (created === "EMAIL_TAKEN") fail(`${email} already has an account`);
     }
   }
 
-  const tx = redis.multi();
-  tx.set(draftKey, site);
-  tx.set(`site:${slug}:published`, { ...site, publishedAt: now, settings: { ...site.settings, status: "published" } });
-  tx.sadd("sites", slug);
-  await tx.exec();
+  await stores.sites.create(slug, site);
+  await stores.sites.put(slug, {
+    draft: site,
+    published: { ...site, publishedAt: now, settings: { ...site.settings, status: "published" } },
+  });
 
   console.log(`seed: wrote /${slug} (${site.projects.length} projects) to draft and published.`);
   console.log("seed: a running app keeps its cached public page until the next Publish from the dashboard.");
 
   if (email && values.username) {
-    await giveCredentials(redis, { slug, email, username: values.username, reset: values["reset-password"] });
+    await giveCredentials(stores, { slug, email, username: values.username, reset: values["reset-password"] });
   }
 }
 

@@ -4,6 +4,7 @@ import type { Lead } from "../../content/schemas";
 import type { Db } from "../db/types";
 import { redisCredStore, type CredentialRecord, type KV, type PgCredStore } from "./credentials";
 import { MAX_LEADS, redisLeadStore, type PgLeadStore } from "./leads";
+import { redisSiteStore, type SiteSnapshot, type SiteStore } from "./sites";
 import { redisUserStore, type PgUserStore } from "./users";
 
 /*
@@ -12,8 +13,8 @@ import { redisUserStore, type PgUserStore } from "./users";
  * truth), once to fill Postgres and once more just before switching reads over.
  */
 
-export type Targets = { users: PgUserStore; creds: PgCredStore; leads: PgLeadStore };
-export type Counts = { users: number; credentials: number; epochs: number; leads: number };
+export type Targets = { users: PgUserStore; creds: PgCredStore; leads: PgLeadStore; sites: SiteStore };
+export type Counts = { users: number; credentials: number; epochs: number; leads: number; sites: number };
 
 async function scanKeys(redis: Redis, match: string): Promise<string[]> {
   const found: string[] = [];
@@ -35,6 +36,9 @@ type Source = {
   credentials: { email: string; record: CredentialRecord }[];
   epochs: { email: string; epoch: number }[];
   leads: { slug: string; lead: Lead }[];
+  pages: { slug: string; snapshot: SiteSnapshot }[];
+  /** Page addresses in the Redis index. */
+  indexed: string[];
 };
 
 /** Reads everything the Postgres side is meant to hold, from Redis. */
@@ -70,7 +74,26 @@ export async function readSource(redis: Redis): Promise<Source> {
   for (const slug of [...slugs].sort()) {
     for (const lead of await leadStore.list(slug, 0, MAX_LEADS)) leads.push({ slug, lead });
   }
-  return { users, credentials, epochs, leads };
+
+  // Pages: every address in the index, and any draft that exists without one.
+  const siteStore = redisSiteStore(() => redis);
+  const indexed = (await redis.smembers("sites")).sort();
+  const drafted = (await scanKeys(redis, "site:*:draft")).map((k) => k.slice("site:".length, -":draft".length));
+  const pages: Source["pages"] = [];
+  for (const slug of [...new Set([...indexed, ...drafted])].sort()) {
+    const snapshot = await siteStore.snapshot(slug);
+    if (snapshot) pages.push({ slug, snapshot });
+  }
+  return { users, credentials, epochs, leads, pages, indexed };
+}
+
+/** The same JSON written the same way whatever order its keys came back in (Postgres reorders them). */
+function canonical(value: unknown): string {
+  return JSON.stringify(value, (_k, v) =>
+    v && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)))
+      : v,
+  );
 }
 
 export async function backfill(redis: Redis, to: Targets, opts: { apply: boolean }): Promise<Counts> {
@@ -80,18 +103,20 @@ export async function backfill(redis: Redis, to: Targets, opts: { apply: boolean
     for (const c of src.credentials) await to.creds.save(c.email, c.record);
     for (const e of src.epochs) await to.creds.setEpoch(e.email, e.epoch);
     for (const l of src.leads) await to.leads.upsert(l.slug, l.lead);
+    for (const p of src.pages) await to.sites.restore(p.slug, p.snapshot);
   }
   return {
     users: src.users.length,
     credentials: src.credentials.length,
     epochs: src.epochs.length,
     leads: src.leads.length,
+    sites: src.pages.length,
   };
 }
 
 export type Difference = {
   kind: "missing" | "different";
-  what: "account" | "sign-in" | "epoch" | "enquiry";
+  what: "account" | "sign-in" | "epoch" | "enquiry" | "page" | "page index";
   label: string;
 };
 export type Verdict = { ok: boolean; checked: Counts; differences: Difference[]; extraInPostgres: Counts };
@@ -130,19 +155,32 @@ export async function verify(redis: Redis, to: Targets, db: Db): Promise<Verdict
     }
   }
 
+  for (const { slug, snapshot } of src.pages) {
+    const got = await to.sites.snapshot(slug);
+    if (!got) differences.push({ kind: "missing", what: "page", label: slug });
+    else if (canonical(got) !== canonical(snapshot)) differences.push({ kind: "different", what: "page", label: slug });
+  }
+  // The Redis index must name every page that Postgres has, or that page's views would not be counted.
+  const indexed = new Set(src.indexed);
+  for (const slug of await to.sites.list()) {
+    if (!indexed.has(slug)) differences.push({ kind: "missing", what: "page index", label: slug });
+  }
+
   const counts = async (table: string) =>
     Number((await db.query<{ n: number }>(`select count(*)::int as n from ${table}`))[0]?.n ?? 0);
-  const [users, credentials, epochs, leads] = await Promise.all([
+  const [users, credentials, epochs, leads, pages] = await Promise.all([
     counts("users"),
     counts("credentials"),
     counts("session_epochs"),
     counts("leads"),
+    counts("sites"),
   ]);
   const checked = {
     users: src.users.length,
     credentials: src.credentials.length,
     epochs: src.epochs.length,
     leads: src.leads.length,
+    sites: src.pages.length,
   };
   return {
     ok: differences.length === 0,
@@ -153,6 +191,7 @@ export async function verify(redis: Redis, to: Targets, db: Db): Promise<Verdict
       credentials: Math.max(0, credentials - checked.credentials),
       epochs: Math.max(0, epochs - checked.epochs),
       leads: Math.max(0, leads - checked.leads),
+      sites: Math.max(0, pages - checked.sites),
     },
   };
 }
