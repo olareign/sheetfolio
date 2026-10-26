@@ -16,7 +16,6 @@ vi.mock("next/cache", () => ({
 
 const {
   addLead,
-  claimSlug,
   getCvDownloads,
   getDraft,
   getProjectViews,
@@ -166,19 +165,6 @@ describe("publish / getPublished", () => {
 
   it("returns null for slugs that can't exist", async () => {
     expect(await getPublished("Not A Slug!")).toBeNull();
-  });
-});
-
-describe("claimSlug", () => {
-  it("gives a slug to the first caller only", async () => {
-    expect(await claimSlug(SLUG, "user-1")).toBe(true);
-    expect(await claimSlug(SLUG, "user-2")).toBe(false);
-    expect(fake.strings.get(`slug:${SLUG}`)).toBe("user-1");
-  });
-
-  it("rejects reserved and malformed slugs", async () => {
-    await expect(claimSlug("dashboard", "u")).rejects.toMatchObject({ code: "INVALID" });
-    await expect(claimSlug("A B", "u")).rejects.toMatchObject({ code: "INVALID" });
   });
 });
 

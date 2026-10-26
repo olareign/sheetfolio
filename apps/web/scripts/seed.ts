@@ -22,7 +22,8 @@ import { parseArgs } from "node:util";
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { PublishableSite, Slug, UserRecord } from "../content/schemas";
-import { getCredentials, setPassword, type KV } from "../lib/credential-store";
+import { getCredentials, setPassword } from "../lib/credential-store";
+import { redisCredStore, type KV } from "../lib/store/credentials";
 
 const SeedFile = z.object({ slug: Slug, site: z.record(z.string(), z.unknown()) });
 const CREDENTIALS_FILE = ".credentials.local";
@@ -31,6 +32,9 @@ function fail(message: string): never {
   console.error(`seed: ${message}`);
   process.exit(1);
 }
+
+/** The sign-in details, kept in Redis. (A Postgres-backed seed comes with the cut-over; see lib/store/mode.ts.) */
+const credsFor = (redis: Redis) => redisCredStore(() => kvFor(redis));
 
 function kvFor(redis: Redis): KV {
   return {
@@ -72,13 +76,13 @@ async function giveCredentials(
   redis: Redis,
   args: { slug: string; email: string; username: string; reset: boolean },
 ): Promise<void> {
-  const kv = kvFor(redis);
-  if ((await getCredentials(kv, args.email)) && !args.reset) {
+  const creds = credsFor(redis);
+  if ((await getCredentials(creds, args.email)) && !args.reset) {
     console.log(`seed: /${args.slug} already has a password; left unchanged (use --reset-password to replace it).`);
     return;
   }
   const password = process.env.SEED_PASSWORD || randomBytes(18).toString("base64url");
-  const result = await setPassword(kv, { email: args.email, password, username: args.username });
+  const result = await setPassword(creds, { email: args.email, password, username: args.username });
   if (!result.ok) fail(`the username "${args.username}" belongs to another account`);
   saveCredentials({ slug: args.slug, username: args.username, email: args.email, password });
   console.log(
@@ -106,9 +110,9 @@ async function main(): Promise<void> {
   const redis = new Redis({ url, token });
 
   if (values.list) {
-    const kv = kvFor(redis);
+    const store = credsFor(redis);
     for (const { email, record } of await accounts(redis)) {
-      const creds = await getCredentials(kv, email);
+      const creds = await getCredentials(store, email);
       console.log(
         `/${record.slug}  ${record.role}  password: ${creds ? `yes (${creds.username ?? "no username"})` : "no"}`,
       );

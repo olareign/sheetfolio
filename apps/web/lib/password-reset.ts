@@ -1,12 +1,15 @@
 import "server-only";
-import { createResetToken, RESET_TOKEN_MINUTES, resolveEmail, type KV } from "./credential-store";
+import { createResetToken, RESET_TOKEN_MINUTES, resolveEmail, type CredStore, type KV } from "./credential-store";
 import type { sendEmail } from "./email";
 import { passwordChangedEmail, passwordResetEmail } from "./email-templates";
 
 type Send = typeof sendEmail;
 
 type RequestDeps = {
+  /** Where reset tokens live. */
   kv: KV;
+  /** Where accounts and usernames live. */
+  creds: CredStore;
   /** True when the email belongs to a Sheetfolio account (a page, or a password). */
   accountExists: (email: string) => Promise<boolean>;
   /** Rate limit for this identifier and caller; false means "slow down". */
@@ -29,7 +32,7 @@ export async function requestPasswordReset(identifier: string, deps: RequestDeps
   if (!id || id.length > 254) return;
   try {
     if (!(await deps.allow(id))) return;
-    const email = await resolveEmail(deps.kv, id);
+    const email = await resolveEmail(deps.creds, id);
     if (!email || !(await deps.accountExists(email))) return;
 
     const token = await createResetToken(deps.kv, email, deps.now);

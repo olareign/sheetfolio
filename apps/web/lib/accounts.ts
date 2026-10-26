@@ -2,15 +2,10 @@ import "server-only";
 import { createEmptySite, NewPassword, OnboardingInput, UserRecord } from "@/content/schemas";
 import { getCredentials, setPassword } from "./credentials";
 import { keys, redis } from "./redis";
-import { claimSlug, SiteError } from "./site";
+import { users } from "./store";
 
-export async function getUserRecord(email: string): Promise<UserRecord | null> {
-  const key = keys.user(email);
-  const raw = await redis().get<unknown>(key);
-  if (raw === null) return null;
-  const parsed = UserRecord.safeParse(raw);
-  if (!parsed.success) throw new SiteError("INVALID", `Stored ${key} is invalid`, parsed.error.issues);
-  return parsed.data;
+export function getUserRecord(email: string): Promise<UserRecord | null> {
+  return users().get(email);
 }
 
 export type OnboardResult =
@@ -36,8 +31,6 @@ export async function onboard(args: {
   const existing = await getUserRecord(email);
   if (existing) return { ok: false, reason: "ALREADY_ONBOARDED", slug: existing.slug };
 
-  if (!(await claimSlug(input.slug, args.userId))) return { ok: false, reason: "SLUG_TAKEN" };
-
   const record = UserRecord.parse({
     id: args.userId,
     slug: input.slug,
@@ -46,10 +39,10 @@ export async function onboard(args: {
     createdAt: now.toISOString(),
   });
 
-  // A second concurrent onboarding for the same email loses here and releases its slug.
-  const created = await redis().set(keys.user(email), record, { nx: true });
-  if (created !== "OK") {
-    await redis().del(keys.slug(input.slug));
+  // The page address and the email each go to the first account to ask; a second concurrent sign-up loses here.
+  const created = await users().create({ email, record });
+  if (created === "SLUG_TAKEN") return { ok: false, reason: "SLUG_TAKEN" };
+  if (created === "EMAIL_TAKEN") {
     const winner = await getUserRecord(email);
     return { ok: false, reason: "ALREADY_ONBOARDED", slug: winner?.slug ?? input.slug };
   }
@@ -68,7 +61,7 @@ export async function onboard(args: {
     tx.sadd(keys.sites(), input.slug);
     await tx.exec();
   } catch (err) {
-    await redis().del(keys.user(email), keys.slug(input.slug));
+    await users().remove(email, input.slug);
     throw err;
   }
 

@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeRedis } from "@/test/fake-redis";
-import { peekResetToken, setPassword, type KV } from "./credential-store";
+import { peekResetToken, setPassword, type CredStore, type KV } from "./credential-store";
+import { redisCredStore } from "./store/credentials";
 import { requestPasswordReset, sendPasswordChangedNotice } from "./password-reset";
 
 const origin = "https://sheetfolio.app/";
 const now = new Date("2026-10-21T09:30:00.000Z");
 let fake: FakeRedis;
 let kv: KV;
+let creds: CredStore;
 
 beforeEach(async () => {
   fake = new FakeRedis();
   kv = fake as unknown as KV;
-  await setPassword(kv, { email: "ada@example.com", password: "correct horse battery", username: "ada" });
+  creds = redisCredStore(() => kv);
+  await setPassword(creds, { email: "ada@example.com", password: "correct horse battery", username: "ada" });
 });
 
 type Deps = Parameters<typeof requestPasswordReset>[1];
@@ -20,6 +23,7 @@ type Deps = Parameters<typeof requestPasswordReset>[1];
 const deps = (over: Partial<Deps> = {}) =>
   ({
     kv,
+    creds,
     accountExists: async () => true,
     allow: async () => true,
     send: vi.fn().mockResolvedValue(undefined),
@@ -78,7 +82,9 @@ describe("requestPasswordReset", () => {
   it("swallows a store failure too, so the caller can always show the same answer", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const broken = { ...kv, get: () => Promise.reject(new Error("redis down")) } as unknown as KV;
-    await expect(requestPasswordReset("ada", deps({ kv: broken }))).resolves.toBeUndefined();
+    await expect(
+      requestPasswordReset("ada", deps({ kv: broken, creds: redisCredStore(() => broken) })),
+    ).resolves.toBeUndefined();
     log.mockRestore();
   });
 });

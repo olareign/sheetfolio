@@ -3,11 +3,12 @@
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { getUserRecord } from "@/lib/accounts";
-import { credentialKv, getCredentials } from "@/lib/credentials";
+import { getCredentials } from "@/lib/credentials";
 import { sendEmail } from "@/lib/email";
 import { publicSiteUrl } from "@/lib/env";
 import { requestPasswordReset } from "@/lib/password-reset";
 import { allowResetRequest, clientIp } from "@/lib/ratelimit";
+import { credentialKv, credentialStore } from "@/lib/store";
 
 export type ForgotState = { done?: boolean; error?: string; identifier?: string };
 
@@ -23,6 +24,7 @@ export async function requestReset(_prev: ForgotState, formData: FormData): Prom
   after(() =>
     requestPasswordReset(identifier, {
       kv: credentialKv(),
+      creds: credentialStore(),
       accountExists: async (email) => Boolean((await getCredentials(email)) ?? (await getUserRecord(email))),
       allow: (id) => allowResetRequest(id, ip),
       send: sendEmail,

@@ -55,3 +55,28 @@ describe("parseEnv", () => {
     );
   });
 });
+
+describe("store modes", () => {
+  it("default to Redis, and need no database", () => {
+    const env = parseEnv({ ...base, ACCOUNTS_STORE: "", LEADS_STORE: undefined });
+    expect([env.ACCOUNTS_STORE, env.LEADS_STORE, env.DATABASE_URL]).toEqual(["redis", "redis", undefined]);
+  });
+
+  it("refuse to start when a store has left Redis but there is no database", () => {
+    expect(() => parseEnv({ ...base, ACCOUNTS_STORE: "dual" })).toThrow(
+      /DATABASE_URL: Required when ACCOUNTS_STORE is dual/,
+    );
+    expect(() => parseEnv({ ...base, LEADS_STORE: "postgres" })).toThrow(/Required when LEADS_STORE is postgres/);
+  });
+
+  it("accept a database, from DATABASE_URL or Vercel's POSTGRES_URL", () => {
+    const url = "postgresql://u:p@ep-x.us-east-1.aws.neon.tech/db?sslmode=require";
+    expect(parseEnv({ ...base, ACCOUNTS_STORE: "pg-first", DATABASE_URL: url }).DATABASE_URL).toBe(url);
+    expect(parseEnv({ ...base, LEADS_STORE: "dual", POSTGRES_URL: url }).DATABASE_URL).toBe(url);
+  });
+
+  it("reject an unknown mode or a database address that is not Postgres", () => {
+    expect(() => parseEnv({ ...base, ACCOUNTS_STORE: "both" })).toThrow(/ACCOUNTS_STORE/);
+    expect(() => parseEnv({ ...base, DATABASE_URL: "mysql://x" })).toThrow(/DATABASE_URL/);
+  });
+});

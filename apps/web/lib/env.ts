@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { STORE_MODES } from "./store/mode";
 import { parseCloudinaryUrl } from "./cloudinary";
 
 // `.env.example` ships blank values (`KEY=`); a blank optional variable means "not set".
@@ -26,6 +27,12 @@ const EnvSchema = z
     /** Screenshot service for project previews; `{url}` is replaced by the encoded link. Defaults to Microlink. */
     SCREENSHOT_URL_TEMPLATE: optional(z.string().includes("{url}")),
     NEXT_PUBLIC_SITE_URL: optional(z.url()),
+    /** Postgres (Neon). Needed once any store below leaves "redis". Vercel's Neon integration sets DATABASE_URL. */
+    DATABASE_URL: optional(z.string().regex(/^postgres(ql)?:\/\//, "Must start with postgres:// or postgresql://")),
+    /** Where accounts and passwords live: see lib/store/mode.ts. */
+    ACCOUNTS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
+    /** Where enquiries live. */
+    LEADS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where privacy requests and support questions go; shown on the privacy policy. */
     SUPPORT_EMAIL: optional(z.email()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
@@ -41,6 +48,12 @@ const EnvSchema = z
     if (env.NODE_ENV === "production" && !env.AUTH_RESEND_KEY) {
       ctx.addIssue({ code: "custom", path: ["AUTH_RESEND_KEY"], message: "Required in production" });
     }
+    // A store that has left Redis cannot work without somewhere to go: fail at startup, not on someone's first request.
+    for (const key of ["ACCOUNTS_STORE", "LEADS_STORE"] as const) {
+      if (env[key] !== "redis" && !env.DATABASE_URL) {
+        ctx.addIssue({ code: "custom", path: ["DATABASE_URL"], message: `Required when ${key} is ${env[key]}` });
+      }
+    }
   });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -52,6 +65,7 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
     ...source,
     UPSTASH_REDIS_REST_URL: source.UPSTASH_REDIS_REST_URL || source.KV_REST_API_URL,
     UPSTASH_REDIS_REST_TOKEN: source.UPSTASH_REDIS_REST_TOKEN || source.KV_REST_API_TOKEN,
+    DATABASE_URL: source.DATABASE_URL || source.POSTGRES_URL,
   });
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n");

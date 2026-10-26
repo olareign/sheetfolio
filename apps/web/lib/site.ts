@@ -13,9 +13,9 @@ import {
   type SiteInput,
 } from "@/content/schemas";
 import { keys, redis } from "./redis";
+import { leads } from "./store";
 
 const VIEW_TTL_SECONDS = 90 * 24 * 60 * 60;
-const MAX_LEADS = 500;
 export const LEADS_PAGE_SIZE = 20;
 
 export type SiteErrorCode = "NOT_FOUND" | "INVALID" | "SUSPENDED";
@@ -161,14 +161,6 @@ export async function listSiteSlugs(): Promise<string[]> {
   return redis().smembers(keys.sites());
 }
 
-// ── Slugs ───────────────────────────────────────────────────────────────────
-
-/** Atomically reserves a slug (`SET NX`). Returns false if someone already holds it. */
-export async function claimSlug(slug: string, userId: string): Promise<boolean> {
-  const result = await redis().set(keys.slug(assertSlug(slug)), userId, { nx: true });
-  return result === "OK";
-}
-
 // ── Views ───────────────────────────────────────────────────────────────────
 
 const ProjectId = z.string().min(1).max(64);
@@ -210,82 +202,42 @@ export async function recordView(slug: string, projectId?: string, now: Date = n
 
 // ── Leads ───────────────────────────────────────────────────────────────────
 
-/** Stores an enquiry, newest first, keeping the latest 500, and bumps the unread counter. */
+/** Stores an enquiry, newest first, keeping the latest 500, and counts it as unread. */
 export async function addLead(slug: string, input: LeadInput, now: Date = new Date()): Promise<Lead> {
   const s = assertSlug(slug);
   const parsed = LeadInput.safeParse(input);
   if (!parsed.success) throw new SiteError("INVALID", "Invalid enquiry", parsed.error.issues);
   const lead: Lead = { ...parsed.data, id: crypto.randomUUID(), createdAt: now.toISOString(), read: false };
-  const p = redis().multi();
-  p.lpush(keys.leads(s), lead);
-  p.ltrim(keys.leads(s), 0, MAX_LEADS - 1);
-  p.incr(keys.leadsUnread(s));
-  await p.exec();
+  await leads().add(s, lead);
   return lead;
 }
 
-/** Page is zero-based. `read` comes from the read-set, not the stored item. */
+/** Page is zero-based. */
 export async function listLeads(slug: string, page: number, pageSize: number = LEADS_PAGE_SIZE): Promise<Lead[]> {
-  const s = assertSlug(slug);
   const safePage = Number.isInteger(page) && page >= 0 ? page : 0;
-  const start = safePage * pageSize;
-  const raw = await redis().lrange<unknown>(keys.leads(s), start, start + pageSize - 1);
-  const leads = raw.map((r) => {
-    const parsed = Lead.safeParse(r);
-    if (!parsed.success)
-      throw new SiteError("INVALID", `Stored lead in ${keys.leads(s)} is invalid`, parsed.error.issues);
-    return parsed.data;
-  });
-  if (leads.length === 0) return leads;
-  const read = await redis().smismember(
-    keys.leadsRead(s),
-    leads.map((l) => l.id),
-  );
-  return leads.map((l, i) => ({ ...l, read: read[i] === 1 }));
+  return leads().list(assertSlug(slug), safePage, pageSize);
 }
 
-export async function countLeads(slug: string): Promise<number> {
-  return redis().llen(keys.leads(assertSlug(slug)));
+export function countLeads(slug: string): Promise<number> {
+  return leads().count(assertSlug(slug));
 }
 
-export async function getUnreadCount(slug: string): Promise<number> {
-  const n = await redis().get<number>(keys.leadsUnread(assertSlug(slug)));
-  return Math.max(0, Number(n ?? 0));
+export function getUnreadCount(slug: string): Promise<number> {
+  return leads().unread(assertSlug(slug));
 }
 
 const LeadId = z.string().uuid();
 
-/**
- * Marks one lead read. The read state lives in a set, so a lead arriving at the same moment
- * (which shifts list positions) can never cause the wrong item to be updated.
- * Returns false if the lead doesn't exist (e.g. trimmed or a forged id).
- */
+/** Marks one lead read. Returns false if the lead doesn't exist (e.g. trimmed or a forged id). */
 export async function markLeadRead(slug: string, id: string): Promise<boolean> {
   const s = assertSlug(slug);
   if (!LeadId.safeParse(id).success) return false;
-  const all = await redis().lrange<{ id?: unknown }>(keys.leads(s), 0, -1);
-  if (!all.some((l) => l.id === id)) return false;
-  const added = await redis().sadd(keys.leadsRead(s), id);
-  if (added === 1) {
-    const left = await redis().decr(keys.leadsUnread(s));
-    if (left < 0) await redis().set(keys.leadsUnread(s), 0); // self-heal a drifted counter
-  }
-  return true;
+  return leads().markRead(s, id);
 }
 
-/** Marks every stored lead read and resets the read-set to exactly the current leads (prunes trimmed ids). */
+/** Marks every stored lead read. */
 export async function markAllLeadsRead(slug: string): Promise<void> {
-  const s = assertSlug(slug);
-  const ids = (await redis().lrange<{ id?: unknown }>(keys.leads(s), 0, -1))
-    .map((l) => l.id)
-    .filter((id): id is string => typeof id === "string");
-  const tx = redis().multi();
-  tx.del(keys.leadsRead(s));
-  if (ids.length) tx.sadd(keys.leadsRead(s), ...(ids as [string, ...string[]]));
-  // A lead arriving between the read above and this write would be counted as read; the window is
-  // milliseconds and the lead itself still shows as unread in the inbox.
-  tx.set(keys.leadsUnread(s), 0);
-  await tx.exec();
+  await leads().markAllRead(assertSlug(slug));
 }
 
 // ── View counters (dashboard) ───────────────────────────────────────────────
