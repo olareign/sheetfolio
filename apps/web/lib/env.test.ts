@@ -80,3 +80,11 @@ describe("store modes", () => {
     expect(() => parseEnv({ ...base, DATABASE_URL: "mysql://x" })).toThrow(/DATABASE_URL/);
   });
 });
+
+describe("CRON_SECRET", () => {
+  it("is optional, and must be long enough to be a secret", () => {
+    expect(parseEnv(base).CRON_SECRET).toBeUndefined();
+    expect(() => parseEnv({ ...base, CRON_SECRET: "short" })).toThrow(/CRON_SECRET/);
+    expect(parseEnv({ ...base, CRON_SECRET: "c".repeat(32) }).CRON_SECRET).toBe("c".repeat(32));
+  });
+});

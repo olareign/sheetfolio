@@ -153,9 +153,12 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
   return published;
 }
 
-/** Every registered slug (the `sites` set). */
+/**
+ * Every registered page address, from the Redis index kept in every mode. The sitemap and the Featured list read this
+ * often, and the index answers without waking the database; the admin overview reads the full list from the page store.
+ */
 export async function listSiteSlugs(): Promise<string[]> {
-  return sites().list();
+  return redis().smembers(keys.sites());
 }
 
 // ── Views ───────────────────────────────────────────────────────────────────

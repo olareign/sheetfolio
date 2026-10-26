@@ -33,6 +33,8 @@ const EnvSchema = z
     ACCOUNTS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where enquiries live. */
     LEADS_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
+    /** Shared secret for the daily job at /api/cron/stats; Vercel sends it as a bearer token. At least 32 characters. */
+    CRON_SECRET: optional(z.string().min(32, "CRON_SECRET must be at least 32 characters")),
     /** Where the pages themselves (draft and published) live. */
     SITES_STORE: optional(z.enum(STORE_MODES)).transform((v) => v ?? "redis"),
     /** Where privacy requests and support questions go; shown on the privacy policy. */
