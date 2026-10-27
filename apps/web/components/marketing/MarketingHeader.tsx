@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NAV } from "@/content/marketing";
@@ -9,10 +10,7 @@ export function MarketingHeader() {
     <header className="mk-header">
       <div className="mk-wrap mk-header-inner">
         <Link href="/" className="mk-brand">
-          <span className="mk-brand-mark" aria-hidden="true">
-            D
-          </span>
-          Dosinex
+          <Logo height={28} />
         </Link>
         <MarketingNav />
         <div className="mk-header-actions">

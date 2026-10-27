@@ -21,26 +21,11 @@
 .cms-brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
   height: 64px;
   padding: 0 var(--space-4);
   border-bottom: 1px solid var(--rule);
   color: var(--ink);
   text-decoration: none;
-}
-.cms-mark {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--blueprint);
-  color: var(--on-blueprint);
-  font: 700 13px/1 var(--font-sans);
-  letter-spacing: 0.02em;
-}
-.cms-brand b {
-  font: 800 18px/1 var(--font-display);
 }
 .cms-site {
   display: grid;

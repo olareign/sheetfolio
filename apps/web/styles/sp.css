@@ -122,3 +122,9 @@ textarea.sp-input { height: auto; min-height: 96px; padding: 10px var(--space-3)
 @media (prefers-reduced-motion: reduce) { .sp-menu-panel, .sp-menu-links li, .sp-menu-backdrop { animation: none; } }
 .sp-menu-layer { color: var(--ink); font-family: var(--font-sans); }
 .sp-menu-footer a { text-decoration: none; }
+
+/* The wordmark comes in a dark-lettered and a light-lettered file; the theme shows the one that reads. */
+.brand-logo { display: block; width: auto; }
+.brand-logo-ondark { display: none; }
+[data-theme="blueprint"] .brand-logo-onlight { display: none; }
+[data-theme="blueprint"] .brand-logo-ondark { display: block; }

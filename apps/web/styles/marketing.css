@@ -85,8 +85,7 @@
   border-bottom: 1px solid var(--hairline);
 }
 .mk-header-inner { display: flex; align-items: center; gap: var(--space-6); padding-block: 14px; flex-wrap: wrap; }
-.mk-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; margin-right: auto; }
-.mk-brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--blueprint); color: var(--on-blueprint); font-size: 15px; }
+.mk-brand { display: inline-flex; align-items: center; margin-right: auto; }
 .mk-nav { display: flex; gap: var(--space-6); font-size: 15px; color: var(--ink-muted); flex-wrap: wrap; }
 .mk-nav a { padding: 8px 2px; border-bottom: 2px solid transparent; }
 .mk-nav a:hover { color: var(--ink); }
@@ -373,7 +372,7 @@
 .mk-footer-grid { display: flex; flex-wrap: wrap; gap: 44px 32px; padding: 56px 0; }
 .mk-footer-brand { flex: 2 1 280px; max-width: 340px; display: grid; gap: 18px; align-content: start; }
 .mk-footer-brand p { margin: 0; font-size: 14.5px; line-height: 1.7; }
-.mk-footer .mk-brand { color: #fff; font-size: 21px; margin-right: 0; }
+.mk-footer .mk-brand { margin-right: 0; }
 .mk-footer-col { flex: 1 1 150px; min-width: 0; display: grid; gap: 12px; align-content: start; font-size: 14.5px; }
 .mk-footer-col b { color: #fff; font-size: 14px; letter-spacing: 0.02em; }
 .mk-footer-col a:hover { color: var(--accent-soft); }

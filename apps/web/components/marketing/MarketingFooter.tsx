@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
 import { FOOTER_COLUMNS } from "@/content/marketing";
 import { Deco } from "./Deco";
 import { MarketingButton } from "./MarketingButton";
@@ -18,10 +19,7 @@ export function MarketingFooter() {
         <div className="mk-footer-grid">
           <div className="mk-footer-brand">
             <Link href="/" className="mk-brand">
-              <span className="mk-brand-mark" aria-hidden="true">
-                S
-              </span>
-              Dosinex
+              <Logo height={30} onDark />
             </Link>
             <p>
               One link for your projects, your CV and your enquiries. Built for anyone whose work deserves a proper

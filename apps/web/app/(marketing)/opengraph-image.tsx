@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { publicSiteUrl } from "@/lib/env";
 
@@ -11,8 +13,9 @@ const INDIGO = "#4338ca";
 const DEEP = "#312e81";
 const TOOLS = ["Projects", "CV layouts", "Enquiries", "Insights"];
 
-export default function Image() {
+export default async function Image() {
   const host = publicSiteUrl().host;
+  const logoSrc = `data:image/png;base64,${await readFile(join(process.cwd(), "public/brand/dosinex-logo.png"), "base64")}`;
   return new ImageResponse(
     <div
       style={{
@@ -26,24 +29,17 @@ export default function Image() {
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 64,
-              height: 64,
-              borderRadius: 18,
-              background: "#ffffff",
-              color: INDIGO,
-              fontSize: 38,
-              fontWeight: 800,
-            }}
-          >
-            S
-          </div>
-          <div style={{ display: "flex", marginLeft: 18, fontSize: 38, fontWeight: 700 }}>Dosinex</div>
+        {/* The logo's blue letters need a light ground; the card's indigo would swallow them. */}
+        <div
+          style={{
+            display: "flex",
+            alignSelf: "flex-start",
+            padding: "16px 28px",
+            borderRadius: 20,
+            background: "#ffffff",
+          }}
+        >
+          <img src={logoSrc} alt="Dosinex" width={Math.round(52 * (720 / 153))} height={52} />
         </div>
         <div style={{ display: "flex", marginTop: 40, maxWidth: 620, fontSize: 70, fontWeight: 800, lineHeight: 1.04 }}>
           Your work, your CV and your enquiries on one page

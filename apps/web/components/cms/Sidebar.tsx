@@ -4,6 +4,7 @@ import { ExternalLink, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/(admin)/dashboard/actions";
+import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/sp/Button";
 
 export type NavItem = {
@@ -34,10 +35,7 @@ export function Sidebar({
   return (
     <aside className="cms-sidebar" aria-label="Dashboard">
       <Link href="/dashboard" className="cms-brand">
-        <span className="cms-mark" aria-hidden="true">
-          D
-        </span>
-        <b>Dosinex</b>
+        <Logo height={24} />
       </Link>
       <div className="cms-site">
         <span className="sp-label">Site</span>
