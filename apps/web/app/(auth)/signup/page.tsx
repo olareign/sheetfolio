@@ -8,7 +8,7 @@ import { SignupForm } from "./SignupForm";
 
 export const metadata: Metadata = {
   title: "Create your page",
-  description: "Make your Sheetfolio page in a few minutes. Free while we test.",
+  description: "Make your Dosinex page in a few minutes. Free while we test.",
 };
 
 export default async function SignupPage() {
@@ -16,7 +16,7 @@ export default async function SignupPage() {
   if (session?.user) redirect("/dashboard");
 
   const siteUrl = env().NEXT_PUBLIC_SITE_URL;
-  const siteHost = siteUrl ? new URL(siteUrl).host : "sheetfolio";
+  const siteHost = siteUrl ? new URL(siteUrl).host : "dosinex";
 
   return (
     <AuthPanel title="Create your page">

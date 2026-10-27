@@ -23,7 +23,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const query = parseFeaturedQuery(await searchParams);
   return {
     title: "Featured",
-    description: "Real Sheetfolio pages, ranked by how many people viewed them in the last 30 days.",
+    description: "Real Dosinex pages, ranked by how many people viewed them in the last 30 days.",
     // Every filter and page number is a different view of the same list: search engines index the list itself.
     alternates: { canonical: "/featured" },
     ...(isFiltered(query) && { robots: { index: false, follow: true } }),
@@ -50,7 +50,7 @@ export default async function FeaturedPage({ searchParams }: Props) {
       <PageHead
         eyebrow="Featured"
         title="Pages people are visiting"
-        lead="Real Sheetfolio pages, most viewed first, counted over the last 30 days. Owners can leave this list any time in Settings."
+        lead="Real Dosinex pages, most viewed first, counted over the last 30 days. Owners can leave this list any time in Settings."
       />
       <Section>
         {ranked.length > 0 ? (

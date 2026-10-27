@@ -5,7 +5,7 @@ import type { Project, Site } from "./schemas";
 /*
  * What goes on the CV, computed from the published site with the page's visibility rules
  * (PRD §3.5, §8.1). Pure, so privacy is unit-tested here rather than by reading PDFs.
- * Deliberately free of Sheetfolio-only furniture (drawing numbers, revision stamps): a CV is read by
+ * Deliberately free of Dosinex-only furniture (drawing numbers, revision stamps): a CV is read by
  * recruiters and parsed by ATS software, which only want the person's own content.
  */
 

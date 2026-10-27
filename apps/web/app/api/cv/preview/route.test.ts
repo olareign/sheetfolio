@@ -11,7 +11,7 @@ const state = vi.hoisted(() => ({
 vi.mock("@/lib/auth", () => ({ auth: async () => (state.email ? { user: { email: state.email } } : null) }));
 vi.mock("@/lib/accounts", () => ({ getUserRecord: async () => state.account }));
 vi.mock("@/lib/site", () => ({ getDraft: async () => state.draft }));
-vi.mock("@/lib/env", () => ({ env: () => ({ NEXT_PUBLIC_SITE_URL: "https://sheetfolio.example" }) }));
+vi.mock("@/lib/env", () => ({ env: () => ({ NEXT_PUBLIC_SITE_URL: "https://dosinex.example" }) }));
 
 const { GET } = await import("./route");
 
@@ -20,7 +20,7 @@ const load = (summary?: string): Site => {
   const profile = summary ? { ...file.site.profile, summary } : file.site.profile;
   return PublishableSite.parse({ ...file.site, profile, updatedAt: "2026-10-21T00:00:00.000Z" });
 };
-const get = (query = "") => GET(new Request(`https://sheetfolio.example/api/cv/preview${query}`));
+const get = (query = "") => GET(new Request(`https://dosinex.example/api/cv/preview${query}`));
 const textOf = async (res: Response) => (await pdfPages(Buffer.from(await res.arrayBuffer()))).join(" ");
 
 beforeEach(() => {

@@ -1,9 +1,9 @@
 {
-  "name": "sheetfolio",
+  "name": "dosinex",
   "private": true,
   "scripts": {
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",
-    "dev:web": "pnpm --filter @sheetfolio/web dev",
+    "dev:web": "pnpm --filter @dosinex/web dev",
     "build": "pnpm --recursive build",
     "lint": "pnpm --recursive lint",
     "typecheck": "pnpm --recursive typecheck",

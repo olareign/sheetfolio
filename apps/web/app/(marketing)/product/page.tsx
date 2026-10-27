@@ -29,7 +29,7 @@ export default function ProductPage() {
       icon: "grid",
       label: "Your page",
       title: "A page that looks finished from day one",
-      text: "Add what you have done. Sheetfolio lays it out, keeps it readable on a phone, and gives you light and dark themes.",
+      text: "Add what you have done. Dosinex lays it out, keeps it readable on a phone, and gives you light and dark themes.",
       points: [
         "Projects with a picture, role, location and status",
         "A website link fills in a project's picture and description",

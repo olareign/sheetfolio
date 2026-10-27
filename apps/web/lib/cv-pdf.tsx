@@ -317,7 +317,7 @@ export function CvDocument({
     .filter(Boolean)
     .join(" | ");
   return (
-    <Document title={`${cv.name} – CV`} author={cv.name} subject={cv.headline} creator="Sheetfolio">
+    <Document title={`${cv.name} – CV`} author={cv.name} subject={cv.headline} creator="Dosinex">
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{cv.name}</Text>
         {cv.headline !== "" && <Text style={s.headline}>{cv.headline}</Text>}

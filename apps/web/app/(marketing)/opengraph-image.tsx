@@ -5,7 +5,7 @@ import { publicSiteUrl } from "@/lib/env";
 // has its own card with their photo (see app/(public)/[slug]/opengraph-image.tsx).
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Sheetfolio: your work, your CV and your enquiries on one page";
+export const alt = "Dosinex: your work, your CV and your enquiries on one page";
 
 const INDIGO = "#4338ca";
 const DEEP = "#312e81";
@@ -43,7 +43,7 @@ export default function Image() {
           >
             S
           </div>
-          <div style={{ display: "flex", marginLeft: 18, fontSize: 38, fontWeight: 700 }}>Sheetfolio</div>
+          <div style={{ display: "flex", marginLeft: 18, fontSize: 38, fontWeight: 700 }}>Dosinex</div>
         </div>
         <div style={{ display: "flex", marginTop: 40, maxWidth: 620, fontSize: 70, fontWeight: 800, lineHeight: 1.04 }}>
           Your work, your CV and your enquiries on one page

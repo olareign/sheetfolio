@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <AuthPanel title="Sign in">
-      <p className="sp-lead">Manage your Sheetfolio page.</p>
+      <p className="sp-lead">Manage your Dosinex page.</p>
       {reset && (
         <p className="sp-note" role="status">
           Password updated. Sign in with your new password.

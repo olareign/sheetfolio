@@ -43,6 +43,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Upload path is outside your site." }, { status: 403 });
   }
 
-  const signed = signUpload(cloudinary, { folder: `sheetfolio/${folderParts.join("/")}`, formats: FORMATS[kind] });
+  const signed = signUpload(cloudinary, { folder: `dosinex/${folderParts.join("/")}`, formats: FORMATS[kind] });
   return NextResponse.json({ ...signed, maxBytes: UPLOAD_RULES[kind].maxBytes });
 }

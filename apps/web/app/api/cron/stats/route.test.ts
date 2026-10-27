@@ -28,7 +28,7 @@ beforeEach(async () => {
 });
 
 const call = (authorization?: string) =>
-  GET(new Request("https://sheetfolio.example/api/cron/stats", { headers: authorization ? { authorization } : {} }));
+  GET(new Request("https://dosinex.example/api/cron/stats", { headers: authorization ? { authorization } : {} }));
 
 describe("GET /api/cron/stats", () => {
   it("refuses a caller without the secret, or with the wrong one", async () => {

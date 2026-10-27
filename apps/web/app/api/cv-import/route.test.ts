@@ -19,7 +19,7 @@ const { POST } = await import("./route");
 const post = (file?: File | string) => {
   const form = new FormData();
   if (file !== undefined) form.set("cv", file);
-  return POST(new Request("https://sheetfolio.example/api/cv-import", { method: "POST", body: form }));
+  return POST(new Request("https://dosinex.example/api/cv-import", { method: "POST", body: form }));
 };
 const pdfFile = (bytes: BlobPart, name = "cv.pdf") => new File([bytes], name, { type: "application/pdf" });
 
@@ -33,7 +33,7 @@ describe("POST /api/cv-import", () => {
   it("reads a real CV and returns what it found, without saving anything", async () => {
     const file = JSON.parse(readFileSync("seed/abdulrasaq.json", "utf8")) as { site: object };
     const site = PublishableSite.parse({ ...file.site, updatedAt: "2026-10-21T00:00:00.000Z" });
-    const pdf = await renderCv(cvModel(site, "https://sheetfolio.example/x"), "modern", CV_LAYOUTS.modern);
+    const pdf = await renderCv(cvModel(site, "https://dosinex.example/x"), "modern", CV_LAYOUTS.modern);
 
     const res = await post(pdfFile(new Uint8Array(pdf)));
     expect(res.status).toBe(200);

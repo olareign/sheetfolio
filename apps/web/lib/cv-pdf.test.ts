@@ -11,7 +11,7 @@ const load = (seed: "abdulrasaq" | "idris"): { slug: string; site: Site } => {
   const file = JSON.parse(readFileSync(`seed/${seed}.json`, "utf8")) as { slug: string; site: object };
   return { slug: file.slug, site: PublishableSite.parse({ ...file.site, updatedAt: "2026-10-21T00:00:00.000Z" }) };
 };
-const URL_ = (slug: string) => `https://sheetfolio.example/${slug}`;
+const URL_ = (slug: string) => `https://dosinex.example/${slug}`;
 
 /** Renders and reads back, like an ATS: the text of every page, in reading order. */
 async function readCv(site: Site, slug: string, template: CvTemplateId, layout = CV_LAYOUTS[template]) {
@@ -40,7 +40,7 @@ describe.each(CV_TEMPLATE_IDS)("%s template", (template) => {
       "Abdulrasaq Taofeeq Olarewaju",
       "abdulrasaqolarewaju88@gmail.com",
       "+234 706 978 6151",
-      "sheetfolio.example/taofeeq-abdulrasaq",
+      "dosinex.example/taofeeq-abdulrasaq",
       "Tobams Group",
       "Pacifylabs Technologies Limited",
       "B.Sc. (Hons) Chemistry",
@@ -51,7 +51,7 @@ describe.each(CV_TEMPLATE_IDS)("%s template", (template) => {
     for (const skill of site.competencies) expect(has(text, skill), skill).toBe(true);
   }, 60_000);
 
-  it("uses standard section headings and none of Sheetfolio's own furniture", async () => {
+  it("uses standard section headings and none of Dosinex's own furniture", async () => {
     const { slug, site } = load("abdulrasaq");
     const text = (await readCv(site, slug, template)).pages.join(" ");
     for (const heading of ["SUMMARY", "EXPERIENCE", "EDUCATION", "SKILLS"]) expect(text).toContain(heading);

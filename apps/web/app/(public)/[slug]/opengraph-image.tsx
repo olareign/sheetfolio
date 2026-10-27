@@ -9,7 +9,7 @@ import { getPublished } from "@/lib/site";
 // are the CTA gradient from tokens.css written out.
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Sheetfolio page preview";
+export const alt = "Dosinex page preview";
 
 const INDIGO = "#4338ca";
 const DEEP = "#312e81";
@@ -19,7 +19,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const site = await getPublished(slug);
   const host = publicSiteUrl().host;
 
-  const name = site?.profile.name ?? "Sheetfolio";
+  const name = site?.profile.name ?? "Dosinex";
   const headline = site?.profile.headline ?? "Your work, your CV and your enquiries on one page";
   const location = site?.profile.location ?? "";
   const photo = site?.profile.avatar ? await loadOgPhoto(site.profile.avatar) : null;
@@ -64,7 +64,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       </div>
       {/* 1200 - 2 x 72 padding - 360 photo - 64 gap: a fixed width is what makes long names wrap instead of running off the card */}
       <div style={{ display: "flex", flexDirection: "column", width: 632, marginLeft: 64 }}>
-        <div style={{ display: "flex", fontSize: 24, letterSpacing: 6, opacity: 0.8 }}>SHEETFOLIO</div>
+        <div style={{ display: "flex", fontSize: 24, letterSpacing: 6, opacity: 0.8 }}>DOSINEX</div>
         <div
           style={{
             display: "flex",

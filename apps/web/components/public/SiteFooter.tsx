@@ -11,7 +11,7 @@ export function SiteFooter({ site }: PageContext) {
             ? `Last published ${publishedDate(site.publishedAt)}`
             : "Draft · not yet published"}
         </span>
-        <Link href="/">Made with Sheetfolio</Link>
+        <Link href="/">Made with Dosinex</Link>
       </div>
     </footer>
   );

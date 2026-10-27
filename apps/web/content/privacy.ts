@@ -15,7 +15,7 @@ export const PRIVACY: readonly PrivacySection[] = [
     title: "Who we are and what this covers",
     blocks: [
       {
-        p: "Sheetfolio lets people publish a page with their projects, credentials, CV and contact details. This policy explains what personal data we handle when you use sheetfolio, whether you own a page, visit someone's page, or just browse this website.",
+        p: "Dosinex lets people publish a page with their projects, credentials, CV and contact details. This policy explains what personal data we handle when you use dosinex, whether you own a page, visit someone's page, or just browse this website.",
       },
       {
         p: "We are the controller of the account data described below. For what an owner puts on their own page, the owner decides what is shown; we host it on their behalf.",
@@ -99,7 +99,7 @@ export const PRIVACY: readonly PrivacySection[] = [
   },
   {
     id: "providers",
-    title: "Who helps us run sheetfolio",
+    title: "Who helps us run dosinex",
     blocks: [
       { p: "We use these service providers. They process data only to provide their service to us:" },
       {
@@ -180,7 +180,7 @@ export const PRIVACY: readonly PrivacySection[] = [
     title: "Children",
     blocks: [
       {
-        p: "Sheetfolio is not meant for people under 18, and we do not knowingly collect their data. If you believe a child has made a page, contact us and we will remove it.",
+        p: "Dosinex is not meant for people under 18, and we do not knowingly collect their data. If you believe a child has made a page, contact us and we will remove it.",
       },
     ],
   },

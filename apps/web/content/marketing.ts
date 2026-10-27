@@ -164,7 +164,7 @@ export const PLANS: readonly Plan[] = [
     per: "a month, planned",
     blurb: "For people who want more control.",
     tag: "Planned",
-    points: ["Everything in Starter", "Your own domain", "Full visitor insights", "Remove the Sheetfolio footer"],
+    points: ["Everything in Starter", "Your own domain", "Full visitor insights", "Remove the Dosinex footer"],
   },
   {
     name: "Recruiter",

@@ -32,14 +32,14 @@ function button(href: string, text: string): string {
 /** Frame shared by every email: header strip, body, footer. */
 function layout({ preheader, body, footer }: { preheader: string; body: string; footer: string }) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Sheetfolio</title></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Dosinex</title></head>
 <body style="margin:0;padding:0;background:${T.page};">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${T.page};"><tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${T.paper};border:1px solid ${T.rule};">
 <tr><td style="padding:12px 24px;border-bottom:1px solid ${T.rule};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td>${label("Sheetfolio")}</td>
+<td>${label("Dosinex")}</td>
 </tr></table></td></tr>
 <tr><td style="padding:32px 24px;font-family:${SANS};font-size:16px;line-height:1.6;color:${T.ink};">${body}</td></tr>
 <tr><td style="padding:16px 24px;border-top:1px solid ${T.hairline};font-family:${SANS};font-size:12px;line-height:1.5;color:${T.inkMuted};">${footer}</td></tr>
@@ -66,7 +66,7 @@ export function passwordResetEmail({
   expiresInMinutes: number;
 }): EmailContent {
   const expiry = minutesLabel(expiresInMinutes);
-  const subject = "Reset your Sheetfolio password";
+  const subject = "Reset your Dosinex password";
   const html = layout({
     preheader: `Choose a new password. The link expires in ${expiry}.`,
     body: [
@@ -83,7 +83,7 @@ export function passwordResetEmail({
     footer: `Didn't ask for this? Ignore this email. Your password stays the same until the link is used.`,
   });
   const text = [
-    "Reset your Sheetfolio password",
+    "Reset your Dosinex password",
     "",
     `Someone asked to reset the password for ${email}. Use this link to choose a new one. It works once and expires in ${expiry}:`,
     url,
@@ -104,7 +104,7 @@ export function passwordChangedEmail({
   resetUrl: string;
 }): EmailContent {
   const when = changedAt.toUTCString().replace(" GMT", " UTC");
-  const subject = "Your Sheetfolio password was changed";
+  const subject = "Your Dosinex password was changed";
   const html = layout({
     preheader: "Your password was just changed. If that wasn't you, reset it now.",
     body: [
@@ -116,10 +116,10 @@ export function passwordChangedEmail({
       p(`<strong>If this wasn't you</strong>, someone else may have access. Reset your password now:`),
       `<div style="margin:24px 0;">${button(resetUrl, "Reset my password")}</div>`,
     ].join(""),
-    footer: `You get this email whenever a Sheetfolio password changes, so a change you didn't make never goes unnoticed.`,
+    footer: `You get this email whenever a Dosinex password changes, so a change you didn't make never goes unnoticed.`,
   });
   const text = [
-    "Your Sheetfolio password was changed",
+    "Your Dosinex password was changed",
     "",
     `The password for ${email} was changed on ${when}. Every device was signed out, so you'll sign in again with the new password.`,
     "",
@@ -141,7 +141,7 @@ export function enquiryEmail({
   lead: Pick<Lead, "name" | "email" | "company" | "message" | "createdAt">;
   firstName: string;
   slug: string;
-  /** Absolute base URL, e.g. https://sheetfolio.app */
+  /** Absolute base URL, e.g. https://dosinex.app */
   origin: string;
 }): EmailContent {
   const base = origin.replace(/\/$/, "");
@@ -169,7 +169,7 @@ export function enquiryEmail({
     body: [
       `<div style="margin:0 0 8px;">${label("Issued for enquiry")}</div>`,
       h1(`New enquiry from ${lead.name}`),
-      p(`Hi ${escapeHtml(firstName)}, someone sent you an enquiry through your Sheetfolio page.`),
+      p(`Hi ${escapeHtml(firstName)}, someone sent you an enquiry through your Dosinex page.`),
       table,
       message,
       `<div style="margin:0 0 16px;">${button(replyHref, `Reply to ${lead.name}`)}</div>`,
@@ -178,12 +178,12 @@ export function enquiryEmail({
         `font-size:14px;color:${T.inkMuted};`,
       ),
     ].join(""),
-    footer: `Sent because someone used the enquiry form on <a href="${escapeHtml(page)}" style="color:${T.inkMuted};">${escapeHtml(page.replace(/^https?:\/\//, ""))}</a>. Made with Sheetfolio.`,
+    footer: `Sent because someone used the enquiry form on <a href="${escapeHtml(page)}" style="color:${T.inkMuted};">${escapeHtml(page.replace(/^https?:\/\//, ""))}</a>. Made with Dosinex.`,
   });
   const text = [
     `New enquiry from ${lead.name}`,
     "",
-    `Hi ${firstName}, someone sent you an enquiry through your Sheetfolio page (${page}).`,
+    `Hi ${firstName}, someone sent you an enquiry through your Dosinex page (${page}).`,
     "",
     ...rows.map(([k, v]) => `${k}: ${v}`),
     "",

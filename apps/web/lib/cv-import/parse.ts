@@ -1,5 +1,5 @@
 /*
- * Reads the lines of a CV into the things a Sheetfolio page holds. Rule based and cautious: it fills in what it can
+ * Reads the lines of a CV into the things a Dosinex page holds. Rule based and cautious: it fills in what it can
  * recognise and leaves the rest empty, and the person checks every field before anything is saved. A CV can be laid
  * out a hundred ways, so this will be wrong sometimes; the review step exists for that.
  */

@@ -4,7 +4,7 @@ import { CtaBand, PageHead, Section, UseCaseGrid } from "@/components/marketing/
 export const metadata: Metadata = {
   title: "Use cases",
   description:
-    "How engineers, freelancers, health workers, designers, students and researchers use a Sheetfolio page to show their work and be found.",
+    "How engineers, freelancers, health workers, designers, students and researchers use a Dosinex page to show their work and be found.",
   alternates: { canonical: "/use-cases" },
 };
 

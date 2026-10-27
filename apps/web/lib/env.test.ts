@@ -22,7 +22,7 @@ describe("parseEnv", () => {
     expect(env.CLOUDINARY_URL).toBeUndefined();
     expect(env.NEXT_PUBLIC_SITE_URL).toBeUndefined();
     expect(env.ADMIN_EMAILS).toEqual([]);
-    expect(env.RESEND_FROM).toBe("Sheetfolio <onboarding@resend.dev>");
+    expect(env.RESEND_FROM).toBe("Dosinex <onboarding@resend.dev>");
   });
 
   it("normalises admin emails", () => {

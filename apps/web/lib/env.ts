@@ -13,7 +13,7 @@ const EnvSchema = z
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters (run `npx auth secret`)"),
     AUTH_RESEND_KEY: optional(z.string()),
-    RESEND_FROM: optional(z.string()).transform((v) => v ?? "Sheetfolio <onboarding@resend.dev>"),
+    RESEND_FROM: optional(z.string()).transform((v) => v ?? "Dosinex <onboarding@resend.dev>"),
     /** Image and document uploads: `cloudinary://<api_key>:<api_secret>@<cloud_name>` from the Cloudinary dashboard. */
     CLOUDINARY_URL: optional(
       z.string().transform((raw, ctx) => {

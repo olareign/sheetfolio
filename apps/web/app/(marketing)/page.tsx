@@ -18,7 +18,7 @@ import { publicSiteUrl } from "@/lib/env";
 import { jsonLd } from "@/lib/seo";
 import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
 
-const TITLE = "Sheetfolio · Your work, your CV and your enquiries on one page";
+const TITLE = "Dosinex · Your work, your CV and your enquiries on one page";
 const DESCRIPTION =
   "Build a portfolio page for any profession. Start from your CV, pick the layout people download, get enquiries by WhatsApp or email, and see who is looking. Free while we test.";
 
@@ -55,8 +55,8 @@ export default async function HomePage() {
           __html: jsonLd({
             "@context": "https://schema.org",
             "@graph": [
-              { "@type": "WebSite", name: "Sheetfolio", url: origin, description: DESCRIPTION },
-              { "@type": "Organization", name: "Sheetfolio", url: origin },
+              { "@type": "WebSite", name: "Dosinex", url: origin, description: DESCRIPTION },
+              { "@type": "Organization", name: "Dosinex", url: origin },
             ],
           }),
         }}

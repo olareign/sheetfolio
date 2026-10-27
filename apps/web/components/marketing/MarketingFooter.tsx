@@ -21,7 +21,7 @@ export function MarketingFooter() {
               <span className="mk-brand-mark" aria-hidden="true">
                 S
               </span>
-              Sheetfolio
+              Dosinex
             </Link>
             <p>
               One link for your projects, your CV and your enquiries. Built for anyone whose work deserves a proper
@@ -40,12 +40,12 @@ export function MarketingFooter() {
           ))}
         </div>
         <div className="mk-footer-bar">
-          <span>© {new Date().getFullYear()} Sheetfolio. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Dosinex. All rights reserved.</span>
           <Link href="/privacy">Privacy policy</Link>
         </div>
       </div>
       <div className="mk-wordmark" aria-hidden="true">
-        Sheetfolio
+        Dosinex
       </div>
     </footer>
   );

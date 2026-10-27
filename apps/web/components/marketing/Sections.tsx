@@ -93,13 +93,13 @@ export function Strip() {
 const CV_THUMBS = ["Classic", "Modern", "Projects", "Minimal"] as const;
 const ABOUT_ROWS = ["Projects", "Experience", "CV", "Contact"] as const;
 
-/** "Why Sheetfolio": four tiles of different sizes, each showing the idea instead of only stating it. */
+/** "Why Dosinex": four tiles of different sizes, each showing the idea instead of only stating it. */
 export function AboutBento({ host }: { host: string }) {
   return (
     <Section deco={["blob"]} labelledBy="about-title">
       <div className="mk-head mk-head--center">
         <span className="mk-eyebrow">
-          <i aria-hidden="true" /> Why Sheetfolio
+          <i aria-hidden="true" /> Why Dosinex
         </span>
         <h2 id="about-title" className="mk-statement">
           Your work deserves{" "}

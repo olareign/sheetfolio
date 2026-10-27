@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./env", () => ({
   usesConsoleMail: () => false,
-  env: () => ({ AUTH_RESEND_KEY: "re_test_key", RESEND_FROM: "Sheetfolio <no-reply@example.com>" }),
+  env: () => ({ AUTH_RESEND_KEY: "re_test_key", RESEND_FROM: "Dosinex <no-reply@example.com>" }),
 }));
 
 const { sendEmail, EmailError } = await import("./email");
@@ -40,7 +40,7 @@ describe("sendEmail", () => {
     await sendEmail({ ...email, replyTo: "v@example.com" });
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1].body));
     expect(body).toMatchObject({
-      from: "Sheetfolio <no-reply@example.com>",
+      from: "Dosinex <no-reply@example.com>",
       to: "a@example.com",
       reply_to: "v@example.com",
     });

@@ -110,7 +110,8 @@ export const RESERVED_SLUGS = new Set([
   "privacy",
   "blog",
   "www",
-  "sheetfolio",
+  "dosinex",
+  "sheetfolio", // the previous name
   "_next",
   "favicon.ico",
 ]);
@@ -417,7 +418,7 @@ export function createEmptySite(input: {
       firstName: input.firstName,
       headline: input.headline,
       publicEmail: input.publicEmail,
-      whatsappMessage: `Hi ${input.firstName}, I saw your profile on Sheetfolio and would like to discuss a project.`,
+      whatsappMessage: `Hi ${input.firstName}, I saw your profile on Dosinex and would like to discuss a project.`,
     },
     updatedAt: input.now.toISOString(),
   });

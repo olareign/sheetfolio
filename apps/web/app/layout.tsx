@@ -8,10 +8,10 @@ import "@/styles/app.css";
 
 export const metadata: Metadata = {
   metadataBase: publicSiteUrl(),
-  applicationName: "Sheetfolio",
-  title: { default: "Sheetfolio", template: "%s · Sheetfolio" },
+  applicationName: "Dosinex",
+  title: { default: "Dosinex", template: "%s · Dosinex" },
   description: "A clean portfolio page for your projects, credentials and CV.",
-  openGraph: { siteName: "Sheetfolio", type: "website", locale: "en" },
+  openGraph: { siteName: "Dosinex", type: "website", locale: "en" },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
 };

@@ -12,7 +12,7 @@ vi.mock("@/lib/env", () => ({ env: () => ({ CLOUDINARY_URL: state.cloudinary }) 
 const { POST } = await import("./route");
 
 const post = (body: unknown) =>
-  POST(new Request("https://sheetfolio.example/api/upload", { method: "POST", body: JSON.stringify(body) }));
+  POST(new Request("https://dosinex.example/api/upload", { method: "POST", body: JSON.stringify(body) }));
 
 beforeEach(() => {
   state.email = "ada@example.com";
@@ -25,7 +25,7 @@ describe("POST /api/upload", () => {
     const res = await post({ pathname: "ada-obi/profile/photo.png", kind: "image" });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.fields.folder).toBe("sheetfolio/ada-obi/profile");
+    expect(body.fields.folder).toBe("dosinex/ada-obi/profile");
     expect(body.fields.allowed_formats).toBe("jpg,png,webp");
     expect(body.apiKey).toBe("key");
     expect(JSON.stringify(body)).not.toContain("secret");

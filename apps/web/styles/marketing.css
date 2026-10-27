@@ -487,7 +487,7 @@
 .mk-proof svg { color: var(--blueprint); }
 .mk-avatar--initials { display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; letter-spacing: 0.02em; line-height: 1; }
 
-/* ── "Why Sheetfolio" bento ─────────────────────────────────────────────── */
+/* ── "Why Dosinex" bento ─────────────────────────────────────────────── */
 .mk-bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(300px, auto); gap: 20px; margin-top: var(--space-12); }
 .mk-bt { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 30px; border-radius: 28px; box-sizing: border-box; min-width: 0; }
 .mk-bt h3 { margin: 0; max-width: 18ch; font-size: 26px; line-height: 1.15; letter-spacing: -0.025em; font-weight: 600; }

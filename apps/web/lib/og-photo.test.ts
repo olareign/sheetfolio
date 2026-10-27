@@ -6,8 +6,8 @@ const reply = (body: BodyInit, type: string, status = 200) =>
 
 describe("ogPhotoUrl", () => {
   it("asks Cloudinary for a square, face-centred JPEG", () => {
-    expect(ogPhotoUrl("https://res.cloudinary.com/demo/image/upload/v1/sheetfolio/ada/images/me.webp")).toBe(
-      "https://res.cloudinary.com/demo/image/upload/c_fill,g_face,w_480,h_480,f_jpg,q_auto/v1/sheetfolio/ada/images/me.webp",
+    expect(ogPhotoUrl("https://res.cloudinary.com/demo/image/upload/v1/dosinex/ada/images/me.webp")).toBe(
+      "https://res.cloudinary.com/demo/image/upload/c_fill,g_face,w_480,h_480,f_jpg,q_auto/v1/dosinex/ada/images/me.webp",
     );
   });
 

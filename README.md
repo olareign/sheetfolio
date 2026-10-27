@@ -1,4 +1,4 @@
-# Sheetfolio
+# Dosinex
 
 Portfolio pages for civil engineers, managed from a schema-driven CMS.
 
@@ -67,8 +67,8 @@ Set these in Vercel → Project → Settings → Environment Variables for **Pro
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Upstash database (REST)                                                                   |
 | `AUTH_SECRET`                                        | `npx auth secret`                                                                         |
 | `AUTH_RESEND_KEY`                                    | **Required in production**: the app refuses to serve without it                           |
-| `RESEND_FROM`                                        | e.g. `Sheetfolio <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
-| `NEXT_PUBLIC_SITE_URL`                               | the production URL, e.g. `https://sheetfolio.vercel.app` (used for links, sitemap, OG)    |
+| `RESEND_FROM`                                        | e.g. `Dosinex <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
+| `NEXT_PUBLIC_SITE_URL`                               | the production URL, e.g. `https://dosinex.vercel.app` (used for links, sitemap, OG)    |
 | `ADMIN_EMAILS`                                       | who can open `/admin`                                                                     |
 | `BLOB_READ_WRITE_TOKEN`                              | added automatically when you connect a Vercel Blob store                                  |
 
@@ -105,7 +105,7 @@ page's default.
 
 All four follow the same ATS rules: one column; real, selectable text; standard section names (Summary, Experience,
 Projects, Skills, Education); contact details in the body, not a header or footer; plain bullets; no photos, icons,
-tables, text boxes or coloured backgrounds; words never split by hyphenation. No Sheetfolio furniture appears on a CV
+tables, text boxes or coloured backgrounds; words never split by hyphenation. No Dosinex furniture appears on a CV
 (no drawing numbers or revision stamps).
 
 - Layouts are data in `lib/cv-layouts.ts`; one renderer (`lib/cv-pdf.tsx`) draws them, so they cannot drift apart.
@@ -152,7 +152,7 @@ Recovery and safeguards:
 - **Sign out everywhere.** A password change or reset bumps `session-epoch:{email}`; every session carries the epoch it
   was issued under and is rejected once it no longer matches. Changing your password in Settings keeps the current
   device signed in. Setting a first password does not sign anyone out. This costs one Redis read per signed-in request.
-- **Notification.** Every change or reset emails the owner ("Your Sheetfolio password was changed") with a link back
+- **Notification.** Every change or reset emails the owner ("Your Dosinex password was changed") with a link back
   to `/forgot-password`.
 
 Sessions are signed cookies (JWT), not database rows: Auth.js only supports password sign-in that way. The adapter
@@ -160,7 +160,7 @@ still stores users and email-link tokens under `auth:`.
 
 ### Seeding
 
-Run from `apps/web` (`pnpm --filter @sheetfolio/web seed ...` from the root). Reads the Redis credentials in
+Run from `apps/web` (`pnpm --filter @dosinex/web seed ...` from the root). Reads the Redis credentials in
 `.env.local`, so check which database that points at before running anything.
 
 | Command                                                                  | Does                                                        |

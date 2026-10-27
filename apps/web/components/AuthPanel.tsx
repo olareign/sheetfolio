@@ -7,7 +7,7 @@ export function AuthPanel({ title, children }: { title: string; children: ReactN
     <main className="sp-auth">
       <section className="sp-auth-panel" aria-labelledby="auth-title">
         <div className="sp-auth-head">
-          <span className="sp-label">Sheetfolio</span>
+          <span className="sp-label">Dosinex</span>
           <span className="sp-auth-head-end">
             <ThemeToggle />
           </span>

@@ -30,9 +30,9 @@ describe("signParams", () => {
   });
 
   it("changes when a signed value or the secret changes", () => {
-    const base = signParams({ folder: "sheetfolio/a/projects", timestamp: 1 }, "s");
-    expect(signParams({ folder: "sheetfolio/b/projects", timestamp: 1 }, "s")).not.toBe(base);
-    expect(signParams({ folder: "sheetfolio/a/projects", timestamp: 1 }, "other")).not.toBe(base);
+    const base = signParams({ folder: "dosinex/a/projects", timestamp: 1 }, "s");
+    expect(signParams({ folder: "dosinex/b/projects", timestamp: 1 }, "s")).not.toBe(base);
+    expect(signParams({ folder: "dosinex/a/projects", timestamp: 1 }, "other")).not.toBe(base);
   });
 });
 
@@ -41,11 +41,11 @@ describe("signUpload", () => {
   const now = new Date("2026-10-22T12:00:00.000Z");
 
   it("signs exactly the fields it returns, so the browser can't change the folder or formats", () => {
-    const signed = signUpload(cfg, { folder: "sheetfolio/ada/profile", formats: ["jpg", "png"], now });
+    const signed = signUpload(cfg, { folder: "dosinex/ada/profile", formats: ["jpg", "png"], now });
     expect(signed.uploadUrl).toBe("https://api.cloudinary.com/v1_1/demo/auto/upload");
     expect(signed.fields).toEqual({
       allowed_formats: "jpg,png",
-      folder: "sheetfolio/ada/profile",
+      folder: "dosinex/ada/profile",
       timestamp: String(Math.floor(now.getTime() / 1000)),
       unique_filename: "true",
       use_filename: "true",

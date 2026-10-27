@@ -8,7 +8,7 @@ vi.mock("@/lib/site", () => ({
 
 const { POST } = await import("./route");
 
-const post = (body: string) => POST(new Request("https://sheetfolio.example/api/view", { method: "POST", body }));
+const post = (body: string) => POST(new Request("https://dosinex.example/api/view", { method: "POST", body }));
 
 beforeEach(() => {
   calls.view = [];

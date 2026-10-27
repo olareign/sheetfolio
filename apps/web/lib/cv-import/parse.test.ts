@@ -9,7 +9,7 @@ describe("parseCv: the app's own layout (role, company and dates on one line)", 
     lines(`
 Ada Obi
 Site Engineer
-Lagos, Nigeria | ada.obi@example.com | +234 801 234 5678 | sheetfolio.example/ada
+Lagos, Nigeria | ada.obi@example.com | +234 801 234 5678 | dosinex.example/ada
 SUMMARY
 Builds roads and bridges across West Africa.
 Leads site teams of 20+.

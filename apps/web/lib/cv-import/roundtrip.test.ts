@@ -19,7 +19,7 @@ describe.each(CV_TEMPLATE_IDS)("importing a %s CV made by the app", (template) =
   for (const seed of ["abdulrasaq", "idris"] as const) {
     it(`recovers ${seed}'s details, roles and education`, async () => {
       const site = load(seed);
-      const pdf = await renderCv(cvModel(site, "https://sheetfolio.example/x"), template, CV_LAYOUTS[template]);
+      const pdf = await renderCv(cvModel(site, "https://dosinex.example/x"), template, CV_LAYOUTS[template]);
       const cv = parseCv(await pdfLines(new Uint8Array(pdf)), new Date("2026-10-23T00:00:00.000Z"));
 
       expect(cv.name).toBe(site.profile.name);

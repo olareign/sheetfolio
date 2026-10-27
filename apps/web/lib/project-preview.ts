@@ -108,7 +108,7 @@ function imageStore(slug: string, projectId: string): StoreImage {
   return async (bytes, contentType) => {
     const cloudinary = env().CLOUDINARY_URL;
     if (!cloudinary) return null;
-    return uploadBytes(cloudinary, bytes, contentType, { folder: `sheetfolio/${slug}/previews`, publicId: projectId });
+    return uploadBytes(cloudinary, bytes, contentType, { folder: `dosinex/${slug}/previews`, publicId: projectId });
   };
 }
 

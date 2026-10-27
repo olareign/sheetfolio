@@ -10,12 +10,12 @@ type RequestDeps = {
   kv: KV;
   /** Where accounts and usernames live. */
   creds: CredStore;
-  /** True when the email belongs to a Sheetfolio account (a page, or a password). */
+  /** True when the email belongs to a Dosinex account (a page, or a password). */
   accountExists: (email: string) => Promise<boolean>;
   /** Rate limit for this identifier and caller; false means "slow down". */
   allow: (identifier: string) => Promise<boolean>;
   send: Send;
-  /** Absolute base URL, e.g. https://sheetfolio.vercel.app */
+  /** Absolute base URL, e.g. https://dosinex.vercel.app */
   origin: string;
   now?: Date;
 };

@@ -10,9 +10,9 @@ export function MarketingHeader() {
       <div className="mk-wrap mk-header-inner">
         <Link href="/" className="mk-brand">
           <span className="mk-brand-mark" aria-hidden="true">
-            S
+            D
           </span>
-          Sheetfolio
+          Dosinex
         </Link>
         <MarketingNav />
         <div className="mk-header-actions">

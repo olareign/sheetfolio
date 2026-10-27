@@ -5,7 +5,7 @@ import { pdfPages } from "@/test/pdf-text";
 
 const state = vi.hoisted(() => ({ site: null as unknown }));
 vi.mock("@/lib/site", () => ({ getPublished: async () => state.site }));
-vi.mock("@/lib/env", () => ({ env: () => ({ NEXT_PUBLIC_SITE_URL: "https://sheetfolio.example" }) }));
+vi.mock("@/lib/env", () => ({ env: () => ({ NEXT_PUBLIC_SITE_URL: "https://dosinex.example" }) }));
 
 const { GET } = await import("./route");
 
@@ -20,7 +20,7 @@ function site(over: Partial<Site["settings"]> = {}): Site {
   });
 }
 const get = (query = "") =>
-  GET(new Request(`https://sheetfolio.example/api/cv/taofeeq-abdulrasaq${query}`), {
+  GET(new Request(`https://dosinex.example/api/cv/taofeeq-abdulrasaq${query}`), {
     params: Promise.resolve({ slug: "taofeeq-abdulrasaq" }),
   });
 const textOf = async (res: Response) => (await pdfPages(Buffer.from(await res.arrayBuffer()))).join(" ");
@@ -68,7 +68,7 @@ describe("GET /api/cv/[slug]", () => {
   );
 
   it("links the portfolio page in the CV using the configured site address", async () => {
-    expect(await textOf(await get())).toContain("sheetfolio.example/taofeeq-abdulrasaq");
+    expect(await textOf(await get())).toContain("dosinex.example/taofeeq-abdulrasaq");
   }, 60_000);
 
   it("caches the current version forever, and anything else briefly", async () => {

@@ -6,7 +6,7 @@ import { env } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "What personal data Sheetfolio collects, why, who helps us handle it, how long we keep it, and your rights.",
+    "What personal data Dosinex collects, why, who helps us handle it, how long we keep it, and your rights.",
   alternates: { canonical: "/privacy" },
 };
 
