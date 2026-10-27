@@ -29,8 +29,22 @@ function button(href: string, text: string): string {
 </td></tr></table>`;
 }
 
-/** Frame shared by every email: header strip, body, footer. */
-function layout({ preheader, body, footer }: { preheader: string; body: string; footer: string }) {
+/**
+ * Frame shared by every email: header strip, body, footer. `origin` is where the logo file is served from; the alt
+ * text stands in for it in mail apps that block images.
+ */
+function layout({
+  origin,
+  preheader,
+  body,
+  footer,
+}: {
+  origin: string;
+  preheader: string;
+  body: string;
+  footer: string;
+}) {
+  const home = escapeHtml(origin.replace(/\/$/, ""));
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Dosinex</title></head>
 <body style="margin:0;padding:0;background:${T.page};">
@@ -39,7 +53,7 @@ function layout({ preheader, body, footer }: { preheader: string; body: string; 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${T.paper};border:1px solid ${T.rule};">
 <tr><td style="padding:12px 24px;border-bottom:1px solid ${T.rule};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td>${label("Dosinex")}</td>
+<td><a href="${home}" style="text-decoration:none;"><img src="${home}/brand/dosinex-logo-email.png" alt="Dosinex" width="122" height="26" style="display:block;border:0;font-family:${SANS};font-size:15px;font-weight:bold;color:${T.ink};"></a></td>
 </tr></table></td></tr>
 <tr><td style="padding:32px 24px;font-family:${SANS};font-size:16px;line-height:1.6;color:${T.ink};">${body}</td></tr>
 <tr><td style="padding:16px 24px;border-top:1px solid ${T.hairline};font-family:${SANS};font-size:12px;line-height:1.5;color:${T.inkMuted};">${footer}</td></tr>
@@ -68,6 +82,7 @@ export function passwordResetEmail({
   const expiry = minutesLabel(expiresInMinutes);
   const subject = "Reset your Dosinex password";
   const html = layout({
+    origin: new URL(url).origin,
     preheader: `Choose a new password. The link expires in ${expiry}.`,
     body: [
       h1("Reset your password"),
@@ -106,6 +121,7 @@ export function passwordChangedEmail({
   const when = changedAt.toUTCString().replace(" GMT", " UTC");
   const subject = "Your Dosinex password was changed";
   const html = layout({
+    origin: new URL(resetUrl).origin,
     preheader: "Your password was just changed. If that wasn't you, reset it now.",
     body: [
       h1("Your password was changed"),
@@ -165,6 +181,7 @@ export function enquiryEmail({
 
   const subject = `New enquiry from ${lead.name}`;
   const html = layout({
+    origin: base,
     preheader: `${lead.name}: ${lead.message.slice(0, 90)}`,
     body: [
       `<div style="margin:0 0 8px;">${label("Issued for enquiry")}</div>`,

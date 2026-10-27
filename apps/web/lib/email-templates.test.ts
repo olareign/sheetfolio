@@ -47,6 +47,25 @@ describe("enquiryEmail", () => {
   });
 });
 
+describe("email header", () => {
+  it("shows the logo from the site the link points to, with the name as alt text", () => {
+    const reset = passwordResetEmail({
+      url: "https://dosinex.app/reset-password?token=abc",
+      email: "idris@example.com",
+      expiresInMinutes: 60,
+    });
+    const changed = passwordChangedEmail({
+      email: "idris@example.com",
+      changedAt: new Date("2026-09-29T07:30:00.000Z"),
+      resetUrl: "https://dosinex.app/forgot-password",
+    });
+    const enquiry = enquiryEmail({ lead, firstName: "Idris", slug: "idris-rasaq", origin: "https://dosinex.app/" });
+    for (const mail of [reset, changed, enquiry]) {
+      expect(mail.html).toContain('<img src="https://dosinex.app/brand/dosinex-logo-email.png" alt="Dosinex"');
+    }
+  });
+});
+
 describe("escapeHtml", () => {
   it("escapes the five significant characters", () => {
     expect(escapeHtml(`<a href="x">'&'</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
