@@ -4,7 +4,7 @@
  * an edit here and a new `PRIVACY_UPDATED` date.
  */
 
-export const PRIVACY_UPDATED = "23 October 2026";
+export const PRIVACY_UPDATED = "28 October 2026";
 
 type Block = { p: string } | { ul: readonly string[] };
 export type PrivacySection = { id: string; title: string; blocks: readonly Block[] };
@@ -22,6 +22,15 @@ export const PRIVACY: readonly PrivacySection[] = [
       },
       {
         p: "We follow the Nigeria Data Protection Act 2023 and, for people in the UK and the European Economic Area, the principles of the UK and EU GDPR.",
+      },
+    ],
+  },
+  {
+    id: "agreement",
+    title: "Agreeing to this policy and our terms",
+    blocks: [
+      {
+        p: "When you create an account you confirm that you have read this policy and agree to our Terms of service. If you do not agree, please do not create an account. You can still visit published pages and read this website without one.",
       },
     ],
   },
@@ -105,7 +114,8 @@ export const PRIVACY: readonly PrivacySection[] = [
       {
         ul: [
           "Vercel: hosts the website and application.",
-          "Upstash: the database that stores accounts, pages, enquiries and counters.",
+          "Neon: the Postgres database that stores accounts, pages, enquiries and the history of page views and CV downloads.",
+          "Upstash: short-lived data only: password-reset links, live view counters, the list of page addresses, and the counters that limit abuse.",
           "Cloudinary: stores the pictures and documents you upload.",
           "Resend: sends our emails, such as password resets and enquiry alerts.",
           "A website screenshot service (Microlink by default): when you add a project website link, we fetch that site's public title, description and picture, and may ask this service for a screenshot. It receives the link you entered.",

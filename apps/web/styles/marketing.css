@@ -376,6 +376,7 @@
 .mk-footer-col { flex: 1 1 150px; min-width: 0; display: grid; gap: 12px; align-content: start; font-size: 14.5px; }
 .mk-footer-col b { color: #fff; font-size: 14px; letter-spacing: 0.02em; }
 .mk-footer-col a:hover { color: var(--accent-soft); }
+.mk-footer-legal { display: flex; flex-wrap: wrap; gap: 6px 24px; }
 .mk-footer-bar { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; padding: 24px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 13.5px; }
 .mk-wordmark { position: relative; height: 150px; overflow: hidden; margin-top: 8px; text-align: center; white-space: nowrap; user-select: none; font-weight: 700; font-size: 210px; line-height: 1; letter-spacing: -0.06em; color: rgba(255, 255, 255, 0.06); }
 @media (max-width: 760px) { .mk-wordmark { font-size: 96px; height: 70px; } }

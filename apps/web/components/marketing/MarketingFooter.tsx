@@ -39,7 +39,10 @@ export function MarketingFooter() {
         </div>
         <div className="mk-footer-bar">
           <span>© {new Date().getFullYear()} Dosinex. All rights reserved.</span>
-          <Link href="/privacy">Privacy policy</Link>
+          <span className="mk-footer-legal">
+            <Link href="/terms">Terms of service</Link>
+            <Link href="/privacy">Privacy policy</Link>
+          </span>
         </div>
       </div>
       <div className="mk-wordmark" aria-hidden="true">

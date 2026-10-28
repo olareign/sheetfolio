@@ -237,7 +237,10 @@ export const FOOTER_COLUMNS = [
   },
   {
     title: "Legal",
-    links: [{ label: "Privacy policy", href: "/privacy" }],
+    links: [
+      { label: "Terms of service", href: "/terms" },
+      { label: "Privacy policy", href: "/privacy" },
+    ],
   },
 ] as const;
 
