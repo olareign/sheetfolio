@@ -15,6 +15,10 @@ export const MAX_TAILORED = 3;
 /** AI tailorings per person in a rolling day. Each one costs real money. */
 export const DAILY_TAILORINGS = 5;
 
+/** How much of a job description is enough to tailor to, and the most we read. */
+export const JOB_TEXT_MIN = 120;
+export const JOB_TEXT_MAX = 20_000;
+
 const Id = z.string().min(1).max(64);
 
 export const TailorOverlay = z.object({

@@ -1,12 +1,11 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Download, Plus, RotateCcw, Save, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, CircleAlert, Download, Plus, RotateCcw, Save, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/sp/Button";
 import { Field } from "@/components/sp/Field";
-import type { CvTemplateId } from "@/content/cv-templates";
 import type { TailorOverlay } from "@/content/tailor";
-import { defaultName, type Review, type TailorFacts, type TemplateChoice } from "./tailor-ui";
+import { defaultName, type Review, type TailorFacts } from "./tailor-ui";
 
 type Item = { id: string; title: string; sub: string };
 
@@ -109,9 +108,7 @@ export function TailorReview({
   review,
   facts,
   onChange,
-  templates,
-  template,
-  onTemplate,
+  layoutLabel,
   canSave,
   saveHint,
   saving,
@@ -125,9 +122,8 @@ export function TailorReview({
   review: Review;
   facts: TailorFacts;
   onChange: (next: Review) => void;
-  templates: TemplateChoice[];
-  template: CvTemplateId;
-  onTemplate: (id: CvTemplateId) => void;
+  /** The CV layout a download will use, named on the button. */
+  layoutLabel: string;
   canSave: boolean;
   saveHint?: string;
   saving: boolean;
@@ -148,7 +144,8 @@ export function TailorReview({
     <section className="tl-review" aria-labelledby="tl-review-title">
       <header className="tl-review-head">
         <div>
-          <h2 id="tl-review-title">{review.editingId ? "Edit this version" : "Review your tailored CV"}</h2>
+          <span className="tl-eyebrow">{review.editingId ? "Editing a saved version" : "Step 2 · Review"}</span>
+          <h2 id="tl-review-title">{review.editingId ? "Edit this version" : "Your tailored CV"}</h2>
           {(review.job.title || review.job.company) && (
             <p className="tl-job">
               For <b>{review.job.title || "this role"}</b>
@@ -168,41 +165,54 @@ export function TailorReview({
 
       {result?.job.notice && <p className="cms-notice">{result.job.notice}</p>}
       {result && result.warnings.length > 0 && (
-        <div className="sp-alert" role="alert">
-          <b>Check before you use this</b>
-          <ul className="tl-warnings">
-            {result.warnings.map((w) => (
-              <li key={w}>{w}</li>
-            ))}
-          </ul>
+        <div className="tl-warn" role="alert">
+          <CircleAlert size={20} aria-hidden="true" />
+          <div>
+            <b>Check before you use this</b>
+            <ul>
+              {result.warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
       {result && (result.matched.length > 0 || result.gaps.length > 0) && (
         <div className="tl-fit">
-          {result.matched.length > 0 && (
-            <div>
-              <h3>What matches</h3>
+          <div className="tl-fit-card tl-fit-card--yes">
+            <h3>
+              <Check size={16} aria-hidden="true" /> What matches <span>{result.matched.length}</span>
+            </h3>
+            {result.matched.length > 0 ? (
               <ul className="tl-pills">
                 {result.matched.map((m) => (
                   <li key={m}>{m}</li>
                 ))}
               </ul>
-            </div>
-          )}
-          {result.gaps.length > 0 && (
-            <div>
-              <h3>Not on your page yet</h3>
-              <ul className="tl-pills tl-pills--gap">
-                {result.gaps.map((g) => (
-                  <li key={g}>{g}</li>
-                ))}
-              </ul>
-              <p className="tl-note">
-                The job asks for these and your page does not show them. If you have this experience, add it on your
-                page and tailor again.
-              </p>
-            </div>
-          )}
+            ) : (
+              <p className="tl-note">Nothing in the job lines up closely with your page yet.</p>
+            )}
+          </div>
+          <div className="tl-fit-card tl-fit-card--gap">
+            <h3>
+              <CircleAlert size={16} aria-hidden="true" /> Not on your page yet <span>{result.gaps.length}</span>
+            </h3>
+            {result.gaps.length > 0 ? (
+              <>
+                <ul className="tl-pills tl-pills--gap">
+                  {result.gaps.map((g) => (
+                    <li key={g}>{g}</li>
+                  ))}
+                </ul>
+                <p className="tl-note">
+                  The job asks for these and your page does not show them. If you have this experience, add it to your
+                  page and tailor again.
+                </p>
+              </>
+            ) : (
+              <p className="tl-note">Your page covers everything the job asks for.</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -312,64 +322,54 @@ export function TailorReview({
             </div>
           )}
         />
-        <Picker
-          legend="Projects"
-          items={facts.projects}
-          shown={overlay.projects}
-          onChange={(ids) => set({ projects: ids })}
-        />
-        <Picker
-          legend="Certifications"
-          items={facts.certifications}
-          shown={overlay.certifications}
-          onChange={(ids) => set({ certifications: ids })}
-        />
+        <div className="tl-two tl-two--top">
+          <Picker
+            legend="Projects"
+            items={facts.projects}
+            shown={overlay.projects}
+            onChange={(ids) => set({ projects: ids })}
+          />
+          <Picker
+            legend="Certifications"
+            items={facts.certifications}
+            shown={overlay.certifications}
+            onChange={(ids) => set({ certifications: ids })}
+          />
+        </div>
         <p className="tl-note">Your education, contact details and references always stay as they are on your page.</p>
       </div>
 
-      <div className="tl-save">
+      <div className="tl-bar">
         {formError && (
           <p className="sp-alert" role="alert">
             {formError}
           </p>
         )}
-        <Field
-          id="tl-name"
-          label="Name this version"
-          error={fieldErrors.name}
-          hint="So you can find it later, like Frontend or Fullstack."
-        >
-          <input
-            id="tl-name"
-            className="sp-input"
-            value={review.name}
-            maxLength={40}
-            onChange={(e) => onChange({ ...review, name: e.target.value })}
-            onBlur={() => !review.name.trim() && onChange({ ...review, name: defaultName(review.job) })}
-          />
-        </Field>
-        <div className="tl-actions">
-          <Button
-            variant="primary"
-            icon={<Save size={16} aria-hidden="true" />}
-            onClick={onSave}
-            disabled={!canSave || saving}
-          >
-            {saving ? "Saving…" : review.editingId ? "Save changes" : "Save to my versions"}
-          </Button>
-          <label className="tl-template">
-            <span className="sp-visually-hidden">CV layout</span>
-            <select className="sp-input" value={template} onChange={(e) => onTemplate(e.target.value as CvTemplateId)}>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label} layout
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button icon={<Download size={16} aria-hidden="true" />} onClick={onDownload} disabled={downloading}>
-            {downloading ? "Making the PDF…" : "Download PDF"}
-          </Button>
+        <div className="tl-bar-row">
+          <Field id="tl-name" label="Name this version" error={fieldErrors.name}>
+            <input
+              id="tl-name"
+              className="sp-input"
+              placeholder="Frontend, Backend, Fullstack…"
+              value={review.name}
+              maxLength={40}
+              onChange={(e) => onChange({ ...review, name: e.target.value })}
+              onBlur={() => !review.name.trim() && onChange({ ...review, name: defaultName(review.job) })}
+            />
+          </Field>
+          <div className="tl-actions">
+            <Button
+              variant="primary"
+              icon={<Save size={16} aria-hidden="true" />}
+              onClick={onSave}
+              disabled={!canSave || saving}
+            >
+              {saving ? "Saving…" : review.editingId ? "Save changes" : "Save version"}
+            </Button>
+            <Button icon={<Download size={16} aria-hidden="true" />} onClick={onDownload} disabled={downloading}>
+              {downloading ? "Making the PDF…" : `Download PDF · ${layoutLabel}`}
+            </Button>
+          </div>
         </div>
         {saveHint && <p className="tl-note">{saveHint}</p>}
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Link2, Sparkles, TextCursorInput } from "lucide-react";
+import { ClipboardPaste, Link2, Lock, ShieldCheck, Sparkles, TextCursorInput, Wand2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import {
@@ -14,12 +14,15 @@ import {
 import { Button } from "@/components/sp/Button";
 import { Field } from "@/components/sp/Field";
 import type { CvTemplateId } from "@/content/cv-templates";
-import type { TailorOverlay, TailorResult } from "@/content/tailor";
+import { JOB_TEXT_MAX, JOB_TEXT_MIN, type TailorOverlay, type TailorResult } from "@/content/tailor";
 import { TailorBank } from "./TailorBank";
+import { TailorLayoutPicker } from "./TailorLayoutPicker";
 import { TailorReview } from "./TailorReview";
 import { defaultName, type BankItem, type Review, type TailorFacts, type TemplateChoice } from "./tailor-ui";
 
 type Mode = "link" | "text";
+
+const STEPS = ["Add the job", "Review the changes", "Download or keep it"] as const;
 
 /**
  * Tailor to a job: give a link or paste the description, review what the AI proposes (every word can be changed), then
@@ -59,16 +62,25 @@ export function TailorStudio({
   const [notice, setNotice] = useState<string | null>(null);
   const [left, setLeft] = useState(quota?.remaining ?? 0);
   const [review, setReview] = useState<Review | null>(null);
+  const [downloaded, setDownloaded] = useState(false);
   const [template, setTemplate] = useState<CvTemplateId>(defaultTemplate);
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const reviewTop = useRef<HTMLDivElement>(null);
+  const workspace = useRef<HTMLDivElement>(null);
 
+  const limit = quota?.limit ?? 5;
   const full = bank.length >= maxSaved;
   const canGenerate = configured && quotaKnown && left > 0 && hasContent && !working;
+  const trimmed = text.trim().length;
+  const ready = mode === "link" ? url.trim().length > 0 : trimmed >= JOB_TEXT_MIN && trimmed <= JOB_TEXT_MAX;
+  const step = review ? (downloaded ? 2 : 1) : 0;
+  const layoutLabel = templates.find((t) => t.id === template)?.label ?? "Modern";
+
+  const toWorkspace = () =>
+    requestAnimationFrame(() => workspace.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
 
   async function generate(e: FormEvent) {
     e.preventDefault();
@@ -94,17 +106,30 @@ export function TailorStudio({
       const { result } = json;
       setSaveError(null);
       setFieldErrors({});
+      setDownloaded(false);
       setReview({
         name: defaultName(result.job),
         overlay: result.overlay,
         result,
         job: { title: result.job.title, company: result.job.company, source: result.job.source ?? "" },
       });
-      requestAnimationFrame(() => reviewTop.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
+      toWorkspace();
     } catch {
       setError("Check your connection and try again.");
     } finally {
       setWorking(false);
+    }
+  }
+
+  async function paste() {
+    try {
+      const clip = (await navigator.clipboard.readText()).trim();
+      if (!clip) return;
+      if (mode === "link") setUrl(clip);
+      else setText(clip);
+      setError(null);
+    } catch {
+      setError("Your browser did not allow that. Press Ctrl+V (or ⌘V on a Mac) in the box instead.");
     }
   }
 
@@ -153,6 +178,7 @@ export function TailorStudio({
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
+      setDownloaded(true);
     } catch {
       setError("Check your connection and try again.");
     } finally {
@@ -173,156 +199,263 @@ export function TailorStudio({
 
   return (
     <div className="tl">
-      <p className="tl-lead">
-        Paste a job description or give a link to it, and we reshape your headline, summary, skills and experience
-        around what the job asks for. We only reword and reorder what is already on your page. Nothing here changes your
-        page unless you choose to use a version on it.
-      </p>
-
-      {notice && (
-        <p className="cms-notice" role="status">
-          {notice}
-        </p>
-      )}
-      {error && !review && (
-        <p className="sp-alert" role="alert">
-          {error}
-        </p>
-      )}
-
-      {!configured ? (
-        <p className="sp-alert">AI tailoring is not switched on yet. Your saved versions below still work.</p>
-      ) : !hasContent ? (
-        <p className="sp-alert">
-          There is nothing to tailor yet. Add your experience or projects, or start from your CV in the setup guide.
-        </p>
-      ) : (
-        <form className="tl-input" onSubmit={generate} noValidate>
-          <div className="tl-tabs" role="group" aria-label="How to give the job">
-            <button type="button" aria-pressed={mode === "link"} onClick={() => setMode("link")}>
-              <Link2 size={16} aria-hidden="true" /> Job link
-            </button>
-            <button type="button" aria-pressed={mode === "text"} onClick={() => setMode("text")}>
-              <TextCursorInput size={16} aria-hidden="true" /> Paste the description
-            </button>
-          </div>
-          {mode === "link" ? (
-            <Field
-              id="tl-url"
-              label="Link to the job"
-              hint="Some job sites need you to sign in and can't be read. If that happens, paste the description instead."
-            >
-              <input
-                id="tl-url"
-                className="sp-input"
-                type="url"
-                inputMode="url"
-                placeholder="https://"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={working}
-              />
-            </Field>
+      <header className="tl-hero">
+        <div className="tl-hero-copy">
+          <span className="tl-eyebrow tl-eyebrow--light">
+            <Sparkles size={14} aria-hidden="true" /> Tailor to a job
+          </span>
+          <h1>Tailor your CV to any job</h1>
+          <p>
+            Give us a job link or paste the description. We reshape your headline, summary, skills and experience around
+            what the job asks for, using only what is already on your page.
+          </p>
+          <ol className="tl-steps" aria-label="Steps">
+            {STEPS.map((label, i) => (
+              <li key={label} className={i < step ? "is-done" : i === step ? "is-now" : undefined}>
+                <span aria-hidden="true">{i + 1}</span>
+                {label}
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="tl-meter">
+          <span className="tl-meter-label">Tailorings left today</span>
+          {configured && quotaKnown ? (
+            <>
+              <b>
+                {left}
+                <small>/{limit}</small>
+              </b>
+              <span className="tl-pips" aria-hidden="true">
+                {Array.from({ length: limit }, (_, i) => (
+                  <i key={i} className={i < left ? "is-on" : undefined} />
+                ))}
+              </span>
+              <p>{left > 0 ? "Each one comes back 24 hours after you use it." : "They come back within 24 hours."}</p>
+            </>
           ) : (
-            <Field
-              id="tl-text"
-              label="Job description"
-              hint="Paste the whole posting: duties, requirements and skills."
-            >
-              <textarea
-                id="tl-text"
-                className="sp-input"
-                rows={10}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                disabled={working}
-              />
-            </Field>
+            <p>{configured ? "Unavailable for a moment. Try again shortly." : "Not switched on yet."}</p>
           )}
-          <div className="tl-go">
-            <Button
-              type="submit"
-              variant="primary"
-              icon={<Sparkles size={16} aria-hidden="true" />}
-              disabled={!canGenerate || (mode === "link" ? !url.trim() : !text.trim())}
-            >
-              {working ? "Reading the job and your page…" : "Tailor my CV"}
-            </Button>
-            <span className="tl-quota" aria-live="polite">
-              {!quotaKnown
-                ? "Tailoring is unavailable for a moment."
-                : left > 0
-                  ? `${left} of ${quota?.limit ?? 5} tailorings left today`
-                  : "No tailorings left today. They come back within 24 hours."}
-            </span>
-          </div>
-          {working && (
-            <p className="tl-wait" role="status">
-              This usually takes under a minute. Your job description and the parts of your page a CV uses are sent to
-              Claude (Anthropic) to write this. Nothing is saved yet.
+        </div>
+      </header>
+
+      <div className="tl-grid">
+        <div className="tl-main" ref={workspace}>
+          {notice && (
+            <p className="cms-notice" role="status">
+              {notice}
             </p>
           )}
-          {error && (
+          {error && !review && (
             <p className="sp-alert" role="alert">
               {error}
             </p>
           )}
-        </form>
-      )}
 
-      <div ref={reviewTop} />
-      {review && (
-        <TailorReview
-          review={review}
-          facts={facts}
-          onChange={setReview}
-          templates={templates}
-          template={template}
-          onTemplate={setTemplate}
-          canSave={Boolean(review.editingId) || !full}
-          saveHint={
-            !review.editingId && full
-              ? `You already have ${maxSaved} saved versions. Delete one below to save this, or download it without saving.`
-              : undefined
-          }
-          saving={saving}
-          downloading={downloading}
-          formError={saveError ?? (review ? error : null)}
-          fieldErrors={fieldErrors}
-          onSave={save}
-          onDownload={() => download({ overlay: review.overlay, label: review.name }, setDownloading)}
-          onClose={() => setReview(null)}
-        />
-      )}
+          {!configured ? (
+            <p className="sp-alert">AI tailoring is not switched on yet. Your saved versions still work.</p>
+          ) : !hasContent ? (
+            <p className="sp-alert">
+              There is nothing to tailor yet. Add your experience or projects, or start from your CV in the setup guide.
+            </p>
+          ) : review ? (
+            <div className="tl-jobbar">
+              <Wand2 size={18} aria-hidden="true" />
+              <p>
+                Tailored for{" "}
+                <b>{[review.job.title, review.job.company].filter(Boolean).join(" at ") || "the job you gave us"}</b>
+              </p>
+              <Button size="sm" onClick={() => setReview(null)} disabled={saving}>
+                Tailor another job
+              </Button>
+            </div>
+          ) : (
+            <form className="tl-input" onSubmit={generate} noValidate>
+              <div className="tl-input-head">
+                <div>
+                  <span className="tl-eyebrow">Step 1</span>
+                  <h2>Add the job</h2>
+                </div>
+                <div className="tl-tabs" role="group" aria-label="How to give the job">
+                  <button type="button" aria-pressed={mode === "link"} onClick={() => setMode("link")}>
+                    <Link2 size={16} aria-hidden="true" /> Job link
+                  </button>
+                  <button type="button" aria-pressed={mode === "text"} onClick={() => setMode("text")}>
+                    <TextCursorInput size={16} aria-hidden="true" /> Paste the text
+                  </button>
+                </div>
+              </div>
 
-      <TailorBank
-        bank={bank}
-        max={maxSaved}
-        restore={restore}
-        templates={templates}
-        template={template}
-        onTemplate={setTemplate}
-        busy={busy}
-        onEdit={(item) => {
-          setSaveError(null);
-          setFieldErrors({});
-          setReview({
-            editingId: item.id,
-            name: item.name,
-            overlay: item.overlay,
-            job: { title: item.jobTitle, company: item.jobCompany, source: item.jobSource },
-          });
-          requestAnimationFrame(() => reviewTop.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
-        }}
-        onDownload={(item) => download({ id: item.id }, (on) => setBusy(on ? item.id : null))}
-        onApply={(item) => act(item.id, () => applyTailoredAction(item.id), "Your page now uses this version.")}
-        onDelete={async (item) => {
-          await act(item.id, () => deleteTailoredAction(item.id), "Deleted.");
-          return true;
-        }}
-        onRestore={() => act("restore", restoreTailoredAction, "Your page is back to your own wording.")}
-        onKeepCurrent={() => act("restore", discardTailoredRestoreAction, "Done. Your page keeps its current wording.")}
-      />
+              {mode === "link" ? (
+                <Field
+                  id="tl-url"
+                  label="Link to the job"
+                  hint="Some job sites need you to sign in and can't be read. If that happens, paste the description instead."
+                >
+                  <input
+                    id="tl-url"
+                    className="sp-input tl-big"
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://company.com/careers/frontend-engineer"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    disabled={working}
+                  />
+                </Field>
+              ) : (
+                <Field
+                  id="tl-text"
+                  label="Job description"
+                  hint={
+                    trimmed > JOB_TEXT_MAX
+                      ? `That is too long. Keep it under ${JOB_TEXT_MAX.toLocaleString("en")} characters.`
+                      : trimmed > 0 && trimmed < JOB_TEXT_MIN
+                        ? `A little more, please: at least ${JOB_TEXT_MIN} characters. Paste the duties, requirements and skills.`
+                        : `Paste the whole posting: duties, requirements and skills. ${trimmed.toLocaleString("en")} of ${JOB_TEXT_MAX.toLocaleString("en")} characters.`
+                  }
+                >
+                  <textarea
+                    id="tl-text"
+                    className="sp-input tl-big"
+                    rows={12}
+                    placeholder="Paste the job posting here…"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    disabled={working}
+                  />
+                </Field>
+              )}
+
+              <div className="tl-go">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  icon={<Sparkles size={16} aria-hidden="true" />}
+                  disabled={!canGenerate || !ready}
+                >
+                  {working ? "Reading the job and your page…" : "Tailor my CV"}
+                </Button>
+                <Button
+                  icon={<ClipboardPaste size={16} aria-hidden="true" />}
+                  onClick={paste}
+                  disabled={working}
+                  aria-label={
+                    mode === "link" ? "Paste a link from your clipboard" : "Paste the text from your clipboard"
+                  }
+                >
+                  Paste
+                </Button>
+                {left <= 0 && quotaKnown && <span className="tl-note">No tailorings left today.</span>}
+              </div>
+              {working && (
+                <div className="tl-wait" role="status">
+                  <span className="tl-bar-anim" aria-hidden="true" />
+                  <p>
+                    This usually takes under a minute. Your job description and the parts of your page a CV uses are
+                    sent to Claude (Anthropic) to write this. Nothing is saved yet.
+                  </p>
+                </div>
+              )}
+              {error && (
+                <p className="sp-alert" role="alert">
+                  {error}
+                </p>
+              )}
+            </form>
+          )}
+
+          {review && (
+            <TailorReview
+              review={review}
+              facts={facts}
+              onChange={setReview}
+              layoutLabel={layoutLabel}
+              canSave={Boolean(review.editingId) || !full}
+              saveHint={
+                !review.editingId && full
+                  ? `You already have ${maxSaved} saved versions. Delete one on the right to save this, or download it without saving.`
+                  : undefined
+              }
+              saving={saving}
+              downloading={downloading}
+              formError={saveError ?? error}
+              fieldErrors={fieldErrors}
+              onSave={save}
+              onDownload={() => download({ overlay: review.overlay, label: review.name }, setDownloading)}
+              onClose={() => setReview(null)}
+            />
+          )}
+
+          {!review && (
+            <section className="tl-trust" aria-label="What we change and what we never do">
+              <div>
+                <h3>
+                  <Wand2 size={16} aria-hidden="true" /> What we change
+                </h3>
+                <ul>
+                  <li>Reword your headline and summary for the job</li>
+                  <li>Put your most relevant roles and projects first</li>
+                  <li>Pick the skills the job asks for that you really have</li>
+                  <li>Point out what the job wants that your page does not show</li>
+                </ul>
+              </div>
+              <div>
+                <h3>
+                  <ShieldCheck size={16} aria-hidden="true" /> What we never do
+                </h3>
+                <ul>
+                  <li>Invent experience, numbers or qualifications</li>
+                  <li>Change your page, unless you choose to use a version on it</li>
+                  <li>Send your contact details, private details, references or photos</li>
+                  <li>Use your content to train AI models</li>
+                </ul>
+              </div>
+            </section>
+          )}
+        </div>
+
+        <aside className="tl-rail" aria-label="Your CV versions and layout">
+          <section className="tl-panel" aria-labelledby="tl-layout-title">
+            <header className="tl-panel-head">
+              <h2 id="tl-layout-title">CV layout</h2>
+              <span className="tl-count">
+                <Lock size={12} aria-hidden="true" /> For downloads
+              </span>
+            </header>
+            <TailorLayoutPicker templates={templates} value={template} onChange={setTemplate} />
+          </section>
+          <TailorBank
+            bank={bank}
+            max={maxSaved}
+            restore={restore}
+            template={template}
+            busy={busy}
+            onEdit={(item) => {
+              setSaveError(null);
+              setFieldErrors({});
+              setDownloaded(false);
+              setReview({
+                editingId: item.id,
+                name: item.name,
+                overlay: item.overlay,
+                job: { title: item.jobTitle, company: item.jobCompany, source: item.jobSource },
+              });
+              toWorkspace();
+            }}
+            onDownload={(item) => download({ id: item.id }, (on) => setBusy(on ? item.id : null))}
+            onApply={(item) => act(item.id, () => applyTailoredAction(item.id), "Your page now uses this version.")}
+            onDelete={async (item) => {
+              await act(item.id, () => deleteTailoredAction(item.id), "Deleted.");
+              return true;
+            }}
+            onRestore={() => act("restore", restoreTailoredAction, "Your page is back to your own wording.")}
+            onKeepCurrent={() =>
+              act("restore", discardTailoredRestoreAction, "Done. Your page keeps its current wording.")
+            }
+          />
+        </aside>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { JOB_TEXT_MAX, JOB_TEXT_MIN } from "../../content/tailor";
 import { decodeEntities, fetchHtmlPage, PreviewError, type PreviewDeps } from "../site-preview";
 
 /*
@@ -6,8 +7,8 @@ import { decodeEntities, fetchHtmlPage, PreviewError, type PreviewDeps } from ".
  * browser, or behind a sign-in, and then there is no text to read: say so and ask for a paste, rather than guess.
  */
 
-export const MIN_JOB_CHARS = 120;
-export const MAX_JOB_CHARS = 20_000;
+export const MIN_JOB_CHARS = JOB_TEXT_MIN;
+export const MAX_JOB_CHARS = JOB_TEXT_MAX;
 
 export class JobError extends Error {
   constructor(

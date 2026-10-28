@@ -44,7 +44,6 @@ export default async function TailorPage() {
 
   return (
     <main className="cms-content">
-      <h1 className="cms-title">Tailor to a job</h1>
       <TailorStudio
         configured={Boolean(env().ANTHROPIC_API_KEY)}
         quota={quota ?? (env().ANTHROPIC_API_KEY ? { remaining: 0, limit: DAILY_TAILORINGS } : null)}
