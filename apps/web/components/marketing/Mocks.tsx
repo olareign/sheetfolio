@@ -212,6 +212,43 @@ export function CvPreviewMock() {
   );
 }
 
+/** Tailor to a job: a job link goes in, a reworded CV and an honest match read come out, kept as one of three versions. */
+export function TailorMock() {
+  return (
+    <div className="mk-mock mk-mock--wide mk-tailor">
+      <b>Tailor to a job</b>
+      <div className="mk-tailor-job">
+        <span className="mk-tailor-icon" aria-hidden="true">
+          ↗
+        </span>
+        <span>company.com/careers/frontend-developer</span>
+      </div>
+      <div className="mk-tailor-out">
+        <span className="mk-muted">Tailored headline</span>
+        <b>Frontend Developer</b>
+        <Lines n={3} />
+      </div>
+      <div className="mk-tailor-fit">
+        <span className="mk-muted">What matches</span>
+        <span className="mk-tailor-chips">
+          <span className="mk-chip mk-chip--on">React</span>
+          <span className="mk-chip mk-chip--on">TypeScript</span>
+          <span className="mk-chip mk-chip--on">Accessibility</span>
+        </span>
+        <span className="mk-muted">Not on your page yet</span>
+        <span className="mk-tailor-chips">
+          <span className="mk-chip mk-chip--gap">GraphQL</span>
+        </span>
+      </div>
+      <div className="mk-tabs">
+        <span className="mk-tabs-on">Frontend</span>
+        <span>Backend</span>
+        <span>Fullstack</span>
+      </div>
+    </div>
+  );
+}
+
 /** A link shared in a chat: the card people see before they tap it, with the owner's photo and details. */
 export function LinkPreviewMock({ host }: { host: string }) {
   return (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FeaturedCard } from "@/components/marketing/FeaturedCard";
 import { Hero } from "@/components/marketing/Hero";
 import { FeatureRow } from "@/components/marketing/FeatureRow";
-import { CvPreviewMock, DashboardPreview } from "@/components/marketing/Mocks";
+import { CvPreviewMock, DashboardPreview, TailorMock } from "@/components/marketing/Mocks";
 import { MarketingButton } from "@/components/marketing/MarketingButton";
 import {
   AboutBento,
@@ -20,7 +20,7 @@ import { getFeaturedUsersCached, type FeaturedUser } from "@/lib/showcase";
 
 const TITLE = "Dosinex · Your work, your CV and your enquiries on one page";
 const DESCRIPTION =
-  "Build a portfolio page for any profession. Start from your CV, pick the layout people download, get enquiries by WhatsApp or email, and see who is looking. Free while we test.";
+  "Build a portfolio page for any profession. Start from your CV, pick the layout people download, tailor it to each job with AI, get enquiries by WhatsApp or email, and see who is looking. Free while we test.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -92,6 +92,22 @@ export default async function HomePage() {
             See everything it does
           </MarketingButton>
         </div>
+      </Section>
+      <Section tint deco={["dots"]}>
+        <FeatureRow
+          flip
+          eyebrow="Tailor to a job"
+          title="Tailor your CV to every job you apply for"
+          text="Paste a job link or its description. Dosinex rewords your headline, summary and experience around what the job asks for, using only what is already on your page."
+          points={[
+            "Nothing is invented: every fact comes from your page, and a figure that is not there is flagged",
+            "Keep three versions, like Frontend, Backend and Fullstack, and download any of them as a PDF",
+            "Your page only changes if you choose to use a version on it",
+            "Standard AI is free while we test. Claude, for sharper wording, is planned for Pro",
+          ]}
+        >
+          <TailorMock />
+        </FeatureRow>
       </Section>
       {featured.length > 0 && (
         <Section labelledBy="home-featured">

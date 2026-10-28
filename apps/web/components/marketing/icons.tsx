@@ -14,6 +14,7 @@ import {
   Smartphone,
   Upload,
   User,
+  Wand2,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const ICONS: Record<FeatureIcon, LucideIcon> = {
   upload: Upload,
   search: Search,
   chat: MessageCircle,
+  wand: Wand2,
 };
 
 export function Icon({ name, size = 20 }: { name: FeatureIcon; size?: number }) {

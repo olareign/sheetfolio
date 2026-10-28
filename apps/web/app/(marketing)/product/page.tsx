@@ -8,6 +8,7 @@ import {
   LeadsMock,
   LinkPreviewMock,
   PortfolioMock,
+  TailorMock,
 } from "@/components/marketing/Mocks";
 import { CtaBand, Faq, Section, SectionHead } from "@/components/marketing/Sections";
 import { Deco } from "@/components/marketing/Deco";
@@ -17,7 +18,7 @@ import { publicSiteUrl } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Product",
   description:
-    "Start from your CV, fill in your page with a guide, choose the CV visitors download, get enquiries in your inbox and see what gets attention.",
+    "Start from your CV, fill in your page with a guide, choose the CV visitors download, tailor it to a job with AI, get enquiries in your inbox and see what gets attention.",
   alternates: { canonical: "/product" },
 };
 
@@ -62,6 +63,20 @@ export default function ProductPage() {
         "You choose the layout, never the visitor",
       ],
       mock: <CvMock />,
+    },
+    {
+      id: "tailor",
+      icon: "wand",
+      label: "Tailor to a job",
+      title: "Tailor your CV to the job in front of you",
+      text: "Give a job link or paste the description. Dosinex rewords your headline, summary and experience around what the job asks for, shows what matches and what your page does not cover yet, and lets you edit every word.",
+      points: [
+        "Uses only what is already on your page, and flags any figure that is not",
+        "Keep three versions, like Frontend, Backend and Fullstack",
+        "Download any version as a PDF in the layout you choose",
+        "Your page only changes if you choose to use a version on it",
+      ],
+      mock: <TailorMock />,
     },
     {
       id: "leads",
@@ -139,7 +154,7 @@ export default function ProductPage() {
         <SectionHead
           eyebrow="Explore"
           id="explore-title"
-          title="Six parts that work together"
+          title="Seven parts that work together"
           lead="Pick one to see it up close."
         />
         <FeatureExplorer tabs={tabs} />

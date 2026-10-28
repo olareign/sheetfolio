@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { SetupGate } from "@/components/cms/SetupGate";
+import { NavDrawerProvider } from "@/components/cms/NavDrawer";
 import { Sidebar, type NavItem } from "@/components/cms/Sidebar";
 import { TopBar } from "@/components/cms/TopBar";
 import { UnsavedChangesProvider } from "@/components/cms/UnsavedChanges";
@@ -71,21 +72,28 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <UnsavedChangesProvider>
-      <div className="cms">
-        <Sidebar
-          slug={account.slug}
-          name={draft.profile.name}
-          avatar={draft.profile.avatar}
-          items={items}
-          live={Boolean(published)}
-          locked={locked}
-          chart={locked ? undefined : <ViewsChart days={weekViews} />}
-        />
-        <div className="cms-main">
-          <TopBar state={publishState(draft, published)} updatedAt={draft.updatedAt} labels={labels} locked={locked} />
-          <SetupGate locked={locked}>{children}</SetupGate>
+      <NavDrawerProvider>
+        <div className="cms">
+          <Sidebar
+            slug={account.slug}
+            name={draft.profile.name}
+            avatar={draft.profile.avatar}
+            items={items}
+            live={Boolean(published)}
+            locked={locked}
+            chart={locked ? undefined : <ViewsChart days={weekViews} />}
+          />
+          <div className="cms-main">
+            <TopBar
+              state={publishState(draft, published)}
+              updatedAt={draft.updatedAt}
+              labels={labels}
+              locked={locked}
+            />
+            <SetupGate locked={locked}>{children}</SetupGate>
+          </div>
         </div>
-      </div>
+      </NavDrawerProvider>
     </UnsavedChangesProvider>
   );
 }

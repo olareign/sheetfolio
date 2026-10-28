@@ -42,9 +42,9 @@ export const FEATURES = [
     text: "Add projects, experience and credentials. Your page is laid out for you, in light or dark.",
   },
   {
-    icon: "doc",
-    title: "The CV layout you choose",
-    text: "Pick one of four ATS-friendly layouts for your Download CV button. Preview each before you publish.",
+    icon: "wand",
+    title: "A CV for every job",
+    text: "Pick one of four ATS-friendly layouts, then tailor your CV to any job with AI before you download it.",
   },
   {
     icon: "mail",
@@ -59,6 +59,7 @@ export const FEATURES = [
 ] as const;
 export type FeatureIcon =
   | (typeof FEATURES)[number]["icon"]
+  | "doc"
   | "link"
   | "bolt"
   | "check"
@@ -69,7 +70,8 @@ export type FeatureIcon =
   | "image"
   | "upload"
   | "search"
-  | "chat";
+  | "chat"
+  | "wand";
 
 export type UseCase = {
   /** Who it is for, as a group. Never a named person. */
@@ -189,6 +191,10 @@ export const FAQS = [
     a: "Yes, while we test. We will tell you well before any paid plan starts, and your page stays yours.",
   },
   { q: "Can I use my own domain?", a: "Not yet. It is planned for the Pro plan." },
+  {
+    q: "How does the AI use my information?",
+    a: "Only when you tailor your CV. The job description and the parts of your page a CV is built from (your headline, summary, skills, experience, projects, certifications and education) are sent to an AI provider to write the result. Your contact details, private details, referees and photos are never sent, and your page only changes if you choose to use a version on it.",
+  },
   {
     q: "Who sees my phone number?",
     a: "Only what you choose to show. Visitors can message you through the form without it.",

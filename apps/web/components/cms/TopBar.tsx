@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Rocket } from "lucide-react";
+import { Eye, Menu, Rocket } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -9,6 +9,7 @@ import { issueHref, type PublishState } from "@/content/cms";
 import { Button } from "@/components/sp/Button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LocalTime } from "./LocalTime";
+import { MENU_BUTTON_ID, useNavDrawer } from "./NavDrawer";
 import { UnsavedDialog } from "./UnsavedDialog";
 import { useUnsavedForms } from "./UnsavedChanges";
 
@@ -45,6 +46,7 @@ export function TopBar({
   const [error, setError] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const unsavedForms = useUnsavedForms();
+  const drawer = useNavDrawer();
   const status = STATUS[state];
 
   /** Publishes the saved draft and shows what is missing when it is not ready. */
@@ -88,6 +90,17 @@ export function TopBar({
 
   return (
     <header className="cms-topbar">
+      <button
+        id={MENU_BUTTON_ID}
+        type="button"
+        className="cms-menu-btn"
+        onClick={drawer.show}
+        aria-label="Open menu"
+        aria-expanded={drawer.open}
+        aria-controls="cms-drawer"
+      >
+        <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
+      </button>
       <nav className="cms-crumbs sp-label" aria-label="Breadcrumb">
         {crumbs(pathname, labels).map((c, i, all) => (
           <span key={c.href} className="cms-crumbs">
@@ -97,26 +110,30 @@ export function TopBar({
         ))}
       </nav>
       <div className="cms-topbar-actions">
-        <span className={`${status.className} cms-status`}>{status.label}</span>
-        <span className="sp-annot cms-saved">
-          Draft saved <LocalTime iso={updatedAt} format="time" />
-        </span>
-        <ThemeToggle />
+        <div className="cms-topbar-meta">
+          <span className={`${status.className} cms-status`}>{status.label}</span>
+          <span className="sp-annot cms-saved">
+            Draft saved <LocalTime iso={updatedAt} format="time" />
+          </span>
+        </div>
+        <ThemeToggle className="cms-topbar-theme" />
         {!locked && (
           <>
             <Button
               href="/preview"
               target="_blank"
               rel="noopener"
+              className="cms-preview"
               icon={<Eye size={16} strokeWidth={1.75} aria-hidden="true" />}
             >
-              Preview
+              <span className="cms-btn-label">Preview</span>
             </Button>
             {/* Stays enabled when live: republishing is harmless and refreshes the cached public page (e.g. after a seed). */}
             <Button
               variant="primary"
               onClick={onPublish}
               disabled={pending}
+              className="cms-publish"
               icon={<Rocket size={16} strokeWidth={1.75} aria-hidden="true" />}
             >
               {pending ? "Publishing…" : "Publish"}

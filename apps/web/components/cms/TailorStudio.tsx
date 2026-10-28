@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardPaste, Link2, Lock, ShieldCheck, Sparkles, TextCursorInput, Wand2 } from "lucide-react";
+import { ClipboardPaste, History, Link2, Lock, ShieldCheck, Sparkles, TextCursorInput, Wand2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import {
@@ -22,6 +22,7 @@ import {
   type TailorOverlay,
   type TailorResult,
 } from "@/content/tailor";
+import { LocalTime } from "./LocalTime";
 import { TailorBank } from "./TailorBank";
 import { TailorLayoutPicker } from "./TailorLayoutPicker";
 import { TailorReview } from "./TailorReview";
@@ -231,6 +232,13 @@ export function TailorStudio({
           </ol>
         </div>
         <div className="tl-meter">
+          {engine && (
+            <span className="tl-meter-engine">
+              <Sparkles size={14} aria-hidden="true" />
+              <b>{TAILOR_ENGINES[engine].label}</b>
+              <em>{engine === "claude" ? "Pro" : "Free while we test"}</em>
+            </span>
+          )}
           <span className="tl-meter-label">Tailorings left today</span>
           {configured && quotaKnown ? (
             <>
@@ -248,11 +256,44 @@ export function TailorStudio({
           ) : (
             <p>{configured ? "Unavailable for a moment. Try again shortly." : "Not switched on yet."}</p>
           )}
+          {engine && upgradeHint && (
+            <p className="tl-meter-upgrade">
+              <Lock size={12} aria-hidden="true" /> Claude, with sharper wording, comes with the Pro plan.
+            </p>
+          )}
         </div>
       </header>
 
       <div className="tl-grid">
         <div className="tl-main" ref={workspace}>
+          {restore && (
+            <div className="tl-restore" role="status">
+              <History size={18} aria-hidden="true" />
+              <p>
+                Your page uses wording from a saved version. Your own wording from{" "}
+                <LocalTime iso={restore.takenAt} format="date" /> is kept.
+              </p>
+              <div>
+                <Button
+                  size="sm"
+                  onClick={() => act("restore", restoreTailoredAction, "Your page is back to your own wording.")}
+                  disabled={busy === "restore"}
+                >
+                  {busy === "restore" ? "Restoring…" : "Restore my wording"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    act("restore", discardTailoredRestoreAction, "Done. Your page keeps its current wording.")
+                  }
+                  disabled={busy === "restore"}
+                >
+                  Keep this
+                </Button>
+              </div>
+            </div>
+          )}
           {notice && (
             <p className="cms-notice" role="status">
               {notice}
@@ -432,35 +473,6 @@ export function TailorStudio({
         </div>
 
         <aside className="tl-rail" aria-label="Your CV versions and layout">
-          {engine && (
-            <section className="tl-panel" aria-labelledby="tl-engine-title">
-              <header className="tl-panel-head">
-                <h2 id="tl-engine-title">Writing engine</h2>
-              </header>
-              <ul className="tl-engines">
-                <li className="is-on">
-                  <span className="tl-engine-dot" aria-hidden="true" />
-                  <div>
-                    <b>{TAILOR_ENGINES[engine].label}</b>
-                    <p>
-                      {engine === "claude"
-                        ? "Writes your tailorings, with our strongest wording."
-                        : "Writes your tailorings, free while we test."}
-                    </p>
-                  </div>
-                </li>
-                {upgradeHint && (
-                  <li>
-                    <Lock size={14} aria-hidden="true" />
-                    <div>
-                      <b>Claude</b>
-                      <p>Sharper wording on the Pro plan, which is coming.</p>
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </section>
-          )}
           <section className="tl-panel" aria-labelledby="tl-layout-title">
             <header className="tl-panel-head">
               <h2 id="tl-layout-title">CV layout</h2>
@@ -473,8 +485,6 @@ export function TailorStudio({
           <TailorBank
             bank={bank}
             max={maxSaved}
-            restore={restore}
-            template={template}
             busy={busy}
             onEdit={(item) => {
               setSaveError(null);
@@ -494,10 +504,6 @@ export function TailorStudio({
               await act(item.id, () => deleteTailoredAction(item.id), "Deleted.");
               return true;
             }}
-            onRestore={() => act("restore", restoreTailoredAction, "Your page is back to your own wording.")}
-            onKeepCurrent={() =>
-              act("restore", discardTailoredRestoreAction, "Done. Your page keeps its current wording.")
-            }
           />
         </aside>
       </div>

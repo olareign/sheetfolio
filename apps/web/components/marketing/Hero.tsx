@@ -162,22 +162,22 @@ const CARDS: HeroCard[] = [
     ),
   },
   {
-    icon: "bolt",
-    label: "Light and dark",
-    promise: "Both themes, ready on every page.",
+    icon: "wand",
+    label: "Tailor to a job",
+    promise: "Reword your CV for each job you apply for.",
     rot: -26,
     lift: 18,
     delay: 1.2,
     dur: 6.6,
     body: (
-      <div className="mk-hc-themes" aria-hidden="true">
-        <span className="mk-hc-theme mk-hc-theme--light">
-          <Lines n={3} />
-        </span>
-        <span className="mk-hc-theme mk-hc-theme--dark">
-          <Lines n={3} tone="light" />
-        </span>
-      </div>
+      <>
+        <Lines n={3} />
+        <div className="mk-hc-chips">
+          <Chip on>Frontend</Chip>
+          <Chip>Backend</Chip>
+          <Chip>Fullstack</Chip>
+        </div>
+      </>
     ),
   },
 ];
@@ -221,7 +221,8 @@ export function Hero() {
             Your work, your CV and your enquiries on one page
           </h1>
           <p className="mk-up" style={{ animationDelay: ".3s" }}>
-            Build a portfolio page for any profession. Pick the CV layout people download, and see who is looking.
+            Build a portfolio page for any profession. Pick the CV layout people download, tailor it to each job, and
+            see who is looking.
           </p>
           <div className="mk-hero-actions mk-up" style={{ animationDelay: ".45s" }}>
             <MarketingButton href="/featured" variant="ghost">
