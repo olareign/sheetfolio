@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ago, changeLabel, monthChange, weeklyViews } from "./insights";
+import { ago, changeLabel, monthChange, profileStrength, weeklyViews } from "./insights";
 
 const days = (counts: number[]) => counts.map((views, i) => ({ date: `d${String(i).padStart(2, "0")}`, views }));
 
@@ -46,4 +46,45 @@ describe("ago", () => {
     ["2026-09-22T12:00:00.000Z", "4w"],
     ["2026-10-23T12:00:00.000Z", "now"],
   ])("%s is %s", (iso, label) => expect(ago(iso, now)).toBe(label));
+});
+
+describe("profileStrength", () => {
+  const complete = {
+    avatar: "https://img.example/a.jpg",
+    headline: "Site engineer",
+    summary: "Ten years on site.",
+    location: "Ibadan",
+    whatsapp: "2348000000000",
+    projects: 4,
+    projectsWithPhotos: 4,
+    experiences: 2,
+    certifications: 1,
+    published: true,
+  };
+  it("is 100% when everything is in place", () => {
+    const r = profileStrength(complete);
+    expect(r.percent).toBe(100);
+    expect(r.items.every((i) => i.done)).toBe(true);
+  });
+  it("counts each missing item equally and names it", () => {
+    const r = profileStrength({ ...complete, avatar: undefined, summary: "  ", published: false });
+    expect(r.percent).toBe(70);
+    expect(r.items.filter((i) => !i.done).map((i) => i.id)).toEqual(["photo", "summary", "live"]);
+  });
+  it("needs three projects, and a photo on each of them", () => {
+    expect(
+      profileStrength({ ...complete, projects: 2, projectsWithPhotos: 2 }).items.find((i) => i.id === "projects")?.done,
+    ).toBe(false);
+    expect(profileStrength({ ...complete, projectsWithPhotos: 3 }).items.find((i) => i.id === "photos")?.done).toBe(
+      false,
+    );
+    expect(
+      profileStrength({ ...complete, projects: 0, projectsWithPhotos: 0 }).items.find((i) => i.id === "photos")?.done,
+    ).toBe(false);
+  });
+  it("sends WhatsApp to settings and the rest of the profile to the profile screen", () => {
+    const r = profileStrength({ ...complete, whatsapp: "", location: "" });
+    expect(r.items.find((i) => i.id === "whatsapp")?.href).toBe("/dashboard/settings");
+    expect(r.items.find((i) => i.id === "location")?.href).toBe("/dashboard/profile");
+  });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, Rocket } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -30,10 +31,13 @@ export function TopBar({
   state,
   updatedAt,
   labels,
+  locked = false,
 }: {
   state: PublishState;
   updatedAt: string;
   labels: Record<string, string>;
+  /** Held on the setup guide: there is nothing to preview or publish yet. */
+  locked?: boolean;
 }) {
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
@@ -93,18 +97,32 @@ export function TopBar({
         ))}
       </nav>
       <div className="cms-topbar-actions">
-        <span className={status.className}>{status.label}</span>
-        <span className="sp-annot">
+        <span className={`${status.className} cms-status`}>{status.label}</span>
+        <span className="sp-annot cms-saved">
           Draft saved <LocalTime iso={updatedAt} format="time" />
         </span>
         <ThemeToggle />
-        <Button href="/preview" target="_blank" rel="noopener">
-          Preview
-        </Button>
-        {/* Stays enabled when live: republishing is harmless and refreshes the cached public page (e.g. after a seed). */}
-        <Button variant="primary" onClick={onPublish} disabled={pending}>
-          {pending ? "Publishing…" : "Publish"}
-        </Button>
+        {!locked && (
+          <>
+            <Button
+              href="/preview"
+              target="_blank"
+              rel="noopener"
+              icon={<Eye size={16} strokeWidth={1.75} aria-hidden="true" />}
+            >
+              Preview
+            </Button>
+            {/* Stays enabled when live: republishing is harmless and refreshes the cached public page (e.g. after a seed). */}
+            <Button
+              variant="primary"
+              onClick={onPublish}
+              disabled={pending}
+              icon={<Rocket size={16} strokeWidth={1.75} aria-hidden="true" />}
+            >
+              {pending ? "Publishing…" : "Publish"}
+            </Button>
+          </>
+        )}
       </div>
       <UnsavedDialog
         open={asking}

@@ -42,3 +42,43 @@ export function ago(iso: string, now: Date): string {
   const days = Math.floor(hours / 24);
   return days < 7 ? `${days}d` : `${Math.floor(days / 7)}w`;
 }
+
+export type StrengthItem = { id: string; label: string; done: boolean; href: string };
+
+/**
+ * How complete a page is, as a share of a short checklist. Each item counts the same, so the number moves in steady
+ * steps and every missing item is something the owner can fix with one visit to one screen.
+ */
+export function profileStrength(p: {
+  avatar?: string;
+  headline: string;
+  summary: string;
+  location: string;
+  whatsapp: string;
+  projects: number;
+  projectsWithPhotos: number;
+  experiences: number;
+  certifications: number;
+  published: boolean;
+}): { percent: number; items: StrengthItem[] } {
+  const filled = (s: string) => s.trim().length > 0;
+  const items: StrengthItem[] = [
+    { id: "photo", label: "Add your photo", done: Boolean(p.avatar), href: "/dashboard/profile" },
+    { id: "headline", label: "Write a headline", done: filled(p.headline), href: "/dashboard/profile" },
+    { id: "summary", label: "Write your summary", done: filled(p.summary), href: "/dashboard/profile" },
+    { id: "location", label: "Set your base location", done: filled(p.location), href: "/dashboard/profile" },
+    { id: "whatsapp", label: "Add a WhatsApp number", done: filled(p.whatsapp), href: "/dashboard/settings" },
+    { id: "experience", label: "Add your experience", done: p.experiences > 0, href: "/dashboard/experiences" },
+    { id: "projects", label: "Show at least 3 projects", done: p.projects >= 3, href: "/dashboard/projects" },
+    {
+      id: "photos",
+      label: "Put a photo on every project",
+      done: p.projects > 0 && p.projectsWithPhotos === p.projects,
+      href: "/dashboard/projects",
+    },
+    { id: "certs", label: "List a certification", done: p.certifications > 0, href: "/dashboard/certifications" },
+    { id: "live", label: "Publish your page", done: p.published, href: "/dashboard" },
+  ];
+  const done = items.filter((i) => i.done).length;
+  return { percent: Math.round((done / items.length) * 100), items };
+}
