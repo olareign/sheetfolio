@@ -37,3 +37,13 @@ export function missingRequired(d: Pick<SetupData, "summary" | "location" | "wha
     !d.whatsapp.trim() && { step: "contact" as StepId, label: "A WhatsApp number" },
   ].filter((x): x is { step: StepId; label: string } => Boolean(x));
 }
+
+/**
+ * A new page is held on the setup guide until it has what it needs to go live. Skipping lifts the hold, and a page
+ * that is already live never gets locked behind the guide.
+ */
+export function setupLocked(
+  d: Pick<SetupData, "summary" | "location" | "whatsapp" | "published"> & { skipped: boolean },
+) {
+  return !d.skipped && !d.published && missingRequired(d).length > 0;
+}

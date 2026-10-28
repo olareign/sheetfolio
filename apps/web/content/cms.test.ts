@@ -29,11 +29,19 @@ describe("publishState", () => {
       cvTemplate: "modern" as const,
       cvTemplates: ["modern" as const],
       showInShowcase: true,
+      setupSkipped: false,
     },
   };
   const pub = (publishedAt: string, status: "published" | "suspended" = "published") => ({
     publishedAt,
-    settings: { theme: "sheet" as const, status, cvTemplate: "modern" as const, cvTemplates: ["modern" as const], showInShowcase: true },
+    settings: {
+      theme: "sheet" as const,
+      status,
+      cvTemplate: "modern" as const,
+      cvTemplates: ["modern" as const],
+      showInShowcase: true,
+      setupSkipped: false,
+    },
   });
   it("is unpublished without a published doc", () => expect(publishState(draft, null)).toBe("unpublished"));
   it("is live when the draft is not newer", () => {
@@ -106,10 +114,16 @@ describe("listRows / relationOptions", () => {
       images: [],
       featured: false,
     };
-    const preview = { sourceUrl: "https://a.test/", image: "https://b.test/i.png", fetchedAt: "2026-10-22T10:00:00.000Z" };
+    const preview = {
+      sourceUrl: "https://a.test/",
+      image: "https://b.test/i.png",
+      fetchedAt: "2026-10-22T10:00:00.000Z",
+    };
     expect(listRows("projects", [item])[0]?.note).toMatch(/Needs a cover/);
     expect(listRows("projects", [{ ...item, websiteUrl: "https://a.test/", preview }])[0]?.note).toBeUndefined();
-    expect(listRows("projects", [{ ...item, images: [{ url: "https://b.test/p.jpg", isCover: true }] }])[0]?.note).toBeUndefined();
+    expect(
+      listRows("projects", [{ ...item, images: [{ url: "https://b.test/p.jpg", isCover: true }] }])[0]?.note,
+    ).toBeUndefined();
   });
 
   it("marks the current role and labels employers for the project select", () => {

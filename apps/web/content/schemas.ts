@@ -148,9 +148,7 @@ export const ProjectImage = z.object({
 export type ProjectImage = z.infer<typeof ProjectImage>;
 
 /** An http(s) link; `z.url()` alone also accepts schemes like `javascript:` and `mailto:`. */
-export const WebUrl = z
-  .url()
-  .refine((u) => /^https?:\/\//i.test(u), "Use a link that starts with http:// or https://");
+export const WebUrl = z.url().refine((u) => /^https?:\/\//i.test(u), "Use a link that starts with http:// or https://");
 
 /** What we read from a project's website: its own title, description and a picture, so the card needs no upload. */
 export const ProjectPreview = z.object({
@@ -298,6 +296,8 @@ export const SiteSettings = z.object({
   cvTemplate: z.enum(CV_TEMPLATE_IDS).default(DEFAULT_CV_TEMPLATE),
   /** List the published page on the Featured page of the marketing site, ranked by views. On unless the owner opts out. */
   showInShowcase: z.boolean().default(true),
+  /** The owner chose "Skip" on the setup guide, so the dashboard stops steering them back to it. */
+  setupSkipped: z.boolean().default(false),
 });
 
 export const Site = z.object({

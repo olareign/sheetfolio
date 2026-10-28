@@ -142,11 +142,13 @@ function StartStep({ onImported, onScratch }: { onImported: (notice: string) => 
   return (
     <Panel
       title="Let's get your page ready"
-      lead="Start from your CV and we fill in what we can, or start from scratch. Either way, you check everything before it goes anywhere."
+      lead="Upload your CV and we fill in your details, roles, education and certificates for you, or start from scratch. Either way, you check everything before it goes anywhere."
     >
       <div className={reviewing ? "sw-choice is-review" : "sw-choice"}>
         <section className="sw-card" aria-labelledby="sw-cv">
-          <h3 id="sw-cv">Start from your CV</h3>
+          <h3 id="sw-cv">
+            Start from your CV <em className="sw-fast">Fastest</em>
+          </h3>
           {!reviewing && <p>Upload a PDF and your details, roles, education and certificates are suggested for you.</p>}
           <CvImport onDone={onImported} onPhaseChange={(p) => setReviewing(p === "review")} />
         </section>
@@ -295,7 +297,9 @@ function AboutStep({ data, onSaved, onBack }: { data: SetupData; onSaved: () => 
 // ── Contact ─────────────────────────────────────────────────────────────────
 
 function ContactStep({ data, onSaved, onBack }: { data: SetupData; onSaved: () => void; onBack: () => void }) {
-  const [v, setV] = useState({ whatsapp: data.whatsapp, publicEmail: data.publicEmail, phone: data.phone });
+  // A phone number from the CV that carries its country code (+234…) is a good first guess for WhatsApp.
+  const guess = data.phone.trim().startsWith("+") ? data.phone.replace(/\D/g, "") : "";
+  const [v, setV] = useState({ whatsapp: data.whatsapp || guess, publicEmail: data.publicEmail, phone: data.phone });
   const { pending, errors, formError, run } = useSave();
   const submit = (e: FormEvent) => {
     e.preventDefault();

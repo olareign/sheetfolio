@@ -60,3 +60,8 @@ export async function saveSetupProfile(
     now,
   );
 }
+
+/** "Skip" on the setup guide: stops the dashboard holding the owner on the guide. The guide stays in the menu. */
+export async function skipSetup(slug: string, now: Date = new Date()): Promise<void> {
+  await mutateDraft(slug, (draft) => ({ ...draft, settings: { ...draft.settings, setupSkipped: true } }), now);
+}

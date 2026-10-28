@@ -10,7 +10,7 @@ vi.mock("@/lib/redis", async (importOriginal) => {
 });
 vi.mock("next/cache", () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn, revalidateTag: vi.fn() }));
 
-const { saveSetupProfile } = await import("./setup");
+const { saveSetupProfile, skipSetup } = await import("./setup");
 const { getDraft, SiteError } = await import("./site");
 
 const SLUG = "ada-obi";
@@ -101,5 +101,29 @@ describe("saveSetupProfile", () => {
     await expect(
       saveSetupProfile(SLUG, "about", { headline: "x", summary: "", location: "", yearsExperience: "99" }),
     ).rejects.toBeInstanceOf(SiteError);
+  });
+});
+
+describe("skipSetup", () => {
+  it("records the skip and leaves the rest of the settings alone", async () => {
+    const before = await getDraft(SLUG);
+    expect(before?.settings.setupSkipped).toBe(false);
+
+    await skipSetup(SLUG);
+
+    const after = await getDraft(SLUG);
+    expect(after?.settings.setupSkipped).toBe(true);
+    expect(after?.settings.theme).toBe(before?.settings.theme);
+    expect(after?.profile).toEqual(before?.profile);
+  });
+
+  it("is harmless to repeat", async () => {
+    await skipSetup(SLUG);
+    await skipSetup(SLUG);
+    expect((await getDraft(SLUG))?.settings.setupSkipped).toBe(true);
+  });
+
+  it("refuses a page that does not exist", async () => {
+    await expect(skipSetup("nobody-here")).rejects.toBeInstanceOf(SiteError);
   });
 });

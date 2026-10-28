@@ -9,7 +9,7 @@ import { deleteItem, reorderItems, saveCvLayouts, saveProfile, saveSettings, ups
 import { applyCvImport } from "@/lib/cv-import/apply";
 import { refreshProjectPreview } from "@/lib/project-preview";
 import { requireAccount } from "@/lib/session";
-import { saveSetupProfile, type SetupPart } from "@/lib/setup";
+import { saveSetupProfile, skipSetup, type SetupPart } from "@/lib/setup";
 import { getDraft, markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
 export type ActionResult =
@@ -127,6 +127,10 @@ export async function saveCvLayoutsAction(data: unknown): Promise<ActionResult> 
 export async function saveSetupAction(part: SetupPart, data: unknown): Promise<ActionResult> {
   if (part !== "about" && part !== "contact") return badRequest("Unknown step.");
   return run((slug) => saveSetupProfile(slug, part, data));
+}
+
+export async function skipSetupAction(): Promise<ActionResult> {
+  return run((slug) => skipSetup(slug));
 }
 
 export async function applyCvImportAction(data: unknown): Promise<ActionResult> {

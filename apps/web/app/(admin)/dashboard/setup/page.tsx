@@ -1,6 +1,7 @@
 import { SetupWizard } from "@/components/cms/SetupWizard";
+import { SkipSetup } from "@/components/cms/SkipSetup";
 import { publicCvTemplate } from "@/content/cv-templates";
-import { STEP_IDS, type SetupData, type StepId } from "@/content/setup";
+import { setupLocked, STEP_IDS, type SetupData, type StepId } from "@/content/setup";
 import { getCmsContext } from "@/lib/cms-data";
 import { publicSiteUrl } from "@/lib/env";
 
@@ -48,9 +49,12 @@ export default async function SetupPage({ searchParams }: Props) {
         ? "contact"
         : "publish";
 
+  const locked = setupLocked({ ...data, skipped: draft.settings.setupSkipped });
+
   return (
     <main className="cms-content">
       <h1 className="cms-title">Setup guide</h1>
+      {locked && <SkipSetup />}
       <SetupWizard data={data} initialStep={asked ?? first} />
     </main>
   );
