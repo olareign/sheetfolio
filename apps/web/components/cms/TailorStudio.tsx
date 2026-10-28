@@ -14,7 +14,14 @@ import {
 import { Button } from "@/components/sp/Button";
 import { Field } from "@/components/sp/Field";
 import type { CvTemplateId } from "@/content/cv-templates";
-import { JOB_TEXT_MAX, JOB_TEXT_MIN, type TailorOverlay, type TailorResult } from "@/content/tailor";
+import {
+  JOB_TEXT_MAX,
+  JOB_TEXT_MIN,
+  TAILOR_ENGINES,
+  type TailorEngine,
+  type TailorOverlay,
+  type TailorResult,
+} from "@/content/tailor";
 import { TailorBank } from "./TailorBank";
 import { TailorLayoutPicker } from "./TailorLayoutPicker";
 import { TailorReview } from "./TailorReview";
@@ -29,7 +36,8 @@ const STEPS = ["Add the job", "Review the changes", "Download or keep it"] as co
  * download it or keep it in one of three saved versions. The page itself only changes when a version is used on it.
  */
 export function TailorStudio({
-  configured,
+  engine,
+  upgradeHint,
   quota,
   quotaKnown,
   facts,
@@ -40,7 +48,10 @@ export function TailorStudio({
   defaultTemplate,
   hasContent,
 }: {
-  configured: boolean;
+  /** Who writes for this account, or null when AI tailoring is not switched on. */
+  engine: TailorEngine | null;
+  /** Show that Claude comes with the Pro plan (accounts that are not on it). */
+  upgradeHint: boolean;
   quota: { remaining: number; limit: number } | null;
   /** False when the daily allowance could not be read: shown as unavailable instead of as "none left". */
   quotaKnown: boolean;
@@ -71,8 +82,9 @@ export function TailorStudio({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const workspace = useRef<HTMLDivElement>(null);
 
-  const limit = quota?.limit ?? 5;
+  const limit = quota?.limit ?? TAILOR_ENGINES[engine ?? "groq"].dailyRuns;
   const full = bank.length >= maxSaved;
+  const configured = engine !== null;
   const canGenerate = configured && quotaKnown && left > 0 && hasContent && !working;
   const trimmed = text.trim().length;
   const ready = mode === "link" ? url.trim().length > 0 : trimmed >= JOB_TEXT_MIN && trimmed <= JOB_TEXT_MAX;
@@ -264,6 +276,9 @@ export function TailorStudio({
               <p>
                 Tailored for{" "}
                 <b>{[review.job.title, review.job.company].filter(Boolean).join(" at ") || "the job you gave us"}</b>
+                {review.result && (
+                  <span className="tl-engine-tag">Written by {TAILOR_ENGINES[review.result.engine].label}</span>
+                )}
               </p>
               <Button size="sm" onClick={() => setReview(null)} disabled={saving}>
                 Tailor another job
@@ -353,7 +368,8 @@ export function TailorStudio({
                   <span className="tl-bar-anim" aria-hidden="true" />
                   <p>
                     This usually takes under a minute. Your job description and the parts of your page a CV uses are
-                    sent to Claude (Anthropic) to write this. Nothing is saved yet.
+                    sent to {engine === "claude" ? "Claude (Anthropic)" : "our standard AI provider (Groq)"} to write
+                    this. Nothing is saved yet.
                   </p>
                 </div>
               )}
@@ -416,6 +432,35 @@ export function TailorStudio({
         </div>
 
         <aside className="tl-rail" aria-label="Your CV versions and layout">
+          {engine && (
+            <section className="tl-panel" aria-labelledby="tl-engine-title">
+              <header className="tl-panel-head">
+                <h2 id="tl-engine-title">Writing engine</h2>
+              </header>
+              <ul className="tl-engines">
+                <li className="is-on">
+                  <span className="tl-engine-dot" aria-hidden="true" />
+                  <div>
+                    <b>{TAILOR_ENGINES[engine].label}</b>
+                    <p>
+                      {engine === "claude"
+                        ? "Writes your tailorings, with our strongest wording."
+                        : "Writes your tailorings, free while we test."}
+                    </p>
+                  </div>
+                </li>
+                {upgradeHint && (
+                  <li>
+                    <Lock size={14} aria-hidden="true" />
+                    <div>
+                      <b>Claude</b>
+                      <p>Sharper wording on the Pro plan, which is coming.</p>
+                    </div>
+                  </li>
+                )}
+              </ul>
+            </section>
+          )}
           <section className="tl-panel" aria-labelledby="tl-layout-title">
             <header className="tl-panel-head">
               <h2 id="tl-layout-title">CV layout</h2>

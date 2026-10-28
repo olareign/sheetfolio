@@ -35,6 +35,18 @@ describe("parseEnv", () => {
     });
   });
 
+  it("leaves the standard engine off without a key, and defaults its model and daily limit", () => {
+    const env = parseEnv({ ...base, GROQ_API_KEY: "", GROQ_MODEL: "", GROQ_DAILY_LIMIT: "" });
+    expect(env.GROQ_API_KEY).toBeUndefined();
+    expect(env.GROQ_MODEL).toBe("openai/gpt-oss-120b");
+    expect(env.GROQ_DAILY_LIMIT).toBe(40);
+    expect(parseEnv({ ...base, GROQ_API_KEY: "gsk_x", GROQ_DAILY_LIMIT: "300" })).toMatchObject({
+      GROQ_API_KEY: "gsk_x",
+      GROQ_DAILY_LIMIT: 300,
+    });
+    expect(() => parseEnv({ ...base, GROQ_DAILY_LIMIT: "0" })).toThrow(/GROQ_DAILY_LIMIT/);
+  });
+
   it("normalises admin emails", () => {
     expect(parseEnv({ ...base, ADMIN_EMAILS: " A@x.com, b@y.com ,," }).ADMIN_EMAILS).toEqual(["a@x.com", "b@y.com"]);
   });

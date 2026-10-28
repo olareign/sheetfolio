@@ -18,7 +18,11 @@ const filled = Site.parse({
 const state = vi.hoisted(() => ({
   email: "ada@example.com" as string | null,
   slug: "ada-obi" as string | null,
+  plan: "free" as "free" | "pro",
   key: "sk-ant-test" as string | undefined,
+  groqKey: "gsk-test" as string | undefined,
+  poolRoom: true as boolean | null,
+  poolTaken: true as boolean | null,
   remaining: 5,
   allowed: true,
   quotaDown: false,
@@ -28,14 +32,23 @@ const state = vi.hoisted(() => ({
   taken: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: async () => (state.email ? { user: { email: state.email } } : null) }));
-vi.mock("@/lib/accounts", () => ({ getUserRecord: async () => (state.slug ? { slug: state.slug } : null) }));
-vi.mock("@/lib/env", () => ({ env: () => ({ ANTHROPIC_API_KEY: state.key }) }));
+vi.mock("@/lib/accounts", () => ({
+  getUserRecord: async () => (state.slug ? { slug: state.slug, plan: state.plan } : null),
+}));
+vi.mock("@/lib/env", () => ({
+  env: () => ({ ANTHROPIC_API_KEY: state.key, GROQ_API_KEY: state.groqKey, GROQ_DAILY_LIMIT: 40 }),
+}));
 vi.mock("@/lib/ratelimit", () => ({
-  tailorQuota: async () => (state.quotaDown ? null : { remaining: state.remaining, limit: 5 }),
-  takeTailorRun: async () => {
-    state.taken();
-    return state.quotaDown ? null : { allowed: state.allowed, remaining: Math.max(0, state.remaining - 1), limit: 5 };
+  tailorQuota: async (engine: string) =>
+    state.quotaDown ? null : { remaining: state.remaining, limit: engine === "claude" ? 20 : 5 },
+  takeTailorRun: async (engine: string) => {
+    state.taken(engine);
+    return state.quotaDown
+      ? null
+      : { allowed: state.allowed, remaining: Math.max(0, state.remaining - 1), limit: engine === "claude" ? 20 : 5 };
   },
+  groqPoolHasRoom: async () => state.poolRoom,
+  takeGroqPoolRun: async () => state.poolTaken,
 }));
 vi.mock("@/lib/site", () => ({ getDraft: async () => state.draft }));
 vi.mock("@/lib/tailor/job", async (importOriginal) => ({
@@ -69,7 +82,11 @@ beforeEach(() => {
   Object.assign(state, {
     email: "ada@example.com",
     slug: "ada-obi",
+    plan: "free",
     key: "sk-ant-test",
+    groqKey: "gsk-test",
+    poolRoom: true,
+    poolTaken: true,
     remaining: 5,
     allowed: true,
     quotaDown: false,
@@ -104,8 +121,62 @@ describe("POST /api/tailor", () => {
 
   it("says so when no key is set, without using anything up", async () => {
     state.key = undefined;
+    state.groqKey = undefined;
     expect((await post({ text: "x" })).status).toBe(503);
     expect(state.taken).not.toHaveBeenCalled();
+  });
+
+  it("writes with the standard engine for a free account, even when Claude is switched on", async () => {
+    await post({ text: "x" });
+    expect(state.tailor).toHaveBeenCalledWith(filled, "job text", { engine: "groq" });
+    expect(state.taken).toHaveBeenCalledWith("groq");
+  });
+
+  it("writes with Claude for a Pro account, with its own larger allowance", async () => {
+    state.plan = "pro";
+    const json = await (await post({ text: "x" })).json();
+    expect(state.tailor).toHaveBeenCalledWith(filled, "job text", { engine: "claude" });
+    expect(json.quota).toEqual({ remaining: 4, limit: 20 });
+  });
+
+  it("falls back to the standard engine for a Pro account while Claude is not switched on", async () => {
+    state.plan = "pro";
+    state.key = undefined;
+    expect((await post({ text: "x" })).status).toBe(200);
+    expect(state.tailor).toHaveBeenCalledWith(filled, "job text", { engine: "groq" });
+  });
+
+  it("does not need the standard engine's key for a Pro account that has Claude", async () => {
+    state.plan = "pro";
+    state.groqKey = undefined;
+    expect((await post({ text: "x" })).status).toBe(200);
+  });
+
+  it("stops when the standard engine's shared daily allowance is used up, before reading the link", async () => {
+    state.poolRoom = false;
+    const res = await post({ url: "https://jobs.example/1" });
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toMatch(/limit for everyone/);
+    expect(state.resolve).not.toHaveBeenCalled();
+    expect(state.tailor).not.toHaveBeenCalled();
+  });
+
+  it("does not run when the shared allowance is taken by someone else in the meantime", async () => {
+    state.poolTaken = false;
+    expect((await post({ text: "x" })).status).toBe(429);
+    expect(state.tailor).not.toHaveBeenCalled();
+  });
+
+  it("refuses when the shared allowance cannot be read, rather than running for free", async () => {
+    state.poolRoom = null;
+    expect((await post({ text: "x" })).status).toBe(503);
+    expect(state.tailor).not.toHaveBeenCalled();
+  });
+
+  it("does not count Claude runs against the standard engine's shared allowance", async () => {
+    state.plan = "pro";
+    state.poolRoom = false;
+    expect((await post({ text: "x" })).status).toBe(200);
   });
 
   it("stops at the daily cap before reading the link or calling the AI", async () => {

@@ -366,10 +366,15 @@ export type Lead = z.infer<typeof Lead>;
 
 // ── Accounts ────────────────────────────────────────────────────────────────
 
+/** Which plan an account is on. Everyone is on "free" until paid plans open; an account is moved to "pro" by hand. */
+export const UserPlan = z.enum(["free", "pro"]);
+export type UserPlan = z.infer<typeof UserPlan>;
+
 export const UserRecord = z.object({
   id: Id,
   slug: Slug,
   role: z.enum(["engineer", "admin"]),
+  plan: UserPlan.default("free"),
   name: RequiredText(120),
   createdAt: z.iso.datetime(),
 });

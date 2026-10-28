@@ -155,6 +155,7 @@ export const PLANS: readonly Plan[] = [
       "One published page",
       "Your CV in the layout you choose",
       "Enquiry form and WhatsApp button",
+      "Tailor your CV to a job with standard AI",
       "Basic page views",
     ],
   },
@@ -164,7 +165,13 @@ export const PLANS: readonly Plan[] = [
     per: "a month, planned",
     blurb: "For people who want more control.",
     tag: "Planned",
-    points: ["Everything in Starter", "Your own domain", "Full visitor insights", "Remove the Dosinex footer"],
+    points: [
+      "Everything in Starter",
+      "Tailor your CV with Claude",
+      "Your own domain",
+      "Full visitor insights",
+      "Remove the Dosinex footer",
+    ],
   },
   {
     name: "Recruiter",

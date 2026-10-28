@@ -32,7 +32,10 @@ pnpm dev                                       # http://localhost:3000
 | `NEXT_PUBLIC_SITE_URL`                               | Absolute links (e.g. `http://localhost:3000`).                                                  |
 | `ADMIN_EMAILS`                                       | Comma-separated emails that get the `admin` role at onboarding.                                 |
 | `BLOB_READ_WRITE_TOKEN`                              | Image uploads, and the copies of project website pictures (see Project previews).               |
-| `ANTHROPIC_API_KEY`                                  | Optional. Switches on Tailor to a job (AI). Without it the page says the feature is off.         |
+| `GROQ_API_KEY`                                       | Optional. Switches on Tailor to a job for everyone (standard AI, Groq's free plan).             |
+| `GROQ_MODEL`                                         | Optional. Default `openai/gpt-oss-120b`; must support strict structured output.                  |
+| `GROQ_DAILY_LIMIT`                                   | Optional. Standard runs per day across all accounts. Default 40 (Groq free: ~200K tokens a day). |
+| `ANTHROPIC_API_KEY`                                  | Optional. Claude writes Tailor to a job for Pro accounts. Without it they use the standard AI.   |
 | `ANTHROPIC_MODEL`                                    | Optional. Default `claude-opus-5-5`; `claude-sonnet-5-5` is faster and cheaper.                  |
 | `SCREENSHOT_URL_TEMPLATE`                            | Optional. Screenshot service for project previews; `{url}` is replaced by the link. Default: Microlink. |
 
@@ -134,13 +137,19 @@ its category (`public/stock/projects`, labelled "Stock photo" on the card).
 
 ## Tailor to a job
 
-Dashboard → Tailor to a job: the owner gives a job link or pastes the description and Claude
+Dashboard → Tailor to a job: the owner gives a job link or pastes the description and an AI
 proposes a headline, summary, skills, experience wording and ordering from what is already on their page. They review
 and edit it, download a PDF, and may keep up to three versions (table `tailored_cvs`, migration `0004`; apply it with
 `pnpm db:migrate` before deploying). A version is an overlay on the page, so it never copies or changes the page; only
-"Use on my page" does, and the first use keeps the owner's own wording for "Restore". Five runs per person per rolling
-day (`DAILY_TAILORINGS`); the limiter fails closed because each run costs money. Contact details, private details,
-referees and photos are never sent to Claude.
+"Use on my page" does, and the first use keeps the owner's own wording for "Restore".
+
+Two engines write the same schema (`lib/tailor/ai.ts`): **Groq** (standard, everyone, free plan) and **Claude**
+(accounts on the Pro plan). `pickEngine` in `content/tailor.ts` chooses; a Pro account without a Claude key falls back to
+Groq. Caps (each fails closed because runs cost money or free allowance): 5 standard runs and 20 Claude runs per person per
+rolling day (`TAILOR_ENGINES`), plus `GROQ_DAILY_LIMIT` standard runs a day across all accounts, because Groq's free
+plan allows about 200,000 tokens a day. A plan is the `users.plan` column (migration `0005`; `free` by default). There is
+no billing yet, so move an account to Pro by hand: `update users set plan = 'pro' where email = '...'`. Contact details,
+private details, referees and photos are never sent to either provider.
 
 ## Marketing pages
 

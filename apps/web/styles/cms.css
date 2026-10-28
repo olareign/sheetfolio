@@ -2721,6 +2721,7 @@ span.ov-avatar {
 }
 .tl-pips {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .tl-pips i {
@@ -3436,4 +3437,57 @@ textarea.tl-big {
   .tl-jobbar {
     flex-wrap: wrap;
   }
+}
+
+/* Which AI writes: a tag on the result, and the engine panel in the rail. */
+.tl-engine-tag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blueprint) 14%, transparent);
+  color: var(--blueprint);
+  font: 600 12px/1.4 var(--font-sans);
+  vertical-align: 1px;
+}
+.tl-engines {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tl-engines li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px dashed var(--hairline);
+  border-radius: 16px;
+  color: var(--ink-muted);
+}
+.tl-engines li.is-on {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--blueprint) 40%, var(--hairline));
+  background: color-mix(in srgb, var(--blueprint) 7%, var(--paper-raised));
+  color: var(--ink);
+}
+.tl-engines b {
+  display: block;
+  font: 700 14px/1.3 var(--font-display);
+}
+.tl-engines p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+.tl-engine-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #34d399 25%, transparent);
 }

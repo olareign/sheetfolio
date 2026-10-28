@@ -1,7 +1,7 @@
 import { TailorStudio } from "@/components/cms/TailorStudio";
 import type { BankItem, TailorFacts, TemplateChoice } from "@/components/cms/tailor-ui";
 import { CV_TEMPLATE_IDS, CV_TEMPLATES, offeredCvTemplates } from "@/content/cv-templates";
-import { DAILY_TAILORINGS, MAX_TAILORED } from "@/content/tailor";
+import { MAX_TAILORED, pickEngine, TAILOR_ENGINES } from "@/content/tailor";
 import { getCmsContext } from "@/lib/cms-data";
 import { env } from "@/lib/env";
 import { tailorQuota } from "@/lib/ratelimit";
@@ -13,10 +13,15 @@ const years = (from: number, to?: number) => `${from} – ${to ?? "Present"}`;
 
 export default async function TailorPage() {
   const { account, draft } = await getCmsContext();
+  const keys = env();
+  const engine = pickEngine(account.plan, {
+    claude: Boolean(keys.ANTHROPIC_API_KEY),
+    groq: Boolean(keys.GROQ_API_KEY),
+  });
   const [saved, undo, quota] = await Promise.all([
     listTailored(account.slug),
     tailoredUndo(account.slug),
-    env().ANTHROPIC_API_KEY ? tailorQuota(account.slug) : Promise.resolve(null),
+    engine ? tailorQuota(engine, account.slug) : Promise.resolve(null),
   ]);
 
   const facts: TailorFacts = {
@@ -45,8 +50,9 @@ export default async function TailorPage() {
   return (
     <main className="cms-content">
       <TailorStudio
-        configured={Boolean(env().ANTHROPIC_API_KEY)}
-        quota={quota ?? (env().ANTHROPIC_API_KEY ? { remaining: 0, limit: DAILY_TAILORINGS } : null)}
+        engine={engine}
+        upgradeHint={account.plan !== "pro"}
+        quota={quota ?? (engine ? { remaining: 0, limit: TAILOR_ENGINES[engine].dailyRuns } : null)}
         quotaKnown={quota !== null}
         facts={facts}
         bank={bank}

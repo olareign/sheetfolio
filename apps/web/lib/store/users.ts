@@ -16,16 +16,31 @@ export interface UserStore {
   list(): Promise<NewUser[]>;
 }
 
-type UserRow = { id: string; email: string; slug: string; role: string; name: string; created_at: unknown };
+type UserRow = {
+  id: string;
+  email: string;
+  slug: string;
+  role: string;
+  plan: string;
+  name: string;
+  created_at: unknown;
+};
 
 const toRecord = (row: UserRow): UserRecord =>
-  UserRecord.parse({ id: row.id, slug: row.slug, role: row.role, name: row.name, createdAt: iso(row.created_at) });
+  UserRecord.parse({
+    id: row.id,
+    slug: row.slug,
+    role: row.role,
+    plan: row.plan,
+    name: row.name,
+    createdAt: iso(row.created_at),
+  });
 
 export function userStore(db: () => Db): UserStore {
   return {
     async get(email) {
       const rows = await db().query<UserRow>(
-        "select id, email, slug, role, name, created_at from users where email = $1",
+        "select id, email, slug, role, plan, name, created_at from users where email = $1",
         [email.toLowerCase()],
       );
       return rows[0] ? toRecord(rows[0]) : null;
@@ -33,8 +48,8 @@ export function userStore(db: () => Db): UserStore {
     async create({ email, record }) {
       try {
         await db().query(
-          "insert into users (id, email, slug, role, name, created_at) values ($1, $2, $3, $4, $5, $6)",
-          [record.id, email.toLowerCase(), record.slug, record.role, record.name, record.createdAt],
+          "insert into users (id, email, slug, role, plan, name, created_at) values ($1, $2, $3, $4, $5, $6, $7)",
+          [record.id, email.toLowerCase(), record.slug, record.role, record.plan, record.name, record.createdAt],
         );
         return "ok";
       } catch (err) {
@@ -48,7 +63,7 @@ export function userStore(db: () => Db): UserStore {
     },
     async list() {
       const rows = await db().query<UserRow>(
-        "select id, email, slug, role, name, created_at from users order by created_at desc, email",
+        "select id, email, slug, role, plan, name, created_at from users order by created_at desc, email",
       );
       return rows.map((row) => ({ email: row.email, record: toRecord(row) }));
     },

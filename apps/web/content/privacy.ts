@@ -118,7 +118,7 @@ export const PRIVACY: readonly PrivacySection[] = [
           "Upstash: short-lived data only: password-reset links, live view counters, the list of page addresses, and the counters that limit abuse.",
           "Cloudinary: stores the pictures and documents you upload.",
           "Resend: sends our emails, such as password resets and enquiry alerts.",
-          "Anthropic (Claude): only when you use Tailor to a job. We send it the job description you give us, and the parts of your page a CV is built from (your headline, summary, skills, experience, projects, certifications and education). We do not send your contact details, private details, references or photos.",
+          "Groq (standard AI) and Anthropic (Claude, for accounts on a paid plan): only when you use Tailor to a job. One of them receives the job description you give us, and the parts of your page a CV is built from (your headline, summary, skills, experience, projects, certifications and education). We do not send your contact details, private details, references or photos.",
           "A website screenshot service (Microlink by default): when you add a project website link, we fetch that site's public title, description and picture, and may ask this service for a screenshot. It receives the link you entered.",
         ],
       },

@@ -38,6 +38,7 @@ const user = (id: string, slug: string, over: Partial<UserRecord> = {}): UserRec
   id,
   slug,
   role: "engineer",
+  plan: "free",
   name: `Name ${id}`,
   createdAt: "2026-10-01T10:00:00.000Z",
   ...over,
@@ -85,6 +86,13 @@ describe("accounts", () => {
     await s.users.remove("ada@example.com", "ada");
     expect(await s.users.get("ada@example.com")).toBeNull();
     expect(await s.users.create({ email: "bob@example.com", record: user("u2", "ada") })).toBe("ok");
+  });
+
+  it("starts every account on the free plan and keeps a plan it is created with", async () => {
+    await s.users.create({ email: "ada@example.com", record: user("u1", "ada") });
+    await s.users.create({ email: "bob@example.com", record: user("u2", "bob", { plan: "pro" }) });
+    expect(await s.users.get("ada@example.com")).toMatchObject({ plan: "free" });
+    expect(await s.users.get("bob@example.com")).toMatchObject({ plan: "pro" });
   });
 
   it("keeps ids that are not UUIDs, such as the seed script's", async () => {

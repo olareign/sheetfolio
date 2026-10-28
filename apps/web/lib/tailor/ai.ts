@@ -2,27 +2,20 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { finishTailoring, type AiTailoring, type TailorResult } from "../../content/tailor";
+import { finishTailoring, GROQ_JOB_CHARS, type TailorEngine, type TailorResult } from "../../content/tailor";
 import type { Site } from "../../content/schemas";
 import { env } from "../env";
+import { TailorError } from "./errors";
+import { groqStructured, type GroqDeps } from "./groq";
 
 /*
- * The one place the app talks to Claude. What goes out: the job text and the parts of the person's page a CV is built
+ * The one place the app talks to an AI. What goes out: the job text and the parts of the person's page a CV is built
  * from (never contact details, private details, referees or photos). What comes back is constrained to a schema, then
- * checked by `finishTailoring`: Claude is trusted for wording and order, never for ids or facts.
+ * checked by `finishTailoring`: the model is trusted for wording and order, never for ids or facts. Two engines write
+ * the same schema: Groq (standard, everyone) and Claude (Pro accounts).
  */
 
-export type TailorFailure = "NOT_CONFIGURED" | "REFUSED" | "BAD_OUTPUT" | "BUSY" | "UPSTREAM";
-
-export class TailorError extends Error {
-  constructor(
-    readonly code: TailorFailure,
-    message: string,
-  ) {
-    super(message);
-    this.name = "TailorError";
-  }
-}
+export { TailorError, type TailorFailure } from "./errors";
 
 /** What the model must return. Limits are enforced afterwards, because strict schemas cannot carry them. */
 const AiOutput = z.object({
@@ -103,16 +96,10 @@ export function anthropicClient(): AiClient {
   return new Anthropic({ apiKey: ANTHROPIC_API_KEY, maxRetries: 1, timeout: 110_000 });
 }
 
-/** Tailors the person's page to the job text. Throws `TailorError` with a message safe to show. */
-export async function tailorToJob(
-  site: Site,
-  jobText: string,
-  deps: { client?: AiClient; model?: string } = {},
-): Promise<TailorResult> {
+/** Claude: the SDK parses the answer against the schema for us. */
+async function askClaude(site: Site, jobText: string, deps: { client?: AiClient; model?: string }) {
   const client = deps.client ?? anthropicClient();
   const model = deps.model ?? env().ANTHROPIC_MODEL;
-
-  let ai: AiTailoring | null;
   try {
     const response = await client.messages.parse({
       model,
@@ -127,7 +114,7 @@ export async function tailorToJob(
     if (response.stop_reason === "max_tokens") {
       throw new TailorError("BAD_OUTPUT", "The result was cut off. Try again, or paste a shorter job description.");
     }
-    ai = response.parsed_output;
+    return response.parsed_output;
   } catch (err) {
     if (err instanceof TailorError) throw err;
     // Never log the job or the person's details: only what kind of failure it was.
@@ -142,6 +129,54 @@ export async function tailorToJob(
     console.error("[tailor] request failed:", err instanceof Error ? err.constructor.name : "unknown");
     throw new TailorError("UPSTREAM", "Something went wrong while tailoring. Try again.");
   }
+}
+
+/** Groq: strict JSON out, checked against the same schema here. */
+async function askGroq(site: Site, jobText: string, deps: { model?: string; groq?: GroqDeps }) {
+  const { GROQ_API_KEY, GROQ_MODEL } = env();
+  if (!GROQ_API_KEY) throw new TailorError("NOT_CONFIGURED", "AI tailoring is not switched on yet.");
+  const answer = await groqStructured(
+    {
+      apiKey: GROQ_API_KEY,
+      model: deps.model ?? GROQ_MODEL,
+      system: SYSTEM_PROMPT,
+      user: userPrompt(site, jobText),
+      schema: groqSchema,
+    },
+    deps.groq,
+  );
+  const parsed = AiOutput.safeParse(answer);
+  if (!parsed.success) throw new TailorError("BAD_OUTPUT", "We could not read the AI's answer. Try again.");
+  return parsed.data;
+}
+
+/** The answer's JSON Schema without the `$schema` marker, which Groq's strict mode does not accept. */
+const groqSchema = (() => {
+  const schema: Record<string, unknown> = { ...z.toJSONSchema(AiOutput) };
+  delete schema.$schema;
+  return schema;
+})();
+
+export type TailorDeps = {
+  /** Which engine writes. Defaults to the standard one. */
+  engine?: TailorEngine;
+  client?: AiClient;
+  model?: string;
+  groq?: GroqDeps;
+};
+
+/** Tailors the person's page to the job text. Throws `TailorError` with a message safe to show. */
+export async function tailorToJob(site: Site, jobText: string, deps: TailorDeps = {}): Promise<TailorResult> {
+  const engine = deps.engine ?? "groq";
+  // The standard engine has a small per-minute allowance, so it reads only the start of a very long description.
+  const trimmed = engine === "groq" && jobText.length > GROQ_JOB_CHARS;
+  const text = trimmed ? jobText.slice(0, GROQ_JOB_CHARS) : jobText;
+
+  const ai = engine === "claude" ? await askClaude(site, text, deps) : await askGroq(site, text, deps);
   if (!ai) throw new TailorError("BAD_OUTPUT", "We could not read the AI's answer. Try again.");
-  return finishTailoring(site, ai);
+  const result = finishTailoring(site, ai);
+  if (trimmed) {
+    result.warnings.push("The job description was long, so standard AI read only the first part of it.");
+  }
+  return { ...result, engine };
 }

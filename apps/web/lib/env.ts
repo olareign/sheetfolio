@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { DEFAULT_GROQ_DAILY_LIMIT } from "../content/tailor";
 import { parseCloudinaryUrl } from "./cloudinary";
 
 // `.env.example` ships blank values (`KEY=`); a blank optional variable means "not set".
@@ -30,7 +31,13 @@ const EnvSchema = z
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "Must start with postgres:// or postgresql://"),
     /** Shared secret for the daily job at /api/cron/stats; Vercel sends it as a bearer token. At least 32 characters. */
     CRON_SECRET: optional(z.string().min(32, "CRON_SECRET must be at least 32 characters")),
-    /** AI tailoring of a CV to a job (Anthropic). Without a key the dashboard says the feature is not switched on. */
+    /** AI tailoring of a CV to a job. Groq writes for everyone; Claude (Anthropic) writes for Pro accounts. */
+    GROQ_API_KEY: optional(z.string().min(1)),
+    /** The Groq model for the standard engine. It must support strict structured output. */
+    GROQ_MODEL: optional(z.string().min(1)).transform((v) => v ?? "openai/gpt-oss-120b"),
+    /** Standard-engine runs per day across all accounts: Groq's free plan has a daily token allowance. */
+    GROQ_DAILY_LIMIT: optional(z.coerce.number().int().min(1)).transform((v) => v ?? DEFAULT_GROQ_DAILY_LIMIT),
+    /** Claude for Pro accounts. Without a key, Pro accounts are tailored by the standard engine instead. */
     ANTHROPIC_API_KEY: optional(z.string().min(1)),
     /** The Claude model tailoring runs on. A smaller model is faster and cheaper (e.g. claude-sonnet-5-5). */
     ANTHROPIC_MODEL: optional(z.string().min(1)).transform((v) => v ?? "claude-opus-5-5"),

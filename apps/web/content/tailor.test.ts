@@ -7,6 +7,7 @@ import {
   finishTailoring,
   inventedFigures,
   overlayFromSite,
+  pickEngine,
   reconcileOverlay,
   sourceText,
   tailoredFileName,
@@ -257,5 +258,22 @@ describe("tailoredFileName", () => {
   it("is ASCII and ends in .pdf", () => {
     expect(tailoredFileName("Adé Obi", "Front end / Globex")).toBe("Ade-Obi-CV-Front-end-Globex.pdf");
     expect(tailoredFileName("", "")).toBe("CV-CV.pdf");
+  });
+});
+
+describe("pickEngine", () => {
+  const on = { claude: true, groq: true };
+  it("gives free accounts the standard engine and Pro accounts Claude", () => {
+    expect(pickEngine("free", on)).toBe("groq");
+    expect(pickEngine("pro", on)).toBe("claude");
+  });
+  it("never gives a free account Claude, even when only Claude is switched on", () => {
+    expect(pickEngine("free", { claude: true, groq: false })).toBeNull();
+  });
+  it("falls back to the standard engine for a Pro account while Claude is off", () => {
+    expect(pickEngine("pro", { claude: false, groq: true })).toBe("groq");
+  });
+  it("is null when nothing is switched on", () => {
+    expect(pickEngine("pro", { claude: false, groq: false })).toBeNull();
   });
 });

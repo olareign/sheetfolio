@@ -1,6 +1,6 @@
 import "server-only";
 import { Ratelimit } from "@upstash/ratelimit";
-import { DAILY_TAILORINGS } from "../content/tailor";
+import { TAILOR_ENGINES, type TailorEngine } from "../content/tailor";
 import { redis } from "./redis";
 
 let contact: Ratelimit | undefined;
@@ -123,24 +123,25 @@ export function clientIp(headers: Headers): string {
   return forwarded || headers.get("x-real-ip") || "unknown";
 }
 
-let tailorByAccount: Ratelimit | undefined;
-const tailorLimiter = (): Ratelimit =>
-  (tailorByAccount ??= new Ratelimit({
+export type TailorQuota = { remaining: number; limit: number };
+
+// One counter per engine per account, so a Pro account's Claude runs and standard runs never share an allowance.
+const tailorByAccount: Partial<Record<TailorEngine, Ratelimit>> = {};
+const tailorLimiter = (engine: TailorEngine): Ratelimit =>
+  (tailorByAccount[engine] ??= new Ratelimit({
     redis: redis(),
-    limiter: Ratelimit.slidingWindow(DAILY_TAILORINGS, "24 h"),
-    prefix: "ratelimit:tailor:account",
+    limiter: Ratelimit.slidingWindow(TAILOR_ENGINES[engine].dailyRuns, "24 h"),
+    prefix: `ratelimit:tailor:${engine}:account`,
     analytics: false,
   }));
 
-export type TailorQuota = { remaining: number; limit: number };
-
 /**
- * AI tailorings left today for one account, without using one. Each run costs real money, so unlike the other limiters
- * this one fails closed: if the counter cannot be read, nobody gets a run until it can.
+ * AI tailorings left today for one account on one engine, without using one. Each run costs real money, so unlike the
+ * other limiters this one fails closed: if the counter cannot be read, nobody gets a run until it can.
  */
-export async function tailorQuota(accountKey: string): Promise<TailorQuota | null> {
+export async function tailorQuota(engine: TailorEngine, accountKey: string): Promise<TailorQuota | null> {
   try {
-    const { remaining, limit } = await tailorLimiter().getRemaining(accountKey.trim().toLowerCase());
+    const { remaining, limit } = await tailorLimiter(engine).getRemaining(accountKey.trim().toLowerCase());
     return { remaining, limit };
   } catch (err) {
     console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
@@ -149,10 +150,44 @@ export async function tailorQuota(accountKey: string): Promise<TailorQuota | nul
 }
 
 /** Uses one of today's tailorings. Null when the counter is unavailable (see `tailorQuota`). */
-export async function takeTailorRun(accountKey: string): Promise<(TailorQuota & { allowed: boolean }) | null> {
+export async function takeTailorRun(
+  engine: TailorEngine,
+  accountKey: string,
+): Promise<(TailorQuota & { allowed: boolean }) | null> {
   try {
-    const { success, remaining, limit } = await tailorLimiter().limit(accountKey.trim().toLowerCase());
+    const { success, remaining, limit } = await tailorLimiter(engine).limit(accountKey.trim().toLowerCase());
     return { allowed: success, remaining, limit };
+  } catch (err) {
+    console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+// The standard engine runs on a free plan with a daily token allowance shared by every account, so it has one more
+// counter, for all accounts together (see GROQ_DAILY_LIMIT).
+const groqPool = (limit: number): Ratelimit =>
+  new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(limit, "24 h"),
+    prefix: "ratelimit:tailor:groq:pool",
+    analytics: false,
+  });
+const POOL_KEY = "all";
+
+/** Whether the standard engine still has room today across all accounts. Null when the counter is unavailable. */
+export async function groqPoolHasRoom(limit: number): Promise<boolean | null> {
+  try {
+    return (await groqPool(limit).getRemaining(POOL_KEY)).remaining > 0;
+  } catch (err) {
+    console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+/** Uses one run of the standard engine's shared allowance. Null when the counter is unavailable. */
+export async function takeGroqPoolRun(limit: number): Promise<boolean | null> {
+  try {
+    return (await groqPool(limit).limit(POOL_KEY)).success;
   } catch (err) {
     console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
     return null;

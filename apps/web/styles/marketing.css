@@ -14,11 +14,18 @@
 .mk a.mk-btn {
   text-decoration: none;
 }
+/* One page width for every section, the header and the footer: 1328px of content between 24px gutters. It is exactly
+   as wide as the hero's fan of cards, so the logo, the cards, the section headings and the footer share two edges. */
+.mk {
+  --mk-gutter: 24px;
+  --mk-content: 1328px;
+  --mk-max: calc(var(--mk-content) + 2 * var(--mk-gutter));
+}
 .mk-wrap {
   position: relative;
-  max-width: 1120px;
+  max-width: var(--mk-max);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--mk-gutter);
 }
 .mk-skip {
   position: absolute;
@@ -175,16 +182,19 @@
 .mk-proof { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; margin-top: 26px; font-size: 14px; color: var(--ink-muted); }
 .mk-avatar { display: block; flex: none; border-radius: 50%; object-fit: cover; background: var(--paper-sunken); }
 
-.mk-hero-cards { position: relative; margin-top: 56px; padding: 12px 24px 56px; overflow: hidden; }
+/* The panel sits 12px in from the screen edge and has a 1px border, so its padding is the gutter minus those 13px: the
+   fan then lines up with the header, the section content and the footer at every width. */
+.mk-hero-cards { position: relative; max-width: var(--mk-max); margin: 56px auto 0; padding: 12px calc(var(--mk-gutter) - 13px) 56px; overflow: hidden; }
 .mk-hcards-track { display: flex; justify-content: center; }
-.mk-hcards { display: flex; justify-content: center; align-items: center; gap: 16px; list-style: none; margin: 0; padding: 0; }
+.mk-hcards { display: flex; justify-content: center; align-items: center; gap: 16px; width: 100%; list-style: none; margin: 0; padding: 0; }
 .mk-hcards--clone { display: none; }
-.mk-hcards > li { flex: none; }
+/* Seven cards share the page width: 176px each at full width, narrower on laptops, so the fan always spans the container. */
+.mk-hcards > li { flex: 1 1 0; min-width: 0; max-width: 176px; }
 .mk-hcard {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 176px;
+  width: 100%;
   height: 236px;
   box-sizing: border-box;
   padding: 14px;
@@ -241,8 +251,8 @@
 .mk-bar { flex: 1; background: var(--blueprint); border-radius: 3px 3px 0 0; opacity: 0.85; }
 
 /* ── Strip ──────────────────────────────────────────────────────────────── */
-.mk-strip { display: flex; align-items: center; gap: var(--space-8); padding: 30px 0; border-bottom: 1px solid var(--hairline); overflow: hidden; }
-.mk-strip-label { flex: none; padding-left: 24px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.mk-strip { display: flex; align-items: center; gap: var(--space-8); padding: 30px max(var(--mk-gutter), calc((100% - var(--mk-content)) / 2)); border-bottom: 1px solid var(--hairline); overflow: hidden; }
+.mk-strip-label { flex: none; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
 .mk-strip-window { flex: 1; overflow: hidden; }
 .mk-strip-track { display: flex; width: max-content; animation: mk-marquee 40s linear infinite; }
 .mk-strip-row { display: flex; list-style: none; margin: 0; padding: 0; color: var(--concrete); font-weight: 600; font-size: 18px; }
@@ -395,10 +405,6 @@
 
 /* Hero cards below 1220px: the fan is wider than the screen, so the cards glide past as a loop instead. */
 @keyframes mk-hcards-glide { to { transform: translateX(-50%); } }
-@media (min-width: 1220px) and (max-width: 1459px) {
-  /* Laptops: the full fan is ~1330px wide, so it is scaled down to fit instead of being clipped at the edges. */
-  .mk-hcards-track { transform: scale(0.86); transform-origin: center top; margin-bottom: -34px; }
-}
 @media (max-width: 1219px) {
   .mk-hero-cards { padding-inline: 0; }
   .mk-hcards-window {
@@ -423,7 +429,7 @@
 .mk-strip-window { -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
 @media (max-width: 760px) {
   .mk-strip { flex-direction: column; align-items: stretch; gap: var(--space-3); padding: 22px 0; }
-  .mk-strip-label { padding-left: 0; text-align: center; }
+  .mk-strip-label { text-align: center; }
   .mk-strip-row { font-size: 16px; }
 }
 .mk-switch-row--on { border-color: var(--blueprint); background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
@@ -617,7 +623,8 @@
 .mk-found li span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--blueprint); color: var(--on-blueprint); font-size: 11px; }
 
 /* ── Legal pages ────────────────────────────────────────────────────────── */
-.mk-legal { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 56px; align-items: start; }
+/* The contents list and the reading column are centred together, like the FAQ, rather than leaving the right side empty. */
+.mk-legal { display: grid; grid-template-columns: 260px minmax(0, 720px); justify-content: center; gap: 56px; align-items: start; }
 .mk-legal-toc { position: sticky; top: 96px; display: grid; gap: 12px; padding: 20px; border: 1px solid var(--hairline); border-radius: 18px; background: var(--paper-raised); font-size: 14px; }
 .mk-legal-toc ol { list-style: decimal; margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--ink-muted); }
 .mk-legal-toc a { color: var(--ink); }
@@ -631,6 +638,7 @@
 .mk-legal-body a:where(:not(.mk-btn)) { color: var(--blueprint); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 900px) {
   .mk-legal { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .mk-legal-body { width: 100%; margin-inline: auto; }
   .mk-legal-toc { position: static; }
 }
 

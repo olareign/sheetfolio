@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Site } from "./schemas";
+import type { Site, UserPlan } from "./schemas";
 
 /*
  * Tailoring a CV to a job. A tailored version is an overlay on the person's own page, not a copy of it: it keeps the
@@ -12,8 +12,36 @@ import type { Site } from "./schemas";
 
 /** How many tailored versions a person can keep. */
 export const MAX_TAILORED = 3;
-/** AI tailorings per person in a rolling day. Each one costs real money. */
-export const DAILY_TAILORINGS = 5;
+/**
+ * Who writes a tailored CV. Everyone gets the standard engine (Groq, free for us to run within its own daily limits);
+ * Claude writes for accounts on the Pro plan. Each run still costs something, so each engine has its own daily cap per
+ * person, counted separately.
+ */
+export type TailorEngine = "groq" | "claude";
+
+export const TAILOR_ENGINES: Record<TailorEngine, { label: string; dailyRuns: number }> = {
+  groq: { label: "Standard AI", dailyRuns: 5 },
+  claude: { label: "Claude", dailyRuns: 20 },
+};
+
+/**
+ * Runs the standard engine may do in a day across every account together. Groq's free plan allows about 200,000 tokens
+ * a day per model and one run uses roughly 4,000, so the default leaves a margin. Raise it with GROQ_DAILY_LIMIT after
+ * moving Groq to a paid plan.
+ */
+export const DEFAULT_GROQ_DAILY_LIMIT = 40;
+
+/** The longest job description sent to the standard engine, which has a small per-minute token allowance. */
+export const GROQ_JOB_CHARS = 6000;
+
+/**
+ * Which engine writes for an account: Claude for Pro when it is switched on, otherwise the standard engine, so a Pro
+ * account is never left without tailoring. Null when neither is switched on.
+ */
+export function pickEngine(plan: UserPlan, on: { claude: boolean; groq: boolean }): TailorEngine | null {
+  if (plan === "pro" && on.claude) return "claude";
+  return on.groq ? "groq" : null;
+}
 
 /** How much of a job description is enough to tailor to, and the most we read. */
 export const JOB_TEXT_MIN = 120;
@@ -35,6 +63,8 @@ export type TailorOverlay = z.infer<typeof TailorOverlay>;
 /** What the AI step hands back: the overlay plus a short read on how well the person fits. */
 export type TailorResult = {
   job: { title: string; company: string; source?: string; notice?: string };
+  /** Which engine wrote it. */
+  engine: TailorEngine;
   overlay: TailorOverlay;
   matched: string[];
   gaps: string[];
@@ -204,7 +234,7 @@ export type AiTailoring = {
  * limits, anything blank replaced by what the page already says, and a warning for every figure the page does not
  * contain. The model is trusted for wording and order, never for facts or ids.
  */
-export function finishTailoring(site: Site, ai: AiTailoring, source?: string): TailorResult {
+export function finishTailoring(site: Site, ai: AiTailoring, source?: string): Omit<TailorResult, "engine"> {
   const current = overlayFromSite(site);
   const known = new Map(site.experiences.map((e) => [e.id, e]));
   const listed = reconcileOverlay(site, {
