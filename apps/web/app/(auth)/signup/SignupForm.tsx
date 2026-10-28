@@ -31,6 +31,7 @@ export function SignupForm({ siteHost }: { siteHost: string }) {
   const slugValue = slug ?? slugFrom(name);
 
   const err = (f: SignupField) => state.fieldErrors?.[f];
+  const agreeError = err("agree");
   const props = (f: SignupField) => ({
     id: f,
     name: f,
@@ -93,6 +94,35 @@ export function SignupForm({ siteHost }: { siteHost: string }) {
       <Field id="password" label="Password" required hint={HINTS.password} error={err("password")}>
         <PasswordInput {...props("password")} autoComplete="new-password" />
       </Field>
+      <div className="sp-field">
+        <label className="sp-check" htmlFor="agree">
+          <input
+            id="agree"
+            name="agree"
+            type="checkbox"
+            required
+            defaultChecked={state.values?.agree}
+            aria-invalid={agreeError ? true : undefined}
+            aria-describedby={agreeError ? "agree-error" : undefined}
+          />
+          <span>
+            I have read and agree to the{" "}
+            <Link href="/terms" target="_blank" rel="noopener">
+              Terms of service
+            </Link>{" "}
+            and the{" "}
+            <Link href="/privacy" target="_blank" rel="noopener">
+              Privacy policy
+            </Link>
+            .
+          </span>
+        </label>
+        {agreeError && (
+          <span id="agree-error" className="sp-field-error" role="alert">
+            {agreeError}
+          </span>
+        )}
+      </div>
       <div>
         <SubmitButton pendingLabel="Creating your page…">Create my page</SubmitButton>
       </div>

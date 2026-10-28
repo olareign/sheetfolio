@@ -9,9 +9,9 @@ import { signIn } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/env";
 import { allowSignup, clientIp } from "@/lib/ratelimit";
 
-export type SignupField = "name" | "email" | "slug" | "headline" | "password";
+export type SignupField = "name" | "email" | "slug" | "headline" | "password" | "agree";
 export type SignupState = {
-  values?: Partial<Record<Exclude<SignupField, "password">, string>>;
+  values?: Partial<Record<Exclude<SignupField, "password" | "agree">, string>> & { agree?: boolean };
   fieldErrors?: Partial<Record<SignupField, string>>;
   formError?: string;
 };
@@ -25,6 +25,9 @@ const Fields = z.object({
   slug: Slug,
   headline: OnboardingInput.shape.headline,
   password: NewPassword,
+  // A checked box posts "on"; anything else (no box, a forged post) is a refusal. The form checks too, but a server
+  // action is a public endpoint, so nobody joins without agreeing even if the form is bypassed.
+  agree: z.literal("on", "You need to agree to the Terms of service and Privacy policy to create a page"),
 });
 
 /** "Ada Obi Smith" → "Ada": the name used on buttons such as "WhatsApp Ada". */
@@ -37,8 +40,15 @@ export async function signUp(_prev: SignupState, formData: FormData): Promise<Si
     slug: String(formData.get("slug") ?? ""),
     headline: String(formData.get("headline") ?? ""),
     password: String(formData.get("password") ?? ""),
+    agree: String(formData.get("agree") ?? ""),
   };
-  const values = { name: raw.name, email: raw.email, slug: raw.slug, headline: raw.headline };
+  const values = {
+    name: raw.name,
+    email: raw.email,
+    slug: raw.slug,
+    headline: raw.headline,
+    agree: raw.agree === "on",
+  };
 
   const parsed = Fields.safeParse(raw);
   if (!parsed.success) {

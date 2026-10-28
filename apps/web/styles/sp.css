@@ -80,6 +80,11 @@
 textarea.sp-input { height: auto; min-height: 96px; padding: 10px var(--space-3); line-height: 1.5; resize: vertical; }
 .sp-input:focus { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .sp-input[aria-invalid="true"] { border-color: var(--hivis-ink); }
+/* A checkbox with a sentence beside it, for agreeing to something. The whole row is the click target. */
+.sp-check { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; cursor: pointer; font: 400 14px/1.5 var(--font-sans); color: var(--ink); }
+.sp-check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--blueprint); cursor: pointer; }
+.sp-check input:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.sp-check a { color: var(--blueprint); text-decoration: underline; text-underline-offset: 2px; }
 .sp-field-hint { font: 400 12px/1.4 var(--font-sans); color: var(--ink-muted); }
 .sp-field-error { font: 500 12px/1.4 var(--font-sans); color: var(--hivis-ink); }
 
