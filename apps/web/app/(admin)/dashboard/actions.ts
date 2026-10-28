@@ -10,6 +10,14 @@ import { applyCvImport } from "@/lib/cv-import/apply";
 import { refreshProjectPreview } from "@/lib/project-preview";
 import { requireAccount } from "@/lib/session";
 import { saveSetupProfile, skipSetup, type SetupPart } from "@/lib/setup";
+import {
+  applyTailored,
+  deleteTailored,
+  discardUndo,
+  saveTailored,
+  undoApply,
+  updateTailored,
+} from "@/lib/tailor/service";
 import { getDraft, markAllLeadsRead, markLeadRead, publish, SiteError } from "@/lib/site";
 
 export type ActionResult =
@@ -127,6 +135,58 @@ export async function saveCvLayoutsAction(data: unknown): Promise<ActionResult> 
 export async function saveSetupAction(part: SetupPart, data: unknown): Promise<ActionResult> {
   if (part !== "about" && part !== "contact") return badRequest("Unknown step.");
   return run((slug) => saveSetupProfile(slug, part, data));
+}
+
+const TailoredInput = z.object({
+  /** Present when editing a saved version; absent when saving a new one. */
+  id: z.string().min(1).max(64).optional(),
+  name: z.unknown(),
+  overlay: z.unknown(),
+  job: z
+    .object({ title: z.string().max(200), company: z.string().max(200), source: z.string().max(2000).optional() })
+    .partial()
+    .optional(),
+});
+
+export async function saveTailoredAction(input: unknown): Promise<ActionResult> {
+  const parsed = TailoredInput.safeParse(input);
+  if (!parsed.success) return badRequest("Some details in this version need fixing.");
+  const { id, ...rest } = parsed.data;
+  return run(async (slug) => {
+    if (id) {
+      await updateTailored(slug, id, rest);
+      return id;
+    }
+    return (await saveTailored(slug, rest)).id;
+  });
+}
+
+const TailoredId = z.string().min(1).max(64);
+
+export async function deleteTailoredAction(id: unknown): Promise<ActionResult> {
+  const parsed = TailoredId.safeParse(id);
+  if (!parsed.success) return badRequest("Unknown version.");
+  return run((slug) => deleteTailored(slug, parsed.data));
+}
+
+export async function applyTailoredAction(id: unknown): Promise<ActionResult> {
+  const parsed = TailoredId.safeParse(id);
+  if (!parsed.success) return badRequest("Unknown version.");
+  return run(async (slug) => {
+    await applyTailored(slug, parsed.data);
+    return { notice: "Your page now uses this version. You can restore your own wording any time." };
+  });
+}
+
+export async function restoreTailoredAction(): Promise<ActionResult> {
+  return run(async (slug) => {
+    await undoApply(slug);
+    return { notice: "Your page is back to your own wording." };
+  });
+}
+
+export async function discardTailoredRestoreAction(): Promise<ActionResult> {
+  return run((slug) => discardUndo(slug));
 }
 
 export async function skipSetupAction(): Promise<ActionResult> {

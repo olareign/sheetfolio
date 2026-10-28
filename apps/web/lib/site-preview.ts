@@ -153,7 +153,7 @@ async function safeGet(
 
 // ── Reading the page ────────────────────────────────────────────────────────
 
-const decodeEntities = (s: string) =>
+export const decodeEntities = (s: string) =>
   s
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
@@ -214,6 +214,15 @@ export async function fetchSiteMeta(url: string, deps: PreviewDeps = {}): Promis
     guard: deps.guard ?? assertPublicUrl,
   });
   return parseSiteMeta(new TextDecoder().decode(page.bytes), page.url);
+}
+
+/** Fetches a public web page as HTML under the same safety rules (every hop checked, short timeout, size cap). */
+export async function fetchHtmlPage(url: string, deps: PreviewDeps = {}): Promise<{ url: string; html: string }> {
+  const page = await safeGet(url, "html", MAX_HTML_BYTES, {
+    fetchImpl: deps.fetchImpl ?? fetch,
+    guard: deps.guard ?? assertPublicUrl,
+  });
+  return { url: page.url, html: new TextDecoder().decode(page.bytes) };
 }
 
 /** Downloads an image (a site's own picture, or a screenshot) under the same safety rules. */

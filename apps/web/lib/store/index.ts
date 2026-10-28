@@ -6,6 +6,7 @@ import { credStore, type CredStore, type KV } from "./credentials";
 import { kvFor } from "./kv";
 import { leadStore, type LeadStore } from "./leads";
 import { siteStore, type SiteStore } from "./sites";
+import { tailoredStore, type TailoredStore } from "./tailored";
 import { userStore, type UserStore } from "./users";
 
 /*
@@ -17,6 +18,7 @@ export const credentialKv = (): KV => kvFor(redis)();
 export const users = (): UserStore => userStore(db);
 export const credentialStore = (): CredStore => credStore(db);
 export const leads = (): LeadStore => leadStore(db);
+export const tailored = (): TailoredStore => tailoredStore(db);
 export const sites = (): SiteStore =>
   siteStore(db, async (slug) => {
     await redis().sadd(keys.sites(), slug);

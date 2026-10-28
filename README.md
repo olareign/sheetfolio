@@ -32,6 +32,8 @@ pnpm dev                                       # http://localhost:3000
 | `NEXT_PUBLIC_SITE_URL`                               | Absolute links (e.g. `http://localhost:3000`).                                                  |
 | `ADMIN_EMAILS`                                       | Comma-separated emails that get the `admin` role at onboarding.                                 |
 | `BLOB_READ_WRITE_TOKEN`                              | Image uploads, and the copies of project website pictures (see Project previews).               |
+| `ANTHROPIC_API_KEY`                                  | Optional. Switches on Tailor to a job (AI). Without it the page says the feature is off.         |
+| `ANTHROPIC_MODEL`                                    | Optional. Default `claude-opus-5-5`; `claude-sonnet-5-5` is faster and cheaper.                  |
 | `SCREENSHOT_URL_TEMPLATE`                            | Optional. Screenshot service for project previews; `{url}` is replaced by the link. Default: Microlink. |
 
 The web app validates these on first use (`apps/web/lib/env.ts`) and fails with a list of what's missing.
@@ -129,6 +131,16 @@ its category (`public/stock/projects`, labelled "Stock photo" on the card).
   cap, and HTML or raster images only. If a site can't be read, the project still saves and the dashboard says what to do.
 - The screenshot service sees only the project's public URL. Swap it with `SCREENSHOT_URL_TEMPLATE`.
 - Stock photos are credited in `apps/web/public/stock/CREDITS.md`.
+
+## Tailor to a job
+
+Dashboard → Tailor to a job: the owner gives a job link or pastes the description and Claude
+proposes a headline, summary, skills, experience wording and ordering from what is already on their page. They review
+and edit it, download a PDF, and may keep up to three versions (table `tailored_cvs`, migration `0004`; apply it with
+`pnpm db:migrate` before deploying). A version is an overlay on the page, so it never copies or changes the page; only
+"Use on my page" does, and the first use keeps the owner's own wording for "Restore". Five runs per person per rolling
+day (`DAILY_TAILORINGS`); the limiter fails closed because each run costs money. Contact details, private details,
+referees and photos are never sent to Claude.
 
 ## Marketing pages
 

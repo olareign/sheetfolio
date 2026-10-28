@@ -25,6 +25,16 @@ describe("parseEnv", () => {
     expect(env.RESEND_FROM).toBe("Dosinex <onboarding@resend.dev>");
   });
 
+  it("leaves AI tailoring switched off without a key, and defaults the model", () => {
+    const env = parseEnv({ ...base, ANTHROPIC_API_KEY: "", ANTHROPIC_MODEL: "" });
+    expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.ANTHROPIC_MODEL).toBe("claude-opus-5-5");
+    expect(parseEnv({ ...base, ANTHROPIC_API_KEY: "sk-ant-x", ANTHROPIC_MODEL: "claude-sonnet-5-5" })).toMatchObject({
+      ANTHROPIC_API_KEY: "sk-ant-x",
+      ANTHROPIC_MODEL: "claude-sonnet-5-5",
+    });
+  });
+
   it("normalises admin emails", () => {
     expect(parseEnv({ ...base, ADMIN_EMAILS: " A@x.com, b@y.com ,," }).ADMIN_EMAILS).toEqual(["a@x.com", "b@y.com"]);
   });

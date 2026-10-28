@@ -1,5 +1,6 @@
 import "server-only";
 import { Ratelimit } from "@upstash/ratelimit";
+import { DAILY_TAILORINGS } from "../content/tailor";
 import { redis } from "./redis";
 
 let contact: Ratelimit | undefined;
@@ -120,4 +121,40 @@ export async function allowSignup(ip: string): Promise<boolean> {
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return forwarded || headers.get("x-real-ip") || "unknown";
+}
+
+let tailorByAccount: Ratelimit | undefined;
+const tailorLimiter = (): Ratelimit =>
+  (tailorByAccount ??= new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(DAILY_TAILORINGS, "24 h"),
+    prefix: "ratelimit:tailor:account",
+    analytics: false,
+  }));
+
+export type TailorQuota = { remaining: number; limit: number };
+
+/**
+ * AI tailorings left today for one account, without using one. Each run costs real money, so unlike the other limiters
+ * this one fails closed: if the counter cannot be read, nobody gets a run until it can.
+ */
+export async function tailorQuota(accountKey: string): Promise<TailorQuota | null> {
+  try {
+    const { remaining, limit } = await tailorLimiter().getRemaining(accountKey.trim().toLowerCase());
+    return { remaining, limit };
+  } catch (err) {
+    console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+/** Uses one of today's tailorings. Null when the counter is unavailable (see `tailorQuota`). */
+export async function takeTailorRun(accountKey: string): Promise<(TailorQuota & { allowed: boolean }) | null> {
+  try {
+    const { success, remaining, limit } = await tailorLimiter().limit(accountKey.trim().toLowerCase());
+    return { allowed: success, remaining, limit };
+  } catch (err) {
+    console.error("[tailor] rate limiter unavailable:", err instanceof Error ? err.message : err);
+    return null;
+  }
 }

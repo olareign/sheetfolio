@@ -30,6 +30,10 @@ const EnvSchema = z
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "Must start with postgres:// or postgresql://"),
     /** Shared secret for the daily job at /api/cron/stats; Vercel sends it as a bearer token. At least 32 characters. */
     CRON_SECRET: optional(z.string().min(32, "CRON_SECRET must be at least 32 characters")),
+    /** AI tailoring of a CV to a job (Anthropic). Without a key the dashboard says the feature is not switched on. */
+    ANTHROPIC_API_KEY: optional(z.string().min(1)),
+    /** The Claude model tailoring runs on. A smaller model is faster and cheaper (e.g. claude-sonnet-5-5). */
+    ANTHROPIC_MODEL: optional(z.string().min(1)).transform((v) => v ?? "claude-opus-5-5"),
     /** Where privacy requests and support questions go; shown on the privacy policy. */
     SUPPORT_EMAIL: optional(z.email()),
     ADMIN_EMAILS: optional(z.string()).transform((raw) =>
