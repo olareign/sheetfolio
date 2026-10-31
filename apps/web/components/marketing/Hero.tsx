@@ -106,7 +106,7 @@ const CARDS: HeroCard[] = [
   {
     icon: "link",
     label: "Your link",
-    promise: "dosinex.vercel.app/you, live in minutes.",
+    promise: "dosinex.com/you, live in minutes.",
     rot: 0,
     lift: -12,
     delay: 0,

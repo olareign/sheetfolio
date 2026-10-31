@@ -2,6 +2,10 @@
 
 > Companion to `PRD.md`. This file is the source of truth for every visual decision.
 > Copy §3 into `styles/tokens.css` and §6 into `styles/sp.css` verbatim.
+>
+> **Status (Oct 2026):** this describes the original "drawing sheet" look of the public portfolio pages. The marketing site and
+> the dashboard now use an indigo look with light and dark themes (`styles/marketing.css`, `styles/cms.css`); the tokens
+> and the `sp-` components here are still the base of both.
 
 ---
 

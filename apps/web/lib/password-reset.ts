@@ -15,7 +15,7 @@ type RequestDeps = {
   /** Rate limit for this identifier and caller; false means "slow down". */
   allow: (identifier: string) => Promise<boolean>;
   send: Send;
-  /** Absolute base URL, e.g. https://dosinex.vercel.app */
+  /** Absolute base URL, e.g. https://dosinex.com */
   origin: string;
   now?: Date;
 };

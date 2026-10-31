@@ -1,14 +1,15 @@
 # Dosinex
 
-Portfolio pages for civil engineers, managed from a schema-driven CMS.
+Dosinex gives anyone with work to show a portfolio page, a CV people can download in the layout you choose, tailoring of
+that CV to a job with AI, and an inbox for enquiries. Live at <https://dosinex.com>.
 
-- What to build: [`docs/prd.md`](docs/prd.md)
-- How it looks: [`docs/design-system.md`](docs/design-system.md)
+- The original brief: [`docs/prd.md`](docs/prd.md) (written for civil engineers, before the product opened to every profession)
+- The original look of the public pages: [`docs/design-system.md`](docs/design-system.md)
 
 A pnpm workspace with one app, `apps/web`: Next.js (App Router) + Upstash Redis, serving the public pages, the CMS and
 sign-in. It owns the whole user flow (sign-in, onboarding, profile creation) and calls no other service.
 
-The NestJS backend lives in its own repo, [`olareign/sheetfolio-api`](https://github.com/olareign/sheetfolio-api). It is
+The NestJS backend lives in its own repo, [`olareign/sheetfolio-api`](https://github.com/olareign/sheetfolio-api) (still under its old name). It is
 **not connected to this app and not deployed**, which keeps hosting costs at zero while the product is market tested.
 Wiring the two together is a later step.
 
@@ -73,7 +74,7 @@ Set these in Vercel → Project → Settings → Environment Variables for **Pro
 | `AUTH_SECRET`                                        | `npx auth secret`                                                                         |
 | `AUTH_RESEND_KEY`                                    | **Required in production**: the app refuses to serve without it                           |
 | `RESEND_FROM`                                        | e.g. `Dosinex <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
-| `NEXT_PUBLIC_SITE_URL`                               | the production URL, e.g. `https://dosinex.vercel.app` (used for links, sitemap, OG)    |
+| `NEXT_PUBLIC_SITE_URL`                               | the production URL, `https://dosinex.com` (links, sitemap, canonical and OG, email links) |
 | `ADMIN_EMAILS`                                       | who can open `/admin`                                                                     |
 | `BLOB_READ_WRITE_TOKEN`                              | added automatically when you connect a Vercel Blob store                                  |
 

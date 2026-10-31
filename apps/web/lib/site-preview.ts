@@ -8,7 +8,7 @@ import { isIP } from "node:net";
  * (SSRF), limited in time and size, and only HTML or image responses are accepted.
  */
 
-const USER_AGENT = "DosinexBot/1.0 (+https://dosinex.vercel.app)";
+const USER_AGENT = "DosinexBot/1.0 (+https://dosinex.com)";
 const MAX_HTML_BYTES = 1_000_000;
 const MAX_IMAGE_BYTES = 4_000_000;
 const MAX_REDIRECTS = 4;

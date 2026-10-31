@@ -3,6 +3,10 @@
 > Working name: **Dosinex** (formerly "realhole"). First profile: **Rasaq Idris Olawale**, Site Engineer.
 > Owner: Olareign · Version 1.0 · 28 Sep 2026
 > Companion file: `DESIGN_SYSTEM.md` (all visual rules, tokens and component CSS).
+>
+> **Status (Oct 2026): this is the original brief.** It was written for one civil engineer's portfolio. Dosinex is now live at
+> <https://dosinex.com> and open to every profession, with a CV builder, AI tailoring of a CV to a job, enquiries and
+> insights. Where this document and the code or the README differ, the code and the README are right.
 
 ---
 
