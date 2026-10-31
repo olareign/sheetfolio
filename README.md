@@ -9,7 +9,7 @@ that CV to a job with AI, and an inbox for enquiries. Live at <https://dosinex.c
 A pnpm workspace with one app, `apps/web`: Next.js (App Router) + Upstash Redis, serving the public pages, the CMS and
 sign-in. It owns the whole user flow (sign-in, onboarding, profile creation) and calls no other service.
 
-The NestJS backend lives in its own repo, [`olareign/sheetfolio-api`](https://github.com/olareign/sheetfolio-api) (still under its old name). It is
+The NestJS backend lives in its own repo, [`olareign/dosinex-api`](https://github.com/olareign/dosinex-api). It is
 **not connected to this app and not deployed**, which keeps hosting costs at zero while the product is market tested.
 Wiring the two together is a later step.
 
