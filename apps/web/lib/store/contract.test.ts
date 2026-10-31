@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import type { Lead, UserRecord } from "@/content/schemas";
 import { FakeRedis } from "@/test/fake-redis";
 import { testDb } from "@/test/pg";
+import { adminStore } from "./admin";
 import { credStore, type CredentialRecord, type CredStore } from "./credentials";
 import { leadStore, MAX_LEADS, type LeadStore } from "./leads";
 import { reindexSites, siteStore, type SiteStore } from "./sites";
@@ -22,7 +23,9 @@ afterAll(async () => {
 });
 
 const make = async (): Promise<Side> => {
-  await db.query("truncate users, credentials, session_epochs, leads, sites");
+  await db.query(
+    "truncate users, credentials, session_epochs, leads, sites, tailored_cvs, tailored_undo, stats_daily, stats_projects, stats_cv",
+  );
   return {
     users: userStore(() => db),
     creds: credStore(() => db),
@@ -339,5 +342,112 @@ describe("page registration", () => {
     expect(await reindexSites(fake as unknown as Redis, store)).toEqual({ added: 1, total: 2 });
     expect([...(fake.sets.get("sites") ?? [])].sort()).toEqual(["ada-obi", "bob", "stale-page"]);
     expect(await reindexSites(fake as unknown as Redis, store)).toEqual({ added: 0, total: 2 });
+  });
+});
+
+describe("admin: accounts, enquiries across pages, and removing an account", () => {
+  it("finds an account by its page address, and moves it between plans", async () => {
+    const s = await make();
+    await s.users.create({ email: "Ada@Example.com", record: user("u1", "ada") });
+    expect(await s.users.getBySlug("ada")).toMatchObject({ email: "ada@example.com", record: { slug: "ada" } });
+    expect(await s.users.getBySlug("nobody")).toBeNull();
+
+    expect(await s.users.setPlan("ADA@example.com", "pro")).toBe(true);
+    expect((await s.users.get("ada@example.com"))?.plan).toBe("pro");
+    expect(await s.users.setPlan("nobody@example.com", "pro")).toBe(false);
+  });
+
+  it("rejects a plan that does not exist", async () => {
+    const s = await make();
+    await s.users.create({ email: "ada@example.com", record: user("u1", "ada") });
+    await expect(s.users.setPlan("ada@example.com", "gold" as "pro")).rejects.toThrow();
+  });
+
+  it("searches enquiries across pages, pages through them and counts them", async () => {
+    const s = await make();
+    await s.leads.add("ada", lead(1, { name: "Zed Client", message: "Need a bridge" }));
+    await s.leads.add("ada", lead(2, { company: "Acme 100%", read: true }));
+    await s.leads.add("bob", lead(3, { email: "pat@example.org" }));
+
+    const all = await s.leads.search({ page: 0, pageSize: 10 });
+    expect(all.total).toBe(3);
+    expect(all.rows.map((r) => `${r.slug}:${r.name}`)).toEqual(["bob:Client 3", "ada:Client 2", "ada:Zed Client"]);
+
+    expect((await s.leads.search({ q: "bridge", page: 0, pageSize: 10 })).rows.map((r) => r.slug)).toEqual(["ada"]);
+    expect((await s.leads.search({ q: "pat@example", page: 0, pageSize: 10 })).total).toBe(1);
+    expect((await s.leads.search({ slug: "bob", page: 0, pageSize: 10 })).total).toBe(1);
+    expect((await s.leads.search({ unreadOnly: true, page: 0, pageSize: 10 })).total).toBe(2);
+    // A typed % is a character, not a wildcard.
+    expect((await s.leads.search({ q: "100%", page: 0, pageSize: 10 })).total).toBe(1);
+    expect((await s.leads.search({ q: "%", page: 0, pageSize: 10 })).total).toBe(1);
+    expect((await s.leads.search({ page: 1, pageSize: 2 })).rows).toHaveLength(1);
+
+    expect(await s.leads.totals()).toEqual({ total: 3, unread: 2 });
+    expect(await s.leads.countsBySlug()).toEqual(
+      new Map([
+        ["ada", { total: 2, unread: 1 }],
+        ["bob", { total: 1, unread: 1 }],
+      ]),
+    );
+  });
+
+  it("deletes one enquiry, only on its own page", async () => {
+    const s = await make();
+    await s.leads.add("ada", lead(1));
+    expect(await s.leads.remove("bob", lead(1).id)).toBe(false);
+    expect(await s.leads.remove("ada", lead(1).id)).toBe(true);
+    expect(await s.leads.count("ada")).toBe(0);
+  });
+
+  it("returns every page's documents in one query", async () => {
+    const s = await make();
+    await s.sites.create("ada", { name: "Ada" });
+    await s.sites.create("bob", { name: "Bob" });
+    await s.sites.publish("bob", { doc: { name: "Bob live" }, publishedAt: "2026-10-02T10:00:00.000Z" });
+    const docs = await s.sites.listDocs();
+    expect(docs.map((d) => [d.slug, d.published !== null])).toEqual([
+      ["ada", false],
+      ["bob", true],
+    ]);
+  });
+
+  it("counts the platform, and removes one account with everything it owns and nothing else", async () => {
+    const s = await make();
+    const store = adminStore(() => db);
+    await s.users.create({ email: "ada@example.com", record: user("u1", "ada", { plan: "pro" }) });
+    await s.users.create({ email: "bob@example.com", record: user("u2", "bob") });
+    await s.creds.save("ada@example.com", cred());
+    await s.creds.save("bob@example.com", cred());
+    await s.creds.bumpEpoch("ada@example.com");
+    await s.sites.create("ada", { settings: { status: "suspended" } });
+    await s.sites.create("bob", { settings: { status: "draft" } });
+    await s.leads.add("ada", lead(1));
+    await s.leads.add("bob", lead(2));
+    await db.query(
+      "insert into tailored_cvs (id, slug, slot, name, overlay, created_at, updated_at) values ('v1','ada',1,'x','{}'::jsonb, now(), now())",
+    );
+    await db.query("insert into stats_daily (slug, day, views) values ('ada','2026-10-01',3),('bob','2026-10-01',4)");
+
+    expect(await store.totals()).toEqual({
+      users: 2,
+      proUsers: 1,
+      pages: 2,
+      publishedPages: 0,
+      suspendedPages: 1,
+      savedVersions: 1,
+    });
+
+    await store.purgeAccount({ email: "ADA@example.com", slug: "ada" });
+
+    expect(await s.users.get("ada@example.com")).toBeNull();
+    expect(await s.creds.get("ada@example.com")).toBeNull();
+    expect(await s.creds.epoch("ada@example.com")).toBe(0);
+    expect(await s.sites.getDraft("ada")).toBeNull();
+    expect(await s.leads.count("ada")).toBe(0);
+    const counts = await store.tableCounts();
+    expect(counts).toMatchObject({ users: 1, credentials: 1, sites: 1, leads: 1, tailored_cvs: 0, stats_daily: 1 });
+    // The other account is untouched.
+    expect(await s.users.get("bob@example.com")).not.toBeNull();
+    expect(await s.leads.count("bob")).toBe(1);
   });
 });

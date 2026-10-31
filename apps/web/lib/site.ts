@@ -12,6 +12,7 @@ import {
   type CollectionName,
   type SiteInput,
 } from "@/content/schemas";
+import { recordActivity } from "./activity";
 import { keys, redis } from "./redis";
 import { leads, sites } from "./store";
 
@@ -150,6 +151,7 @@ export async function publish(slug: string, now: Date = new Date()): Promise<Sit
   // Expire immediately (not stale-while-revalidate): the engineer expects to see the change at once.
   revalidateTag(siteTag(slug), { expire: 0 });
   revalidateTag(FEATURED_TAG, { expire: 0 });
+  await recordActivity({ type: "publish", slug, detail: "Published the page", at: now });
   return published;
 }
 
@@ -209,6 +211,8 @@ export async function addLead(slug: string, input: LeadInput, now: Date = new Da
   if (!parsed.success) throw new SiteError("INVALID", "Invalid enquiry", parsed.error.issues);
   const lead: Lead = { ...parsed.data, id: crypto.randomUUID(), createdAt: now.toISOString(), read: false };
   await leads().add(s, lead);
+  // Who wrote to whom, never what they said.
+  await recordActivity({ type: "lead", slug: s, detail: "Received an enquiry", at: now });
   return lead;
 }
 

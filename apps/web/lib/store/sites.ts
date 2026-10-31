@@ -17,6 +17,8 @@ export interface SiteStore {
   firstPublishedAt(slug: string): Promise<string | null>;
   /** Every registered page address. */
   list(): Promise<string[]>;
+  /** Both documents of every page, in one query, for the admin console. */
+  listDocs(): Promise<{ slug: string; draft: unknown; published: unknown | null; firstPublishedAt: string | null }[]>;
   /** Registers a page with this draft (replacing any draft already there). */
   create(slug: string, draft: unknown): Promise<void>;
   /** Replaces the draft, and the published copy too when one is given, together. */
@@ -57,6 +59,20 @@ export function siteStore(
     },
     async list() {
       return (await db().query<{ slug: string }>("select slug from sites order by slug")).map((r) => r.slug);
+    },
+    async listDocs() {
+      const rows = await db().query<{
+        slug: string;
+        draft: unknown;
+        published: unknown | null;
+        first: unknown;
+      }>("select slug, draft, published, first_published_at as first from sites order by slug");
+      return rows.map((r) => ({
+        slug: r.slug,
+        draft: r.draft,
+        published: r.published ?? null,
+        firstPublishedAt: r.first ? iso(r.first) : null,
+      }));
     },
     async create(slug, draft) {
       await store.put(slug, { draft });

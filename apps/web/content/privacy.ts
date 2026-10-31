@@ -60,7 +60,11 @@ export const PRIVACY: readonly PrivacySection[] = [
         ul: [
           "Your IP address is used briefly to limit abuse, for example repeated sign-in attempts, password-reset requests, sign-ups and enquiries. It is kept only for the length of the limiting window (up to one hour).",
           "Our hosting provider keeps standard server logs (request time, address, errors) for security and troubleshooting.",
+          "A short activity log of account events: signing up, signing in, publishing, receiving an enquiry, tailoring a CV, and changes a Dosinex administrator makes to an account. Each entry holds the event, the account and the time, never a password, a message or an IP address. It is used for security and support, is visible only to administrators, and is dropped after at most 90 days.",
         ],
+      },
+      {
+        p: "Dosinex administrators can see and manage accounts and what is on pages, for example to remove content that breaks the rules or to act on a deletion request.",
       },
     ],
   },

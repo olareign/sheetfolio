@@ -28,9 +28,11 @@ const state = vi.hoisted(() => ({
   quotaDown: false,
   draft: null as unknown,
   tailor: vi.fn(),
+  activity: vi.fn(),
   resolve: vi.fn(),
   taken: vi.fn(),
 }));
+vi.mock("@/lib/activity", () => ({ recordActivity: state.activity }));
 vi.mock("@/lib/auth", () => ({ auth: async () => (state.email ? { user: { email: state.email } } : null) }));
 vi.mock("@/lib/accounts", () => ({
   getUserRecord: async () => (state.slug ? { slug: state.slug, plan: state.plan } : null),
@@ -95,6 +97,7 @@ beforeEach(() => {
   state.tailor.mockReset().mockResolvedValue(finishTailoring(filled, ai));
   state.resolve.mockReset().mockResolvedValue({ text: "job text", source: "https://jobs.example/1" });
   state.taken.mockReset();
+  state.activity.mockReset();
 });
 
 describe("POST /api/tailor", () => {
@@ -109,6 +112,20 @@ describe("POST /api/tailor", () => {
     });
     expect(json.result.overlay.headline).toBe("Frontend Engineer");
     expect(json.quota).toEqual({ remaining: 4, limit: 5 });
+  });
+
+  it("records the run in the activity log, with the engine and no job text", async () => {
+    await post({ text: "a secret job description" });
+    expect(state.activity).toHaveBeenCalledTimes(1);
+    const event = state.activity.mock.calls[0]![0];
+    expect(event).toMatchObject({ type: "tailor", slug: "ada-obi", detail: "Tailored a CV with standard AI" });
+    expect(JSON.stringify(event)).not.toContain("secret");
+  });
+
+  it("records nothing when the run fails", async () => {
+    state.tailor.mockRejectedValue(new TailorError("BUSY", "busy"));
+    await post({ text: "x" });
+    expect(state.activity).not.toHaveBeenCalled();
   });
 
   it("needs a signed-in owner", async () => {

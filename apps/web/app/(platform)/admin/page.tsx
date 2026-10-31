@@ -1,148 +1,125 @@
-import type { Metadata } from "next";
+import {
+  ArrowUpRight,
+  Eye,
+  FileDown,
+  Inbox,
+  Rocket,
+  ShieldAlert,
+  Timer,
+  UserPlus,
+  Users,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { SuspendButton } from "@/components/admin/SuspendButton";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { LocalTime } from "@/components/cms/LocalTime";
-import { listSignups, listSites } from "@/lib/admin";
-import { requireAdmin } from "@/lib/session";
-import "@/styles/cms.css";
+import { ActivityList } from "@/components/admin/ActivityList";
+import { getOverview } from "@/lib/admin";
+import { listActivity } from "@/lib/activity";
 
-// Neutral title: a non-admin gets a 404 and nothing should hint that /admin exists.
-export const metadata: Metadata = { title: { absolute: "Dosinex" }, robots: { index: false, follow: false } };
+type Kpi = { label: string; value: string; note?: string; icon: LucideIcon; href?: string; tone?: "warn" };
 
-const STATUS = {
-  live: { label: "Live", className: "sp-tag sp-tag--done" },
-  changes: { label: "Unpublished changes", className: "sp-tag" },
-  unpublished: { label: "Not published", className: "sp-tag" },
-  suspended: { label: "Suspended", className: "sp-tag sp-tag--ongoing" },
-} as const;
+const n = (value: number) => value.toLocaleString("en");
 
-export default async function AdminPage() {
-  await requireAdmin();
-  const [sites, signups] = await Promise.all([listSites(), listSignups()]);
-  const live = sites.filter((s) => s.status === "live" || s.status === "changes").length;
-  const published = sites.filter((s) => s.minutesToFirstPublish !== undefined);
-  const under30 = published.filter((s) => (s.minutesToFirstPublish ?? Infinity) < 30).length;
+export default async function AdminOverview() {
+  const [o, recent] = await Promise.all([getOverview(), listActivity({ limit: 12 })]);
+  const kpis: Kpi[] = [
+    {
+      label: "Accounts",
+      value: n(o.totals.users),
+      note: `${n(o.signupsWeek)} joined this week`,
+      icon: Users,
+      href: "/admin/users",
+    },
+    {
+      label: "Live pages",
+      value: n(o.totals.publishedPages),
+      note: `of ${n(o.totals.pages)} pages`,
+      icon: Rocket,
+      href: "/admin/users?status=live",
+    },
+    {
+      label: "Pro accounts",
+      value: n(o.totals.proUsers),
+      note: "Claude tailoring",
+      icon: Zap,
+      href: "/admin/users?plan=pro",
+    },
+    { label: "Page views", value: n(o.viewsWeek), note: "last 7 days", icon: Eye },
+    { label: "CV downloads", value: n(o.cvDownloads), note: "all time", icon: FileDown },
+    {
+      label: "Enquiries",
+      value: n(o.leads.total),
+      note: `${n(o.leads.unread)} unread`,
+      icon: Inbox,
+      href: "/admin/leads",
+    },
+    {
+      label: "Time to first publish",
+      value: o.medianMinutesToPublish === undefined ? "—" : `${o.medianMinutesToPublish} min`,
+      note: o.underThirty.of ? `${o.underThirty.count} of ${o.underThirty.of} under 30 min` : "median",
+      icon: Timer,
+    },
+    {
+      label: "Suspended pages",
+      value: n(o.totals.suspendedPages),
+      note: o.totals.suspendedPages ? "Taken off the public site" : "None",
+      icon: ShieldAlert,
+      href: "/admin/users?status=suspended",
+      tone: o.totals.suspendedPages ? "warn" : undefined,
+    },
+  ];
 
   return (
-    <main className="cms-content cms-admin">
-      <div className="cms-form-head">
-        <h1 className="cms-title">Platform admin</h1>
-        <span className="cms-lead-toolbar">
-          <ThemeToggle />
-          <Link href="/dashboard" className="sp-annot">
-            Your dashboard
-          </Link>
-        </span>
-      </div>
-
-      <div className="cms-stats">
+    <>
+      <header className="ad-head">
         <div>
-          <span className="sp-label">Sites</span>
-          <span className="cms-stat">{sites.length}</span>
-        </div>
-        <div>
-          <span className="sp-label">Live</span>
-          <span className="cms-stat">{live}</span>
-        </div>
-        <div>
-          <span className="sp-label">Signups</span>
-          <span className="cms-stat">{signups.length}</span>
-        </div>
-        <div>
-          <span className="sp-label">First publish &lt; 30 min</span>
-          <span className="cms-stat">
-            {under30}/{published.length}
+          <span className="ad-eyebrow">
+            <UserPlus size={14} aria-hidden="true" /> Platform admin
           </span>
+          <h1>Overview</h1>
+          <p>Every account, page and enquiry on Dosinex, and what people have been doing.</p>
         </div>
-      </div>
+      </header>
 
-      <section className="cms-section" aria-labelledby="sites-title">
-        <h2 id="sites-title">Sites</h2>
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th scope="col">Site</th>
-                <th scope="col">Status</th>
-                <th scope="col">Signed up → first publish</th>
-                <th scope="col">Last published</th>
-                <th scope="col">Projects · certs</th>
-                <th scope="col">Leads</th>
-                <th scope="col">
-                  <span className="sp-visually-hidden">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sites.map((s) => (
-                <tr key={s.slug}>
-                  <td>
-                    <b>{s.name}</b>
-                    <span className="sp-annot">
-                      <a href={`/${s.slug}`} target="_blank" rel="noopener">
-                        /{s.slug}
-                      </a>
-                      {s.owner && ` · ${s.owner}`}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={STATUS[s.status].className}>{STATUS[s.status].label}</span>
-                  </td>
-                  <td className="sp-annot">
-                    {s.minutesToFirstPublish !== undefined
-                      ? `${s.minutesToFirstPublish} min`
-                      : !s.signedUpAt
-                        ? "Seeded"
-                        : s.publishedAt
-                          ? "Not recorded" // published before first-publish tracking existed
-                          : "Not published yet"}
-                  </td>
-                  <td className="sp-annot">{s.publishedAt ? <LocalTime iso={s.publishedAt} format="date" /> : "—"}</td>
-                  <td className="sp-annot">
-                    {s.projects} · {s.certifications}
-                  </td>
-                  <td className="sp-annot">
-                    {s.leads}
-                    {s.unread > 0 && ` (${s.unread} unread)`}
-                  </td>
-                  <td>
-                    <SuspendButton slug={s.slug} suspended={s.status === "suspended"} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <ul className="ad-kpis">
+        {kpis.map(({ label, value, note, icon: Icon, href, tone }) => {
+          const inner = (
+            <>
+              <span className="ad-kpi-icon" aria-hidden="true">
+                <Icon size={18} strokeWidth={1.75} />
+              </span>
+              <span className="ad-kpi-label">{label}</span>
+              <b className="ad-kpi-value">{value}</b>
+              {note && <small>{note}</small>}
+              {href && <ArrowUpRight className="ad-kpi-go" size={16} aria-hidden="true" />}
+            </>
+          );
+          return (
+            <li key={label} className={tone === "warn" ? "ad-kpi ad-kpi--warn" : "ad-kpi"}>
+              {href ? (
+                <Link href={href} className="ad-kpi-link">
+                  {inner}
+                </Link>
+              ) : (
+                <div className="ad-kpi-link">{inner}</div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
 
-      <section className="cms-section" aria-labelledby="signups-title">
-        <h2 id="signups-title">Signups</h2>
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th scope="col">Email</th>
-                <th scope="col">Site</th>
-                <th scope="col">Role</th>
-                <th scope="col">Signed up</th>
-              </tr>
-            </thead>
-            <tbody>
-              {signups.map((u) => (
-                <tr key={u.email}>
-                  <td>{u.email}</td>
-                  <td className="sp-annot">/{u.slug}</td>
-                  <td className="sp-annot">{u.role}</td>
-                  <td className="sp-annot">
-                    <LocalTime iso={u.createdAt} format="datetime" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <section className="ad-card" aria-labelledby="recent-title">
+        <header className="ad-card-head">
+          <h2 id="recent-title">Recent activity</h2>
+          <Link href="/admin/activity" className="ad-more">
+            See all
+          </Link>
+        </header>
+        <ActivityList
+          events={recent.events}
+          empty="No activity recorded yet. It appears here as people use the site."
+        />
       </section>
-    </main>
+    </>
   );
 }

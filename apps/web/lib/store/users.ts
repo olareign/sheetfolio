@@ -8,6 +8,10 @@ export type CreateUserResult = "ok" | "EMAIL_TAKEN" | "SLUG_TAKEN";
 
 export interface UserStore {
   get(email: string): Promise<UserRecord | null>;
+  /** The account that owns a page address, with its email. */
+  getBySlug(slug: string): Promise<NewUser | null>;
+  /** Moves an account to a plan. False when there is no such account. */
+  setPlan(email: string, plan: UserRecord["plan"]): Promise<boolean>;
   /** Creates the account. The email and the page address each belong to the first account that takes them. */
   create(user: NewUser): Promise<CreateUserResult>;
   /** Undoes a `create` (used when the rest of setting up an account fails). */
@@ -44,6 +48,20 @@ export function userStore(db: () => Db): UserStore {
         [email.toLowerCase()],
       );
       return rows[0] ? toRecord(rows[0]) : null;
+    },
+    async getBySlug(slug) {
+      const rows = await db().query<UserRow>(
+        "select id, email, slug, role, plan, name, created_at from users where slug = $1",
+        [slug],
+      );
+      return rows[0] ? { email: rows[0].email, record: toRecord(rows[0]) } : null;
+    },
+    async setPlan(email, plan) {
+      const rows = await db().query("update users set plan = $2 where email = $1 returning email", [
+        email.toLowerCase(),
+        plan,
+      ]);
+      return rows.length > 0;
     },
     async create({ email, record }) {
       try {

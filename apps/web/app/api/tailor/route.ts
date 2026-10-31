@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { pickEngine } from "@/content/tailor";
+import { recordActivity } from "@/lib/activity";
 import { getUserRecord } from "@/lib/accounts";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
@@ -81,6 +82,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const result = await tailorToJob(draft, job.text, { engine });
+    await recordActivity({
+      type: "tailor",
+      slug: account.slug,
+      detail: `Tailored a CV with ${engine === "claude" ? "Claude" : "standard AI"}`,
+    });
     return NextResponse.json({
       result: { ...result, job: { ...result.job, source: job.source, notice: job.notice } },
       quota: { remaining: taken.remaining, limit: taken.limit },

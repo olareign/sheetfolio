@@ -2,6 +2,7 @@ import "server-only";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import { recordActivity } from "./activity";
 import { getUserRecord } from "./accounts";
 import { authenticate, getSessionEpoch, isSessionCurrent } from "./credentials";
 import { env } from "./env";
@@ -50,6 +51,12 @@ export const {
           const found = await authenticate(identifier, password);
           if (!found) return null;
           const account = await getUserRecord(found.email);
+          await recordActivity({
+            type: "login",
+            email: found.email,
+            ...(account && { slug: account.slug }),
+            detail: "Signed in",
+          });
           return { id: account?.id ?? `cred:${found.email}`, email: found.email, name: account?.name };
         },
       }),

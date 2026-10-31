@@ -152,6 +152,23 @@ plan allows about 200,000 tokens a day. A plan is the `users.plan` column (migra
 no billing yet, so move an account to Pro by hand: `update users set plan = 'pro' where email = '...'`. Contact details,
 private details, referees and photos are never sent to either provider.
 
+## Admin console
+
+`/admin` is the platform console. Who gets in: an address in `ADMIN_EMAILS`, or an account whose role is `admin`. Anyone else
+gets a plain 404 on every admin address. Pages: **Overview** (totals and recent activity), **Users** (search by name, email or
+address; filter by plan, page status and role), one account (change plan, suspend or restore its page, sign it out everywhere,
+reset its tailoring allowance, delete it), **Content** (every project, experience, certification, education, testimonial and
+referee across all pages, with removal), **Enquiries** (every message, with deletion) and **System** (Upstash and Postgres
+sizes, which services are on, and a rebuild of the page index).
+
+Accounts, pages and enquiries are read from Postgres; the **activity log** is in Upstash Redis (`activity:feed`, newest 2,000
+events, and `activity:user:{slug}`, newest 200, both dropped after 90 days without a new event). It records sign-ups,
+sign-ins, publishes, enquiries received, tailorings and every admin change with the admin who made it, never a password, a
+message or an IP address (`lib/activity.ts`). Every admin Server Action in `app/(platform)/admin/actions.ts` calls
+`requireAdmin` first, validates its input, then makes one audited change (`lib/admin.ts`). Deleting an account removes its rows
+in one transaction and its Redis counters; files in Cloudinary stay. Admins cannot be deleted from the console, and nobody can
+delete their own account there.
+
 ## Marketing pages
 
 `/`, `/product`, `/examples`, `/stories` and `/pricing` live in `app/(marketing)` and read their copy from `content/marketing.ts`.

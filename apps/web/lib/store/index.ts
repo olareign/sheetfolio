@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db";
 import { redis } from "../redis";
 import { keys } from "../redis-keys";
+import { adminStore, type AdminStore } from "./admin";
 import { credStore, type CredStore, type KV } from "./credentials";
 import { kvFor } from "./kv";
 import { leadStore, type LeadStore } from "./leads";
@@ -15,6 +16,7 @@ import { userStore, type UserStore } from "./users";
  */
 
 export const credentialKv = (): KV => kvFor(redis)();
+export const admin = (): AdminStore => adminStore(db);
 export const users = (): UserStore => userStore(db);
 export const credentialStore = (): CredStore => credStore(db);
 export const leads = (): LeadStore => leadStore(db);

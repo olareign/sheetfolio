@@ -81,10 +81,32 @@ export class FakeRedis {
     return [...(this.sets.get(key) ?? [])];
   }
 
-  /** Single-pass SCAN over string keys with a trailing-* glob. */
+  /** Single-pass SCAN over string keys. `*` matches any run of characters and `?` any one, like Redis's MATCH. */
   async scan(_cursor: string, opts: { match?: string } = {}): Promise<[string, string[]]> {
-    const prefix = (opts.match ?? "*").replace(/\*$/, "");
-    return ["0", [...this.strings.keys()].filter((k) => k.startsWith(prefix))];
+    const glob = opts.match ?? "*";
+    const pattern = new RegExp(
+      `^${glob
+        .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*/g, ".*")
+        .replace(/\?/g, ".")}$`,
+    );
+    return ["0", [...this.strings.keys()].filter((k) => pattern.test(k))];
+  }
+
+  async scard(key: string): Promise<number> {
+    return this.sets.get(key)?.size ?? 0;
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    const s = this.sets.get(key);
+    if (!s) return 0;
+    let removed = 0;
+    for (const m of members) if (s.delete(m)) removed++;
+    return removed;
+  }
+
+  async dbsize(): Promise<number> {
+    return this.strings.size + this.lists.size + this.sets.size;
   }
 
   async expire(key: string, seconds: number): Promise<number> {

@@ -1,5 +1,6 @@
 import "server-only";
 import { createEmptySite, NewPassword, OnboardingInput, UserRecord } from "@/content/schemas";
+import { recordActivity } from "./activity";
 import { getCredentials, setPassword } from "./credentials";
 import { sites, users } from "./store";
 
@@ -61,6 +62,7 @@ export async function onboard(args: {
     throw err;
   }
 
+  await recordActivity({ type: "signup", slug: input.slug, email, detail: "Created the account", at: now });
   return { ok: true, record };
 }
 
