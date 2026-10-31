@@ -5,7 +5,7 @@ import { peekResetToken, setPassword, type CredStore, type KV } from "./credenti
 import { credStore } from "./store/credentials";
 import { requestPasswordReset, sendPasswordChangedNotice } from "./password-reset";
 
-const origin = "https://dosinex.app/";
+const origin = "https://dosinex.com/";
 const now = new Date("2026-10-21T09:30:00.000Z");
 let fake: FakeRedis;
 let kv: KV;
@@ -42,7 +42,7 @@ describe("requestPasswordReset", () => {
       expect(d.send).toHaveBeenCalledOnce();
       const mail = d.send.mock.calls[0]?.[0] as { to: string; subject: string; text: string };
       expect(mail).toMatchObject({ to: "ada@example.com", subject: "Reset your Dosinex password" });
-      const link = mail.text.match(/https:\/\/dosinex\.app\/reset-password\?token=([\w-]+)/);
+      const link = mail.text.match(/https:\/\/dosinex\.com\/reset-password\?token=([\w-]+)/);
       expect(link).not.toBeNull();
       expect(await peekResetToken(kv, link?.[1] as string)).toBe("ada@example.com");
     }
@@ -98,7 +98,7 @@ describe("sendPasswordChangedNotice", () => {
 
     const mail = send.mock.calls[0]?.[0] as { to: string; subject: string; text: string };
     expect(mail).toMatchObject({ to: "ada@example.com", subject: "Your Dosinex password was changed" });
-    expect(mail.text).toContain("https://dosinex.app/forgot-password");
+    expect(mail.text).toContain("https://dosinex.com/forgot-password");
     expect(mail.text).toContain("21 Oct 2026 09:30:00 UTC");
   });
 

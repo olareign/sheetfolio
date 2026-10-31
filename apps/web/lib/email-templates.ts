@@ -157,7 +157,7 @@ export function enquiryEmail({
   lead: Pick<Lead, "name" | "email" | "company" | "message" | "createdAt">;
   firstName: string;
   slug: string;
-  /** Absolute base URL, e.g. https://dosinex.app */
+  /** Absolute base URL, e.g. https://dosinex.com */
   origin: string;
 }): EmailContent {
   const base = origin.replace(/\/$/, "");
